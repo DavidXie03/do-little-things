@@ -126,7 +126,13 @@ function animateOut(direction: SwipeDirection) {
   isAnimatingOut.value = true
   animatingDirection.value = direction
   const el = cardRef.value
-  if (!el) return
+  if (!el) {
+    // 元素不存在时直接触发 swipe
+    isAnimatingOut.value = false
+    animatingDirection.value = null
+    emit('swipe', direction)
+    return
+  }
 
   // 从松手时的当前位置开始飞出动画
   const currentX = offsetX.value
@@ -136,26 +142,40 @@ function animateOut(direction: SwipeDirection) {
   const targetX = direction === 'right' ? window.innerWidth * 1.2 : -window.innerWidth * 1.2
   const targetRot = direction === 'right' ? 20 : -20
 
-  const animation = el.animate([
-    {
-      transform: `translateX(${currentX}px) rotate(${currentRot}deg)`,
-      opacity: currentOpacity,
-    },
-    {
-      transform: `translateX(${targetX}px) rotate(${targetRot}deg)`,
-      opacity: 0,
-    },
-  ], {
-    duration: 350,
-    easing: 'cubic-bezier(0.45, 0, 0.55, 1)',
-    fill: 'forwards',
-  })
-
-  animation.onfinish = () => {
+  // 标记是否已触发 swipe（防止重复触发）
+  let swiped = false
+  const doSwipe = () => {
+    if (swiped) return
+    swiped = true
     isAnimatingOut.value = false
     animatingDirection.value = null
     offsetX.value = 0
     emit('swipe', direction)
+  }
+
+  try {
+    const animation = el.animate([
+      {
+        transform: `translateX(${currentX}px) rotate(${currentRot}deg)`,
+        opacity: currentOpacity,
+      },
+      {
+        transform: `translateX(${targetX}px) rotate(${targetRot}deg)`,
+        opacity: 0,
+      },
+    ], {
+      duration: 350,
+      easing: 'cubic-bezier(0.45, 0, 0.55, 1)',
+      fill: 'forwards',
+    })
+
+    animation.onfinish = doSwipe
+    animation.oncancel = doSwipe
+
+    // 安全保险：如果动画回调没有触发，确保 350ms + buffer 后一定执行
+    setTimeout(doSwipe, 450)
+  } catch {
+    doSwipe()
   }
 }
 

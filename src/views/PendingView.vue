@@ -6,12 +6,14 @@ import IconCheck from '../components/icons/IconCheck.vue'
 import IconPlus from '../components/icons/IconPlus.vue'
 import IconMinus from '../components/icons/IconMinus.vue'
 import IconRefresh from '../components/icons/IconRefresh.vue'
+import IconTrash from '../components/icons/IconTrash.vue'
 
 const {
   ensureDailyTodos,
   dailyTodos,
   dailyProgress,
   markTodoComplete,
+  removeTodoItem,
   customActions,
   addCustomAction,
   updateCustomAction,
@@ -37,6 +39,10 @@ const circleDashOffset = computed(() => {
 
 function handleComplete(todoId: string) {
   markTodoComplete(todoId)
+}
+
+function handleDelete(todoId: string) {
+  removeTodoItem(todoId)
 }
 
 function formatDate(): string {
@@ -203,6 +209,16 @@ onMounted(() => {
             >
               {{ item.completedCount }}/{{ item.totalCount }}
             </span>
+
+            <!-- 删除按钮 -->
+            <button
+              @click.stop="handleDelete(item.id)"
+              class="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 opacity-40 hover:opacity-80"
+              style="background: rgba(225,112,85,0.08);"
+              title="删除"
+            >
+              <IconTrash :size="14" color="#E17055" />
+            </button>
           </div>
         </div>
       </template>
@@ -266,8 +282,8 @@ onMounted(() => {
           <div class="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
           <!-- 弹窗内容 -->
           <div
-            class="relative w-[85%] max-w-sm rounded-3xl p-6 space-y-5"
-            style="background: #FFFFFF; box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25);"
+            class="relative w-[85%] max-w-sm rounded-3xl px-8 py-7 space-y-6"
+            style="background: #FFFFFF; box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25); margin: 0 20px;"
           >
             <h3 class="text-lg font-bold" style="color: var(--text-primary);">
               {{ modalMode === 'add' ? '添加待办' : '编辑待办' }}
@@ -278,12 +294,12 @@ onMounted(() => {
               v-model="modalContent"
               type="text"
               placeholder="输入待办事项内容..."
-              class="w-full text-sm px-4 py-3 rounded-xl border-none outline-none"
+              class="w-full text-sm px-5 py-3.5 rounded-xl border-none outline-none"
               style="background: rgba(108,99,255,0.04); color: var(--text-primary);"
               @keyup.enter="handleModalConfirm"
             />
 
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between py-1">
               <span class="text-sm" style="color: var(--text-secondary);">每日执行次数</span>
               <div class="flex items-center gap-3">
                 <button
@@ -304,17 +320,17 @@ onMounted(() => {
               </div>
             </div>
 
-            <div class="flex gap-3 pt-1">
+            <div class="flex gap-3 pt-2">
               <button
                 @click="handleModalCancel"
-                class="flex-1 py-3 rounded-xl text-sm font-semibold transition-all active:scale-95"
+                class="flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
                 style="background: rgba(0,0,0,0.04); color: var(--text-secondary);"
               >
                 取消
               </button>
               <button
                 @click="handleModalConfirm"
-                class="flex-1 py-3 rounded-xl text-sm font-semibold text-white transition-all active:scale-95"
+                class="flex-1 py-3.5 rounded-xl text-sm font-semibold text-white transition-all active:scale-95"
                 style="background: var(--primary);"
               >
                 {{ modalMode === 'add' ? '添加' : '保存' }}

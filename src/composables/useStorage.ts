@@ -304,6 +304,15 @@ export function useStorage() {
     }
   }
 
+  /** 删除今日待办项 */
+  function removeTodoItem(todoId: string): void {
+    if (!storageData.value.dailyTodos) return
+    storageData.value.dailyTodos.items = storageData.value.dailyTodos.items.filter(
+      i => i.id !== todoId
+    )
+    saveData(storageData.value)
+  }
+
   /** 获取今日待办进度（按总次数计算） */
   const dailyProgress = computed(() => {
     const todos = storageData.value.dailyTodos
@@ -353,6 +362,7 @@ export function useStorage() {
     ensureDailyTodos,
     regenerateDailyTodos,
     markTodoComplete,
+    removeTodoItem,
     dailyProgress,
     getNextUncompletedTodo,
   }
