@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue'
 import type { Task, SwipeDirection, DailyTodoItem } from '../types'
 import { useStorage } from '../composables/useStorage'
 import TaskCard from '../components/TaskCard.vue'
-import IconTarget from '../components/icons/IconTarget.vue'
 import IconParty from '../components/icons/IconParty.vue'
 
 const {
@@ -11,7 +10,6 @@ const {
   addPendingTask,
   ensureDailyTodos,
   markTodoComplete,
-  dailyProgress,
   getNextUncompletedTodo,
 } = useStorage()
 
@@ -78,45 +76,27 @@ onMounted(() => {
 
 <template>
   <div class="h-full flex flex-col relative overflow-hidden">
-    <!-- 顶部区域 -->
-    <header class="flex items-center justify-between px-8 pt-safe-top pb-2" style="padding-top: calc(var(--safe-area-top, 0px) + 24px);">
-      <div>
-        <h1
-          class="text-2xl font-bold"
-          style="color: var(--primary);"
-        >
-          做件小事
-        </h1>
-        <p class="text-xs mt-1" style="color: var(--text-muted);">
-          每天一点小确幸
-        </p>
-      </div>
-      <div
-        class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold"
-        style="
-          background: rgba(108,99,255,0.08);
-          color: var(--primary);
-        "
-      >
-        <IconTarget :size="16" color="var(--primary)" />
-        <span>{{ dailyProgress.completed }}</span>
-        <span class="text-xs opacity-60">/{{ dailyProgress.total }}</span>
-      </div>
-    </header>
-
     <!-- 卡片区域 -->
     <div class="flex-1 flex items-center justify-center px-2">
       <div class="w-full max-w-sm">
         <!-- 有未完成的待办 -->
-        <TaskCard
-          v-if="currentTask"
-          :key="currentTask.id + '-' + (currentTodoItem?.completedCount ?? 0)"
-          :task="currentTask"
-          :remaining-count="currentTodoItem ? (currentTodoItem.totalCount - currentTodoItem.completedCount) : 1"
-          :total-count="currentTodoItem?.totalCount ?? 1"
-          class="animate-card-enter"
-          @swipe="handleSwipe"
-        />
+        <template v-if="currentTask">
+          <!-- 标题在卡片正上方 -->
+          <h1
+            class="text-2xl font-bold text-center mb-6"
+            style="color: var(--primary);"
+          >
+            做件小事
+          </h1>
+          <TaskCard
+            :key="currentTask.id + '-' + (currentTodoItem?.completedCount ?? 0)"
+            :task="currentTask"
+            :remaining-count="currentTodoItem ? (currentTodoItem.totalCount - currentTodoItem.completedCount) : 1"
+            :total-count="currentTodoItem?.totalCount ?? 1"
+            class="animate-card-enter"
+            @swipe="handleSwipe"
+          />
+        </template>
 
         <!-- 今日已全部完成 -->
         <div
@@ -133,11 +113,6 @@ onMounted(() => {
             太棒了，今天的小事都做完了<br/>
             明天再来完成新的待办吧
           </p>
-          <div class="mt-6 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
-            style="background: rgba(108,99,255,0.08); color: var(--primary);">
-            <IconTarget :size="16" color="var(--primary)" />
-            {{ dailyProgress.completed }}/{{ dailyProgress.total }} 已完成
-          </div>
         </div>
       </div>
     </div>

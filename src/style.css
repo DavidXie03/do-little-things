@@ -54,15 +54,8 @@ html, body, #app {
 }
 
 /* ===== Card Animations ===== */
-@keyframes cardSlideRight {
-  from { transform: translateX(0) rotate(0deg); opacity: 1; }
-  to { transform: translateX(120vw) rotate(20deg); opacity: 0; }
-}
-
-@keyframes cardSlideLeft {
-  from { transform: translateX(0) rotate(0deg); opacity: 1; }
-  to { transform: translateX(-120vw) rotate(-20deg); opacity: 0; }
-}
+/* cardSlideRight/Left 动画通过 JS 用 Web Animations API 动态创建，
+   起始帧从松手位置开始，避免闪回到中心 */
 
 @keyframes cardEnter {
   from { transform: scale(0.8); opacity: 0; }
@@ -88,13 +81,7 @@ html, body, #app {
   animation: cardEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-.animate-slide-right {
-  animation: cardSlideRight 0.4s cubic-bezier(0.45, 0, 0.55, 1) forwards;
-}
-
-.animate-slide-left {
-  animation: cardSlideLeft 0.4s cubic-bezier(0.45, 0, 0.55, 1) forwards;
-}
+/* .animate-slide-right / .animate-slide-left 已改用 Web Animations API */
 
 .animate-fade-in-up {
   animation: fadeInUp 0.5s ease-out forwards;

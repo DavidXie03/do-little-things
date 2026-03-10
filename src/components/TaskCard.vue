@@ -128,32 +128,35 @@ function animateOut(direction: SwipeDirection) {
   const el = cardRef.value
   if (!el) return
 
-  let animClass = ''
-  if (direction === 'right') animClass = 'animate-slide-right'
-  else if (direction === 'left') animClass = 'animate-slide-left'
-
-  // 先从当前拖拽位置作为动画起始点，避免闪回
+  // 从松手时的当前位置开始飞出动画
   const currentX = offsetX.value
   const currentRot = rotation.value
-  el.style.transform = `translateX(${currentX}px) rotate(${currentRot}deg)`
-  el.style.opacity = String(opacity.value)
+  const currentOpacity = opacity.value
 
-  // 强制回流后再添加动画 class
-  void el.offsetHeight
-  el.style.transform = ''
-  el.style.opacity = ''
-  el.classList.add(animClass)
+  const targetX = direction === 'right' ? window.innerWidth * 1.2 : -window.innerWidth * 1.2
+  const targetRot = direction === 'right' ? 20 : -20
 
-  const element = el
-  function onAnimEnd() {
-    element.removeEventListener('animationend', onAnimEnd)
-    element.classList.remove(animClass)
+  const animation = el.animate([
+    {
+      transform: `translateX(${currentX}px) rotate(${currentRot}deg)`,
+      opacity: currentOpacity,
+    },
+    {
+      transform: `translateX(${targetX}px) rotate(${targetRot}deg)`,
+      opacity: 0,
+    },
+  ], {
+    duration: 350,
+    easing: 'cubic-bezier(0.45, 0, 0.55, 1)',
+    fill: 'forwards',
+  })
+
+  animation.onfinish = () => {
     isAnimatingOut.value = false
     animatingDirection.value = null
     offsetX.value = 0
     emit('swipe', direction)
   }
-  element.addEventListener('animationend', onAnimEnd)
 }
 
 onUnmounted(() => {

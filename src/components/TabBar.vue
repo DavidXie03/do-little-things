@@ -1,17 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStorage } from '../composables/useStorage'
 import IconHome from './icons/IconHome.vue'
 import IconList from './icons/IconList.vue'
 
 const route = useRoute()
 const router = useRouter()
-const { dailyProgress } = useStorage()
-
-const uncompletedCount = computed(() => {
-  return dailyProgress.value.total - dailyProgress.value.completed
-})
 
 const tabs = [
   { name: 'home', icon: IconHome, path: '/' },
@@ -61,15 +54,6 @@ function getIconColor(tab: typeof tabs[0]): string {
         >
           <component :is="tab.icon" :size="28" :color="getIconColor(tab)" />
         </div>
-
-        <!-- 待办数量角标 -->
-        <span
-          v-if="tab.name === 'home' && uncompletedCount > 0"
-          class="absolute top-1 right-1/4 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] text-white font-bold"
-          style="background: #FF6B6B;"
-        >
-          {{ uncompletedCount > 99 ? '99+' : uncompletedCount }}
-        </span>
       </button>
     </div>
   </nav>
