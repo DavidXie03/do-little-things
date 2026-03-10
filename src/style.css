@@ -24,7 +24,6 @@
   --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
-/* ===== Global Reset ===== */
 html, body, #app {
   height: 100%;
   margin: 0;

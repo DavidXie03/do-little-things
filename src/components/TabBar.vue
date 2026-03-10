@@ -30,7 +30,6 @@ function getIconColor(tab: typeof tabs[0]): string {
       paddingBottom: 'var(--safe-area-bottom)',
     }"
   >
-    <!-- 背景 -->
     <div class="absolute inset-0 bg-white/90 backdrop-blur-xl border-t border-gray-100/50"></div>
 
     <div class="relative flex items-center justify-around h-[52px] w-full">
@@ -40,14 +39,12 @@ function getIconColor(tab: typeof tabs[0]): string {
         @click="navigate(tab)"
         class="relative flex items-center justify-center flex-1 h-full transition-all duration-300 active:scale-90"
       >
-        <!-- 活跃指示器 -->
         <div
           v-if="isActive(tab)"
           class="absolute -top-0.5 w-8 h-1 rounded-full"
           style="background: var(--primary);"
         ></div>
 
-        <!-- 图标 -->
         <div
           class="transition-all duration-300"
           :class="isActive(tab) ? 'scale-110 -translate-y-0.5' : 'opacity-60'"

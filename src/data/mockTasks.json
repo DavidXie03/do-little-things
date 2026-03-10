@@ -1,5 +1,0 @@
-[
-  { "id": "a1", "type": "action", "content": "喝一杯水", "repeatCount": 3 },
-  { "id": "a2", "type": "action", "content": "站起来活动一会", "repeatCount": 3 },
-  { "id": "a3", "type": "action", "content": "去眺望远方", "repeatCount": 3 }
-]

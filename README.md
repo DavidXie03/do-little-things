@@ -175,15 +175,18 @@ do-little-things/
 │   │   ├── icons/           # SVG icon components
 │   │   ├── TaskCard.vue     # Card with swipe interaction
 │   │   ├── TabBar.vue       # Bottom navigation bar
-│   │   ├── PendingItem.vue
-│   │   └── RadarChart.vue
+│   │   ├── TodoItem.vue     # Single todo item row
+│   │   └── TodoModal.vue    # Add/edit todo modal
 │   ├── views/               # Pages
 │   │   ├── HomeView.vue     # Home (daily recommendations)
-│   │   ├── PendingView.vue  # Pending task list
-│   │   ├── StatsView.vue    # Statistics
-│   │   └── SettingsView.vue # Settings
+│   │   └── PendingView.vue  # Todo list
 │   ├── composables/         # Composition functions
-│   │   └── useStorage.ts    # Local persistence
+│   │   ├── storageCore.ts   # Storage load/save/migrate
+│   │   ├── useRecords.ts    # Task records management
+│   │   ├── useCustomActions.ts # Custom actions CRUD
+│   │   ├── useDailyTodos.ts # Daily todo management
+│   │   ├── useStorage.ts    # Unified composable entry
+│   │   └── useSwipeGesture.ts # Swipe gesture logic
 │   ├── services/            # Business logic
 │   │   └── taskService.ts
 │   ├── types/               # TypeScript type definitions

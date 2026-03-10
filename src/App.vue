@@ -5,7 +5,6 @@ import TabBar from './components/TabBar.vue'
 
 <template>
   <div class="h-full flex flex-col bg-[var(--bg-primary)] overflow-hidden">
-    <!-- 主内容区域 -->
     <main class="flex-1 overflow-hidden" style="padding-bottom: calc(52px + var(--safe-area-bottom));">
       <RouterView v-slot="{ Component }">
         <transition name="fade" mode="out-in">
@@ -14,7 +13,6 @@ import TabBar from './components/TabBar.vue'
       </RouterView>
     </main>
 
-    <!-- 底部导航 -->
     <TabBar />
   </div>
 </template>

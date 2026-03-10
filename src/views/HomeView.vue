@@ -106,7 +106,6 @@ onMounted(() => {
           >
             做件小事
           </h1>
-          <!-- 卡片容器，固定高度防止 transition 抖动 -->
           <div class="relative" style="min-height: 360px;">
             <transition name="card-fade-in">
               <TaskCard
