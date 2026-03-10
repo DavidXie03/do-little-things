@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+/* ===== CSS Variables ===== */
+:root {
+  --primary: #6C63FF;
+  --primary-light: #8B83FF;
+  --secondary: #FF6B6B;
+  --accent: #4ECDC4;
+  --warning: #FFE66D;
+  --bg-primary: #F7F8FC;
+  --bg-white: #FFFFFF;
+  --bg-secondary: #EEF0FB;
+  --text-primary: #2D3436;
+  --text-secondary: #636E72;
+  --text-muted: #B2BEC3;
+  --success: #00B894;
+  --danger: #E17055;
+  --info: #74B9FF;
+
+  --font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
+/* ===== Global Reset ===== */
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  max-width: 100vw;
+  position: relative;
+  /* 圆角屏幕四角内容留足距离 */
+  padding-left: var(--safe-area-left);
+  padding-right: var(--safe-area-right);
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 0;
+  display: none;
+}
+
+/* ===== Card Animations ===== */
+@keyframes cardSlideRight {
+  from { transform: translateX(0) rotate(0deg); opacity: 1; }
+  to { transform: translateX(120vw) rotate(20deg); opacity: 0; }
+}
+
+@keyframes cardSlideLeft {
+  from { transform: translateX(0) rotate(0deg); opacity: 1; }
+  to { transform: translateX(-120vw) rotate(-20deg); opacity: 0; }
+}
+
+@keyframes cardSlideDown {
+  from { transform: translateY(0) scale(1); opacity: 1; }
+  to { transform: translateY(120vh) scale(0.5); opacity: 0; }
+}
+
+@keyframes cardEnter {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-card-enter {
+  animation: cardEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-slide-right {
+  animation: cardSlideRight 0.4s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
+.animate-slide-left {
+  animation: cardSlideLeft 0.4s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
+.animate-slide-down {
+  animation: cardSlideDown 0.4s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.animate-pulse-gentle {
+  animation: pulse 2s ease-in-out infinite;
+}
