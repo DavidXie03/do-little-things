@@ -3,9 +3,7 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStorage } from '../composables/useStorage'
 import IconHome from './icons/IconHome.vue'
-import IconChart from './icons/IconChart.vue'
 import IconList from './icons/IconList.vue'
-import IconSettings from './icons/IconSettings.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -17,9 +15,7 @@ const uncompletedCount = computed(() => {
 
 const tabs = [
   { name: 'home', icon: IconHome, path: '/' },
-  { name: 'stats', icon: IconChart, path: '/stats' },
-  { name: 'pending', icon: IconList, path: '/pending' },
-  { name: 'settings', icon: IconSettings, path: '/settings' },
+  { name: 'todos', icon: IconList, path: '/todos' },
 ]
 
 function isActive(tab: typeof tabs[0]): boolean {
@@ -41,10 +37,10 @@ function getIconColor(tab: typeof tabs[0]): string {
       paddingBottom: 'var(--safe-area-bottom)',
     }"
   >
-    <!-- 毛玻璃背景 -->
-    <div class="absolute inset-0 bg-white/80 backdrop-blur-xl border-t border-gray-100/50"></div>
+    <!-- 背景 -->
+    <div class="absolute inset-0 bg-white/90 backdrop-blur-xl border-t border-gray-100/50"></div>
 
-    <div class="relative flex items-center justify-around h-[52px] max-w-md mx-auto">
+    <div class="relative flex items-center justify-around h-[52px] w-full">
       <button
         v-for="tab in tabs"
         :key="tab.name"
@@ -55,7 +51,7 @@ function getIconColor(tab: typeof tabs[0]): string {
         <div
           v-if="isActive(tab)"
           class="absolute -top-0.5 w-8 h-1 rounded-full"
-          style="background: linear-gradient(135deg, #6C63FF, #4ECDC4);"
+          style="background: var(--primary);"
         ></div>
 
         <!-- 图标 -->
@@ -68,9 +64,9 @@ function getIconColor(tab: typeof tabs[0]): string {
 
         <!-- 待办数量角标 -->
         <span
-          v-if="tab.name === 'pending' && uncompletedCount > 0"
+          v-if="tab.name === 'home' && uncompletedCount > 0"
           class="absolute top-1 right-1/4 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] text-white font-bold"
-          style="background: linear-gradient(135deg, #FF6B6B, #E17055);"
+          style="background: #FF6B6B;"
         >
           {{ uncompletedCount > 99 ? '99+' : uncompletedCount }}
         </span>

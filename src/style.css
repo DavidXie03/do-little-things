@@ -64,11 +64,6 @@ html, body, #app {
   to { transform: translateX(-120vw) rotate(-20deg); opacity: 0; }
 }
 
-@keyframes cardSlideDown {
-  from { transform: translateY(0) scale(1); opacity: 1; }
-  to { transform: translateY(120vh) scale(0.5); opacity: 0; }
-}
-
 @keyframes cardEnter {
   from { transform: scale(0.8); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
@@ -99,10 +94,6 @@ html, body, #app {
 
 .animate-slide-left {
   animation: cardSlideLeft 0.4s cubic-bezier(0.45, 0, 0.55, 1) forwards;
-}
-
-.animate-slide-down {
-  animation: cardSlideDown 0.4s cubic-bezier(0.45, 0, 0.55, 1) forwards;
 }
 
 .animate-fade-in-up {

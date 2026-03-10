@@ -1,43 +1,24 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
 import type { SwipeDirection } from '../types'
-import { TaskTypeLabel, TaskTypeColor, isReadOnlyType } from '../types'
 import type { Task } from '../types'
-import IconKnowledge from './icons/IconKnowledge.vue'
-import IconAction from './icons/IconAction.vue'
-import IconExplore from './icons/IconExplore.vue'
-import IconNews from './icons/IconNews.vue'
 import IconCheck from './icons/IconCheck.vue'
 import IconClock from './icons/IconClock.vue'
-import IconDismiss from './icons/IconDismiss.vue'
-import IconSwipe from './icons/IconSwipe.vue'
-import IconArrowLeft from './icons/IconArrowLeft.vue'
-import IconArrowRight from './icons/IconArrowRight.vue'
-import IconArrowDown from './icons/IconArrowDown.vue'
 
 const props = defineProps<{
   task: Task
+  /** 剩余需要完成的次数 */
+  remainingCount?: number
+  /** 总次数 */
+  totalCount?: number
 }>()
 
 const emit = defineEmits<{
   (e: 'swipe', direction: SwipeDirection): void
 }>()
 
-// 是否为只读类型（冷知识/短新闻）
-const isReadOnly = computed(() => isReadOnlyType(props.task.type))
-
-// 类型图标组件映射
-const typeIconMap: Record<string, any> = {
-  knowledge: IconKnowledge,
-  action: IconAction,
-  explore: IconExplore,
-  news: IconNews,
-}
-const TypeIconComponent = computed(() => typeIconMap[props.task.type])
-
 // 拖拽状态
 const offsetX = ref(0)
-const offsetY = ref(0)
 const isDragging = ref(false)
 const isAnimatingOut = ref(false)
 const startX = ref(0)
@@ -46,51 +27,45 @@ const cardRef = ref<HTMLElement | null>(null)
 
 // 阈值
 const SWIPE_THRESHOLD_X = 100
-const SWIPE_THRESHOLD_Y = 80
-const ANGLE_THRESHOLD = 35
 
 // 计算旋转角度
 const rotation = computed(() => {
-  return offsetX.value * 0.08
+  return offsetX.value * 0.06
 })
 
 // 计算透明度
 const opacity = computed(() => {
-  const maxDist = Math.max(Math.abs(offsetX.value), Math.abs(offsetY.value))
-  return Math.max(0.4, 1 - maxDist / 400)
+  const absX = Math.abs(offsetX.value)
+  return Math.max(0.5, 1 - absX / 500)
 })
 
-// 计算方向提示
-const currentHint = computed<SwipeDirection>(() => {
-  const absX = Math.abs(offsetX.value)
-  const absY = Math.abs(offsetY.value)
+// 飞出方向（用于保持半圆在飞出动画时可见）
+const animatingDirection = ref<SwipeDirection | null>(null)
 
-  if (absX < 30 && absY < 30) return 'none'
+// 左右半圆的激活程度（0-1）
+const leftZoneProgress = computed(() => {
+  // 飞出动画中保持满激活
+  if (isAnimatingOut.value && animatingDirection.value === 'left') return 1
+  if (offsetX.value >= 0) return 0
+  return Math.min(1, Math.abs(offsetX.value) / SWIPE_THRESHOLD_X)
+})
 
-  const angle = Math.atan2(absY, absX) * (180 / Math.PI)
-
-  if (angle < ANGLE_THRESHOLD && absX > 30) {
-    return offsetX.value > 0 ? 'right' : 'left'
-  }
-  if (angle > (90 - ANGLE_THRESHOLD) && offsetY.value > 30) {
-    return 'down'
-  }
-  return 'none'
+const rightZoneProgress = computed(() => {
+  // 飞出动画中保持满激活
+  if (isAnimatingOut.value && animatingDirection.value === 'right') return 1
+  if (offsetX.value <= 0) return 0
+  return Math.min(1, offsetX.value / SWIPE_THRESHOLD_X)
 })
 
 // 卡片样式
 const cardStyle = computed(() => {
   if (isAnimatingOut.value) return {}
   return {
-    transform: `translate(${offsetX.value}px, ${offsetY.value}px) rotate(${rotation.value}deg)`,
+    transform: `translateX(${offsetX.value}px) rotate(${rotation.value}deg)`,
     opacity: opacity.value,
     transition: isDragging.value ? 'none' : 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
   }
 })
-
-// 类型颜色
-const typeColor = computed(() => TaskTypeColor[props.task.type])
-const typeLabel = computed(() => TaskTypeLabel[props.task.type])
 
 // 手势处理
 function onTouchStart(e: TouchEvent) {
@@ -101,7 +76,6 @@ function onTouchStart(e: TouchEvent) {
   startX.value = touch.clientX
   startY.value = touch.clientY
   offsetX.value = 0
-  offsetY.value = 0
 }
 
 function onTouchMove(e: TouchEvent) {
@@ -110,7 +84,6 @@ function onTouchMove(e: TouchEvent) {
   const touch = e.touches[0]
   if (!touch) return
   offsetX.value = touch.clientX - startX.value
-  offsetY.value = Math.max(0, touch.clientY - startY.value)
 }
 
 function onTouchEnd() {
@@ -118,17 +91,12 @@ function onTouchEnd() {
   isDragging.value = false
 
   const absX = Math.abs(offsetX.value)
-  const absY = offsetY.value
-  const angle = Math.atan2(absY, absX) * (180 / Math.PI)
 
-  if (angle < ANGLE_THRESHOLD && absX > SWIPE_THRESHOLD_X) {
+  if (absX > SWIPE_THRESHOLD_X) {
     const direction: SwipeDirection = offsetX.value > 0 ? 'right' : 'left'
     animateOut(direction)
-  } else if (angle > (90 - ANGLE_THRESHOLD) && absY > SWIPE_THRESHOLD_Y) {
-    animateOut('down')
   } else {
     offsetX.value = 0
-    offsetY.value = 0
   }
 }
 
@@ -139,7 +107,6 @@ function onMouseDown(e: MouseEvent) {
   startX.value = e.clientX
   startY.value = e.clientY
   offsetX.value = 0
-  offsetY.value = 0
   document.addEventListener('mousemove', onMouseMove)
   document.addEventListener('mouseup', onMouseUp)
 }
@@ -147,7 +114,6 @@ function onMouseDown(e: MouseEvent) {
 function onMouseMove(e: MouseEvent) {
   if (!isDragging.value || isAnimatingOut.value) return
   offsetX.value = e.clientX - startX.value
-  offsetY.value = Math.max(0, e.clientY - startY.value)
 }
 
 function onMouseUp() {
@@ -158,28 +124,36 @@ function onMouseUp() {
 
 function animateOut(direction: SwipeDirection) {
   isAnimatingOut.value = true
+  animatingDirection.value = direction
   const el = cardRef.value
   if (!el) return
 
   let animClass = ''
   if (direction === 'right') animClass = 'animate-slide-right'
   else if (direction === 'left') animClass = 'animate-slide-left'
-  else if (direction === 'down') animClass = 'animate-slide-down'
 
+  // 先从当前拖拽位置作为动画起始点，避免闪回
+  const currentX = offsetX.value
+  const currentRot = rotation.value
+  el.style.transform = `translateX(${currentX}px) rotate(${currentRot}deg)`
+  el.style.opacity = String(opacity.value)
+
+  // 强制回流后再添加动画 class
+  void el.offsetHeight
   el.style.transform = ''
   el.style.opacity = ''
   el.classList.add(animClass)
 
-  // 使用 animationend 事件代替 setTimeout，更精确
+  const element = el
   function onAnimEnd() {
-    el.removeEventListener('animationend', onAnimEnd)
-    el.classList.remove(animClass)
+    element.removeEventListener('animationend', onAnimEnd)
+    element.classList.remove(animClass)
     isAnimatingOut.value = false
+    animatingDirection.value = null
     offsetX.value = 0
-    offsetY.value = 0
     emit('swipe', direction)
   }
-  el.addEventListener('animationend', onAnimEnd)
+  element.addEventListener('animationend', onAnimEnd)
 }
 
 onUnmounted(() => {
@@ -189,168 +163,121 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div
-    ref="cardRef"
-    class="relative w-full select-none touch-none cursor-grab active:cursor-grabbing"
-    :style="cardStyle"
-    @touchstart.passive="onTouchStart"
-    @touchmove="onTouchMove"
-    @touchend="onTouchEnd"
-    @mousedown="onMouseDown"
-  >
-    <!-- 卡片本体 -->
-    <div
-      class="relative rounded-3xl p-6 mx-4 overflow-hidden"
-      style="
-        background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
-        box-shadow: 0 20px 60px -12px rgba(108, 99, 255, 0.15),
-                    0 8px 24px -8px rgba(0, 0, 0, 0.08);
-        backdrop-filter: blur(20px);
-        min-height: 380px;
-      "
-    >
-      <!-- 装饰背景圆 -->
+  <!-- 半圆区域使用 Teleport 到 body，确保贴屏幕边框 -->
+  <Teleport to="body">
+    <!-- 左侧半圆 - 稍后 -->
+    <transition name="zone-fade">
       <div
-        class="absolute -top-20 -right-20 w-48 h-48 rounded-full opacity-10"
-        :style="{ background: `radial-gradient(circle, ${typeColor}, transparent)` }"
-      ></div>
-      <div
-        class="absolute -bottom-16 -left-16 w-36 h-36 rounded-full opacity-8"
-        :style="{ background: `radial-gradient(circle, ${typeColor}, transparent)` }"
-      ></div>
-
-      <!-- 类型标签 -->
-      <div class="relative flex items-center gap-2 mb-8">
-        <span
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold text-white"
-          :style="{ background: `linear-gradient(135deg, ${typeColor}, ${typeColor}cc)` }"
-        >
-          <component :is="TypeIconComponent" :size="16" color="white" />
-          {{ typeLabel }}
-        </span>
-      </div>
-
-      <!-- 主文字 -->
-      <div class="relative flex items-center justify-center" style="min-height: 200px;">
-        <p
-          class="text-center leading-relaxed font-medium"
+        v-if="(isDragging || isAnimatingOut) && leftZoneProgress > 0"
+        class="fixed left-0 top-1/2 -translate-y-1/2 z-[9999] flex items-center justify-end pointer-events-none"
+        :style="{
+          width: `${50 + leftZoneProgress * 30}px`,
+          height: `${200 + leftZoneProgress * 80}px`,
+          borderRadius: '0 100% 100% 0 / 0 50% 50% 0',
+          background: leftZoneProgress >= 1 ? '#FDCB6E' : `rgba(253,203,110,${0.3 + leftZoneProgress * 0.5})`,
+          transition: 'all 0.15s ease-out',
+        }"
+      >
+        <div
+          class="flex items-center justify-center pr-3"
           :style="{
-            fontSize: task.content.length > 40 ? '18px' : '22px',
-            color: 'var(--text-primary)',
-            lineHeight: '1.7',
+            opacity: 0.5 + leftZoneProgress * 0.5,
+            transform: `scale(${0.7 + leftZoneProgress * 0.3})`,
+            transition: 'all 0.15s ease-out',
           }"
         >
-          {{ task.content }}
-        </p>
+          <IconClock :size="leftZoneProgress >= 1 ? 28 : 22" :color="leftZoneProgress >= 1 ? '#2D3436' : '#8B7028'" />
+        </div>
       </div>
+    </transition>
 
-      <!-- 大图标装饰 -->
-      <div class="absolute bottom-6 right-6 opacity-10">
-        <component :is="TypeIconComponent" :size="56" :color="typeColor" />
+    <!-- 右侧半圆 - 完成 -->
+    <transition name="zone-fade">
+      <div
+        v-if="(isDragging || isAnimatingOut) && rightZoneProgress > 0"
+        class="fixed right-0 top-1/2 -translate-y-1/2 z-[9999] flex items-center justify-start pointer-events-none"
+        :style="{
+          width: `${50 + rightZoneProgress * 30}px`,
+          height: `${200 + rightZoneProgress * 80}px`,
+          borderRadius: '100% 0 0 100% / 50% 0 0 50%',
+          background: rightZoneProgress >= 1 ? '#00B894' : `rgba(0,184,148,${0.3 + rightZoneProgress * 0.5})`,
+          transition: 'all 0.15s ease-out',
+        }"
+      >
+        <div
+          class="flex items-center justify-center pl-3"
+          :style="{
+            opacity: 0.5 + rightZoneProgress * 0.5,
+            transform: `scale(${0.7 + rightZoneProgress * 0.3})`,
+            transition: 'all 0.15s ease-out',
+          }"
+        >
+          <IconCheck :size="rightZoneProgress >= 1 ? 28 : 22" :color="rightZoneProgress >= 1 ? 'white' : 'rgba(255,255,255,0.8)'" />
+        </div>
       </div>
+    </transition>
+  </Teleport>
 
-      <!-- 操作方向提示 -->
-      <!-- 只读类型（冷知识/短新闻）：只显示"滑动完成" -->
-      <div v-if="isReadOnly" class="relative flex justify-center items-center gap-2 mt-4 text-xs" style="color: var(--text-muted);">
-        <IconSwipe :size="16" color="var(--text-muted)" />
-        <span>滑动完成</span>
-      </div>
-      <!-- 可操作类型（微行动/轻探索）：显示三向操作 -->
-      <div v-else class="relative flex justify-center items-center gap-3 mt-4 text-xs" style="color: var(--text-muted);">
-        <span
-          class="flex items-center gap-1 transition-all duration-200"
-          :class="currentHint === 'left' ? 'text-[#FFE66D] font-bold scale-110' : ''"
+  <!-- 滑动区域容器 -->
+  <div class="relative w-full">
+
+    <!-- 卡片本体 -->
+    <div
+      ref="cardRef"
+      class="relative w-full select-none touch-none cursor-grab active:cursor-grabbing"
+      :style="cardStyle"
+      @touchstart.passive="onTouchStart"
+      @touchmove="onTouchMove"
+      @touchend="onTouchEnd"
+      @mousedown="onMouseDown"
+    >
+      <div
+        class="relative rounded-3xl p-6 mx-8 overflow-hidden"
+        style="
+          background: #FFFFFF;
+          box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.1);
+          min-height: 340px;
+        "
+      >
+        <!-- 主文字 -->
+        <div class="relative flex items-center justify-center" style="min-height: 260px;">
+          <p
+            class="text-center leading-relaxed font-medium"
+            :style="{
+              fontSize: task.content.length > 20 ? '20px' : '24px',
+              color: 'var(--text-primary)',
+              lineHeight: '1.8',
+            }"
+          >
+            {{ task.content }}
+          </p>
+        </div>
+
+        <!-- 剩余次数提示 -->
+        <div
+          v-if="totalCount && totalCount > 1"
+          class="flex justify-center"
         >
-          <IconArrowLeft :size="12" />
-          <IconClock :size="12" />
-        </span>
-        <span class="opacity-30">|</span>
-        <span
-          class="flex items-center gap-1 transition-all duration-200"
-          :class="currentHint === 'down' ? 'text-[#E17055] font-bold scale-110' : ''"
-        >
-          <IconArrowDown :size="12" />
-          <IconDismiss :size="12" />
-        </span>
-        <span class="opacity-30">|</span>
-        <span
-          class="flex items-center gap-1 transition-all duration-200"
-          :class="currentHint === 'right' ? 'text-[#00B894] font-bold scale-110' : ''"
-        >
-          <IconCheck :size="12" />
-          <IconArrowRight :size="12" />
-        </span>
+          <span
+            class="text-xs px-3 py-1 rounded-full"
+            style="background: rgba(108,99,255,0.08); color: var(--primary);"
+          >
+            剩余 {{ remainingCount }} / {{ totalCount }} 次
+          </span>
+        </div>
       </div>
     </div>
-
-    <!-- 滑动方向浮层指示 -->
-    <!-- 只读类型：所有方向都显示"已阅" -->
-    <template v-if="isReadOnly">
-      <transition name="fade">
-        <div
-          v-if="currentHint !== 'none'"
-          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-5 py-2.5 rounded-2xl text-white font-bold text-lg"
-          style="background: linear-gradient(135deg, #00B894, #4ECDC4);"
-        >
-          <span class="flex items-center gap-2">
-            <IconCheck :size="20" color="white" />
-            已阅
-          </span>
-        </div>
-      </transition>
-    </template>
-
-    <!-- 可操作类型：三向提示 -->
-    <template v-else>
-      <transition name="fade">
-        <div
-          v-if="currentHint === 'right'"
-          class="absolute top-1/2 left-8 -translate-y-1/2 px-4 py-2 rounded-2xl text-white font-bold text-lg"
-          style="background: linear-gradient(135deg, #00B894, #4ECDC4);"
-        >
-          <span class="flex items-center gap-2">
-            <IconCheck :size="20" color="white" />
-            完成
-          </span>
-        </div>
-      </transition>
-
-      <transition name="fade">
-        <div
-          v-if="currentHint === 'left'"
-          class="absolute top-1/2 right-8 -translate-y-1/2 px-4 py-2 rounded-2xl font-bold text-lg"
-          style="background: linear-gradient(135deg, #FDCB6E, #FFE66D); color: #2D3436;"
-        >
-          <span class="flex items-center gap-2">
-            <IconClock :size="20" color="#2D3436" />
-            稍后
-          </span>
-        </div>
-      </transition>
-
-      <transition name="fade">
-        <div
-          v-if="currentHint === 'down'"
-          class="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-2xl text-white font-bold text-lg"
-          style="background: linear-gradient(135deg, #E17055, #FF6B6B);"
-        >
-          <span class="flex items-center gap-2">
-            <IconDismiss :size="20" color="white" />
-            不感兴趣
-          </span>
-        </div>
-      </transition>
-    </template>
   </div>
 </template>
 
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
+<style>
+/* 不使用 scoped，因为半圆通过 Teleport 渲染到 body */
+.zone-fade-enter-active,
+.zone-fade-leave-active {
   transition: opacity 0.2s ease;
 }
-.fade-enter-from,
-.fade-leave-to {
+.zone-fade-enter-from,
+.zone-fade-leave-to {
   opacity: 0;
 }
 </style>

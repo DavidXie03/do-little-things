@@ -1,47 +1,24 @@
-/** 小事类型 */
+/** 小事类型 - 简化为仅待办事项 */
 export const TaskType = {
-  Knowledge: 'knowledge',
   Action: 'action',
-  Explore: 'explore',
-  News: 'news',
 } as const
 
 export type TaskType = (typeof TaskType)[keyof typeof TaskType]
 
 /** 小事类型中文映射 */
 export const TaskTypeLabel: Record<TaskType, string> = {
-  [TaskType.Knowledge]: '冷知识',
-  [TaskType.Action]: '微行动',
-  [TaskType.Explore]: '轻探索',
-  [TaskType.News]: '短新闻',
+  [TaskType.Action]: '待办',
 }
 
 /** 小事类型颜色映射 */
 export const TaskTypeColor: Record<TaskType, string> = {
-  [TaskType.Knowledge]: '#6C63FF',
-  [TaskType.Action]: '#FF6B6B',
-  [TaskType.Explore]: '#4ECDC4',
-  [TaskType.News]: '#FFE66D',
+  [TaskType.Action]: '#6C63FF',
 }
 
 /** 所有类型列表 */
 export const ALL_TASK_TYPES: TaskType[] = [
-  TaskType.Knowledge,
   TaskType.Action,
-  TaskType.Explore,
-  TaskType.News,
 ]
-
-/** 只读类型（只能完成，不能稍后/丢弃） */
-export const READ_ONLY_TYPES: TaskType[] = [
-  TaskType.Knowledge,
-  TaskType.News,
-]
-
-/** 判断是否为只读类型 */
-export function isReadOnlyType(type: TaskType): boolean {
-  return READ_ONLY_TYPES.includes(type)
-}
 
 /** 小事数据结构 */
 export interface Task {
@@ -49,13 +26,15 @@ export interface Task {
   type: TaskType
   content: string
   icon?: string
+  /** 需要重复执行的次数，默认1 */
+  repeatCount?: number
 }
 
 /** 滑动操作类型 */
-export type SwipeAction = 'complete' | 'pending' | 'discard'
+export type SwipeAction = 'complete' | 'pending'
 
 /** 滑动方向 */
-export type SwipeDirection = 'left' | 'right' | 'down' | 'none'
+export type SwipeDirection = 'left' | 'right' | 'none'
 
 /** 完成记录 */
 export interface TaskRecord {
@@ -66,33 +45,19 @@ export interface TaskRecord {
   date: string // YYYY-MM-DD
 }
 
-/** 待办项 */
+/** 待办项（稍后处理） */
 export interface PendingTask {
   task: Task
   addedAt: number
 }
 
-/** 雷达图统计数据 */
-export interface StatsData {
-  knowledge: number
-  action: number
-  explore: number
-  news: number
-}
-
-/** 每日配置：用户设定各类型的每日数量 */
-export interface DailyConfig {
-  knowledge: number
-  action: number
-  explore: number
-  news: number
-}
-
-/** 用户自定义微行动事项 */
+/** 用户自定义待办事项 */
 export interface CustomAction {
   id: string
   content: string
   createdAt: number
+  /** 每日需要重复执行的次数，默认1 */
+  repeatCount: number
 }
 
 /** 每日待办项 */
@@ -101,6 +66,10 @@ export interface DailyTodoItem {
   task: Task
   completed: boolean
   completedAt?: number
+  /** 需要完成的总次数 */
+  totalCount: number
+  /** 已完成的次数 */
+  completedCount: number
 }
 
 /** 每日待办列表 */
@@ -108,6 +77,11 @@ export interface DailyTodoList {
   date: string // YYYY-MM-DD
   items: DailyTodoItem[]
   generatedAt: number
+}
+
+/** 每日配置 */
+export interface DailyConfig {
+  action: number
 }
 
 /** 存储数据版本 */

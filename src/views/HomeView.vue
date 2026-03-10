@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import type { Task, SwipeDirection } from '../types'
-import { isReadOnlyType } from '../types'
+import type { Task, SwipeDirection, DailyTodoItem } from '../types'
 import { useStorage } from '../composables/useStorage'
 import TaskCard from '../components/TaskCard.vue'
 import IconTarget from '../components/icons/IconTarget.vue'
-import IconRefresh from '../components/icons/IconRefresh.vue'
-import IconSun from '../components/icons/IconSun.vue'
 import IconParty from '../components/icons/IconParty.vue'
 
 const {
@@ -20,6 +17,7 @@ const {
 
 const currentTask = ref<Task | null>(null)
 const currentTodoId = ref<string | null>(null)
+const currentTodoItem = ref<DailyTodoItem | null>(null)
 const allDone = ref(false)
 
 function loadNextTask() {
@@ -27,10 +25,12 @@ function loadNextTask() {
   if (todo) {
     currentTask.value = todo.task
     currentTodoId.value = todo.id
+    currentTodoItem.value = todo
     allDone.value = false
   } else {
     currentTask.value = null
     currentTodoId.value = null
+    currentTodoItem.value = null
     allDone.value = true
   }
 }
@@ -42,8 +42,8 @@ function handleSwipe(direction: SwipeDirection) {
   const task = currentTask.value
   const dateStr = now.toISOString().split('T')[0] ?? ''
 
-  // 只读类型：所有方向都视为完成
-  if (isReadOnlyType(task.type)) {
+  if (direction === 'right') {
+    // 右滑 = 完成一次
     if (currentTodoId.value) {
       markTodoComplete(currentTodoId.value)
     } else {
@@ -55,55 +55,18 @@ function handleSwipe(direction: SwipeDirection) {
         date: dateStr,
       })
     }
-  } else {
-    // 可操作类型
-    if (direction === 'right') {
-      if (currentTodoId.value) {
-        markTodoComplete(currentTodoId.value)
-      } else {
-        addRecord({
-          taskId: task.id,
-          type: task.type,
-          action: 'complete',
-          timestamp: now.getTime(),
-          date: dateStr,
-        })
-      }
-    } else if (direction === 'left') {
-      addPendingTask(task)
-      addRecord({
-        taskId: task.id,
-        type: task.type,
-        action: 'pending',
-        timestamp: now.getTime(),
-        date: dateStr,
-      })
-      // 待办中标记完成（已加入稍后列表也算处理了）
-      if (currentTodoId.value) {
-        markTodoComplete(currentTodoId.value)
-      }
-    } else if (direction === 'down') {
-      addRecord({
-        taskId: task.id,
-        type: task.type,
-        action: 'discard',
-        timestamp: now.getTime(),
-        date: dateStr,
-      })
-      if (currentTodoId.value) {
-        markTodoComplete(currentTodoId.value)
-      }
-    }
+  } else if (direction === 'left') {
+    // 左滑 = 稍后，不标记为已完成
+    addPendingTask(task)
+    addRecord({
+      taskId: task.id,
+      type: task.type,
+      action: 'pending',
+      timestamp: now.getTime(),
+      date: dateStr,
+    })
   }
 
-  loadNextTask()
-}
-
-function handleRefresh() {
-  // 跳过当前（标记完成并加载下一个）
-  if (currentTodoId.value) {
-    markTodoComplete(currentTodoId.value)
-  }
   loadNextTask()
 }
 
@@ -116,28 +79,22 @@ onMounted(() => {
 <template>
   <div class="h-full flex flex-col relative overflow-hidden">
     <!-- 顶部区域 -->
-    <header class="flex items-center justify-between px-6 pt-safe-top pb-2" style="padding-top: calc(var(--safe-area-top, 0px) + 24px);">
+    <header class="flex items-center justify-between px-8 pt-safe-top pb-2" style="padding-top: calc(var(--safe-area-top, 0px) + 24px);">
       <div>
         <h1
           class="text-2xl font-bold"
-          style="
-            background: linear-gradient(135deg, #6C63FF, #4ECDC4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-          "
+          style="color: var(--primary);"
         >
           做件小事
         </h1>
-        <p class="text-xs mt-1 flex items-center gap-1" style="color: var(--text-muted);">
-          <IconSun :size="14" color="var(--text-muted)" />
+        <p class="text-xs mt-1" style="color: var(--text-muted);">
           每天一点小确幸
         </p>
       </div>
       <div
         class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold"
         style="
-          background: linear-gradient(135deg, rgba(108,99,255,0.1), rgba(78,205,196,0.1));
+          background: rgba(108,99,255,0.08);
           color: var(--primary);
         "
       >
@@ -153,8 +110,10 @@ onMounted(() => {
         <!-- 有未完成的待办 -->
         <TaskCard
           v-if="currentTask"
-          :key="currentTask.id"
+          :key="currentTask.id + '-' + (currentTodoItem?.completedCount ?? 0)"
           :task="currentTask"
+          :remaining-count="currentTodoItem ? (currentTodoItem.totalCount - currentTodoItem.completedCount) : 1"
+          :total-count="currentTodoItem?.totalCount ?? 1"
           class="animate-card-enter"
           @swipe="handleSwipe"
         />
@@ -172,45 +131,15 @@ onMounted(() => {
           </h3>
           <p class="text-sm text-center leading-relaxed" style="color: var(--text-muted);">
             太棒了，今天的小事都做完了<br/>
-            明天再来探索新的小确幸吧
+            明天再来完成新的待办吧
           </p>
           <div class="mt-6 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
-            style="background: linear-gradient(135deg, rgba(108,99,255,0.1), rgba(78,205,196,0.1)); color: var(--primary);">
+            style="background: rgba(108,99,255,0.08); color: var(--primary);">
             <IconTarget :size="16" color="var(--primary)" />
             {{ dailyProgress.completed }}/{{ dailyProgress.total }} 已完成
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- 跳过按钮（只在有任务时显示） -->
-    <div v-if="currentTask" class="flex justify-center pb-6">
-      <button
-        @click="handleRefresh"
-        class="group flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 active:scale-95"
-        style="
-          background: linear-gradient(135deg, rgba(108,99,255,0.08), rgba(78,205,196,0.08));
-          color: var(--primary);
-          border: 1.5px solid rgba(108,99,255,0.15);
-        "
-      >
-        <span class="transition-transform duration-500 group-hover:rotate-180 group-active:rotate-180">
-          <IconRefresh :size="18" color="var(--primary)" />
-        </span>
-        <span>跳过</span>
-      </button>
-    </div>
-
-    <!-- 装饰背景元素 -->
-    <div class="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden -z-10">
-      <div
-        class="absolute -top-32 -right-32 w-64 h-64 rounded-full opacity-[0.03]"
-        style="background: radial-gradient(circle, #6C63FF, transparent);"
-      ></div>
-      <div
-        class="absolute -bottom-48 -left-24 w-80 h-80 rounded-full opacity-[0.03]"
-        style="background: radial-gradient(circle, #4ECDC4, transparent);"
-      ></div>
     </div>
   </div>
 </template>

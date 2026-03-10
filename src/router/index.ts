@@ -9,19 +9,9 @@ const router = createRouter({
       component: () => import('../views/HomeView.vue'),
     },
     {
-      path: '/stats',
-      name: 'stats',
-      component: () => import('../views/StatsView.vue'),
-    },
-    {
-      path: '/pending',
-      name: 'pending',
+      path: '/todos',
+      name: 'todos',
       component: () => import('../views/PendingView.vue'),
-    },
-    {
-      path: '/settings',
-      name: 'settings',
-      component: () => import('../views/SettingsView.vue'),
     },
   ],
 })
