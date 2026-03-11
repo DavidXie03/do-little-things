@@ -106,31 +106,30 @@ onMounted(() => {
 
           <!-- 卡片堆叠容器 -->
           <div class="relative" style="min-height: 360px;">
-            <!-- 背景堆叠卡片（按层级深度 1,2 渲染） -->
+            <!-- 背景堆叠卡片：用位置偏移 + 阴影递减体现层次，完全不透明 -->
             <div
               v-for="(item, idx) in visibleStack.slice(1)"
               :key="'bg-' + item.id"
               class="card-stack-layer"
               :style="{
-                transform: `scale(${1 - (idx + 1) * 0.05}) translateY(${(idx + 1) * 12}px)`,
-                opacity: 1 - (idx + 1) * 0.15,
+                transform: `scale(${1 - (idx + 1) * 0.04}) translateY(${(idx + 1) * 14}px)`,
                 zIndex: MAX_STACK - (idx + 1),
               }"
             >
               <div
                 class="relative rounded-3xl p-6 mx-8 overflow-hidden"
-                style="
-                  background: #FFFFFF;
-                  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.1);
-                  min-height: 340px;
-                "
+                :style="{
+                  background: idx === 0 ? '#F7F7F8' : '#EFEFF1',
+                  boxShadow: `0 ${6 - (idx + 1) * 2}px ${20 - (idx + 1) * 6}px -4px rgba(0, 0, 0, ${0.08 - (idx + 1) * 0.02})`,
+                  minHeight: '340px',
+                }"
               >
                 <div class="relative flex items-center justify-center" style="min-height: 260px;">
                   <p
                     class="text-center leading-relaxed font-medium"
                     :style="{
                       fontSize: item.task.content.length > 20 ? '20px' : '24px',
-                      color: 'var(--text-primary)',
+                      color: 'var(--text-secondary)',
                       lineHeight: '1.8',
                     }"
                   >
@@ -183,8 +182,7 @@ onMounted(() => {
   top: 0;
   left: 0;
   right: 0;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-              opacity 0.4s ease;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
 }
 
