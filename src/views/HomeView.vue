@@ -22,6 +22,8 @@ const cardKey = ref(0)
 
 /** 翻牌动画阶段：'idle' | 'back' | 'front' */
 const flipPhase = ref<'idle' | 'back' | 'front'>('idle')
+/** 卡背是否处于"升起"前的缩小状态 */
+const isRising = ref(false)
 
 const MAX_STACK = 3
 
@@ -63,8 +65,9 @@ function handleSwipe(direction: SwipeDirection) {
     })
   }
 
-  // 阶段1：隐藏正面，显示卡背
+  // 阶段1：隐藏正面，显示卡背（从堆叠位置的小尺寸开始）
   flipPhase.value = 'back'
+  isRising.value = true  // 卡背从缩小位置开始
 
   // 重新加载数据
   setTimeout(() => {
@@ -72,53 +75,69 @@ function handleSwipe(direction: SwipeDirection) {
     cardKey.value++
 
     if (stackItems.value.length > 0) {
-      // 阶段2：等卡背渲染后，用 Web Animations API 翻转
+      // 阶段2：卡背先从堆叠位置"升起"到顶部位置
       nextTick(() => {
-        playFlipAnimation()
+        playRiseAndFlipAnimation()
       })
     }
   }, 150)
 }
 
-function playFlipAnimation() {
+function playRiseAndFlipAnimation() {
   const el = flipContainerRef.value
   if (!el) {
     flipPhase.value = 'front'
+    isRising.value = false
     return
   }
 
-  // 用 Web Animations API 做翻转：先从 0° 转到 90°（卡背消失），再从 90° 转到 0°（正面出现）
-  // 第一阶段：卡背旋转消失
-  const anim1 = el.animate([
-    { transform: 'perspective(1000px) rotateY(0deg)' },
-    { transform: 'perspective(1000px) rotateY(90deg)' },
+  // 第一阶段：卡背从堆叠位置"升起"到顶部位置
+  // 从 scale(0.96) translateY(14px) → scale(1) translateY(0)
+  const riseAnim = el.animate([
+    { transform: 'translateY(14px) scale(0.96)' },
+    { transform: 'translateY(0px) scale(1)' },
   ], {
-    duration: 250,
-    easing: 'ease-in',
+    duration: 280,
+    easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
     fill: 'forwards',
   })
 
-  anim1.onfinish = () => {
-    // 切换到正面
-    flipPhase.value = 'front'
+  riseAnim.onfinish = () => {
+    isRising.value = false
+    // 清除 fill:forwards 的残留
+    el.style.transform = ''
 
-    nextTick(() => {
-      // 第二阶段：正面从 -90° 转到 0°
-      const anim2 = el.animate([
-        { transform: 'perspective(1000px) rotateY(-90deg)' },
-        { transform: 'perspective(1000px) rotateY(0deg)' },
-      ], {
-        duration: 300,
-        easing: 'ease-out',
-        fill: 'forwards',
-      })
-
-      anim2.onfinish = () => {
-        flipPhase.value = 'idle'
-        // 清除 fill: forwards 遗留的样式
-        el.style.transform = ''
-      }
+    // 第二阶段：卡背翻转消失
+    const flipAnim1 = el.animate([
+      { transform: 'perspective(1000px) rotateY(0deg)' },
+      { transform: 'perspective(1000px) rotateY(90deg)' },
+    ], {
+      duration: 250,
+      easing: 'ease-in',
+      fill: 'forwards',
     })
+
+    flipAnim1.onfinish = () => {
+      // 切换到正面
+      flipPhase.value = 'front'
+
+      nextTick(() => {
+        // 第三阶段：正面从 -90° 翻出
+        const flipAnim2 = el.animate([
+          { transform: 'perspective(1000px) rotateY(-90deg)' },
+          { transform: 'perspective(1000px) rotateY(0deg)' },
+        ], {
+          duration: 300,
+          easing: 'ease-out',
+          fill: 'forwards',
+        })
+
+        flipAnim2.onfinish = () => {
+          flipPhase.value = 'idle'
+          el.style.transform = ''
+        }
+      })
+    }
   }
 }
 
@@ -172,6 +191,7 @@ onMounted(() => {
             <div
               ref="flipContainerRef"
               class="card-stack-top"
+              :style="isRising ? { transform: 'translateY(14px) scale(0.96)' } : {}"
             >
               <!-- 卡牌背面（翻牌动画第一阶段显示） -->
               <div v-if="flipPhase === 'back'" class="card-back">
