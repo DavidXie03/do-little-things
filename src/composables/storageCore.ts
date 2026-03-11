@@ -3,7 +3,7 @@ import type { StorageData, DailyConfig } from '../types'
 import { DEFAULT_ACTIONS } from '../services/taskService'
 
 const STORAGE_KEY = 'do-little-things-data'
-const CURRENT_VERSION = 4
+const CURRENT_VERSION = 5
 
 function getDefaultDailyConfig(): DailyConfig {
   return { action: 5 }
@@ -37,12 +37,17 @@ function migrateData(data: any): StorageData {
 
   for (const ca of data.customActions) {
     if (ca.repeatCount === undefined) ca.repeatCount = 1
+    // v5 迁移：添加 recurrence 字段，默认为 daily
+    if (!ca.recurrence) ca.recurrence = 'daily'
   }
 
   if (data.dailyTodos && data.dailyTodos.items) {
+    const today = new Date().toISOString().split('T')[0] ?? ''
     for (const item of data.dailyTodos.items) {
       if (item.totalCount === undefined) item.totalCount = 1
       if (item.completedCount === undefined) item.completedCount = item.completed ? 1 : 0
+      // v5 迁移：添加 scheduledDate 字段
+      if (!item.scheduledDate) item.scheduledDate = data.dailyTodos.date || today
     }
   }
 
@@ -80,6 +85,7 @@ function initializeDefaultActions(data: StorageData): StorageData {
         content: action.content,
         createdAt: Date.now(),
         repeatCount: action.repeatCount,
+        recurrence: action.recurrence,
       })
     }
     saveData(data)
