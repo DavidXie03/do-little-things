@@ -175,9 +175,9 @@ onMounted(() => {
       </div>
 
       <!-- 按日期分组显示 -->
-      <div v-for="group in groupedTodos" :key="group.dateStr" class="mb-5">
+      <div v-for="group in groupedTodos" :key="group.dateStr" class="u-mb-lg">
         <!-- 分组标题 -->
-        <div class="flex items-center gap-2 mb-3">
+        <div class="flex items-center gap-2 u-mb-sm">
           <span
             class="text-sm font-bold"
             style="color: var(--primary);"
@@ -220,9 +220,9 @@ onMounted(() => {
         </template>
       </div>
 
-      <div class="my-4 border-t" style="border-color: rgba(0,0,0,0.05);"></div>
+      <div class="u-mb-md border-t" style="border-color: rgba(0,0,0,0.05); padding-top: var(--gap-md);"></div>
 
-      <div class="flex gap-3 mb-6">
+      <div class="flex u-mb-lg" style="gap: var(--gap-sm);">
         <button
           @click="openAddModal"
           class="flex-1 flex items-center justify-center gap-2 u-item rounded-xl text-sm font-semibold transition-all duration-300 active:scale-[0.98]"

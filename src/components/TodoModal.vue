@@ -100,7 +100,7 @@ function handleConfirm() {
       </div>
     </div>
 
-    <div class="flex gap-3 pt-2">
+    <div class="flex pt-2" style="gap: var(--gap-sm);">
       <button
         @click="emit('cancel')"
         class="flex-1 u-item-sm rounded-xl text-sm font-semibold transition-all active:scale-95"

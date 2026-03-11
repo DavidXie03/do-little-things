@@ -85,7 +85,7 @@ function switchLanguage(langCode: string) {
       :title="t('settings.language')"
       @close="closeLangModal"
     >
-      <div class="space-y-3">
+      <div class="u-gap-sm">
         <button
           v-for="lang in languages"
           :key="lang.code"

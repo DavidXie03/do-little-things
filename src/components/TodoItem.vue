@@ -51,7 +51,7 @@ function getSubInfo(): string {
 
 <template>
   <div
-    class="relative rounded-2xl u-item mb-3 overflow-hidden transition-all duration-300"
+    class="relative rounded-2xl u-item u-mb-md overflow-hidden transition-all duration-300"
     :class="[
       item.completed ? 'opacity-60' : '',
       isFuture ? 'opacity-70' : '',

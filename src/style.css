@@ -92,6 +92,29 @@ html, body, #app {
 
 /* ===== Reusable Spacing Utility Classes ===== */
 
+/* --- Spacing scale variables (inherit & override anywhere) --- */
+:root {
+  --gap-xs: 6px;    /* tiny gaps: inline tags, chips */
+  --gap-sm: 10px;   /* compact gaps: modal internals, button groups */
+  --gap-md: 16px;   /* standard gaps: list items, form fields */
+  --gap-lg: 24px;   /* section-level gaps: between groups */
+  --gap-xl: 32px;   /* page-level gaps: major sections */
+}
+
+/* Vertical gap between children (flex-column or stack) */
+.u-gap-xs > * + * { margin-top: var(--gap-xs); }
+.u-gap-sm > * + * { margin-top: var(--gap-sm); }
+.u-gap-md > * + * { margin-top: var(--gap-md); }
+.u-gap-lg > * + * { margin-top: var(--gap-lg); }
+.u-gap-xl > * + * { margin-top: var(--gap-xl); }
+
+/* Bottom margin for individual items (when not in a flex stack) */
+.u-mb-xs { margin-bottom: var(--gap-xs); }
+.u-mb-sm { margin-bottom: var(--gap-sm); }
+.u-mb-md { margin-bottom: var(--gap-md); }
+.u-mb-lg { margin-bottom: var(--gap-lg); }
+.u-mb-xl { margin-bottom: var(--gap-xl); }
+
 /* Standard interactive element: buttons, list items, setting rows */
 .u-item {
   padding: 14px 20px;
