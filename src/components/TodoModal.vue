@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, watch } from 'vue'
+import { ref, nextTick, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RecurrenceType, ALL_RECURRENCE_TYPES } from '../types'
 import type { RecurrenceType as RecurrenceTypeT } from '../types'
@@ -15,10 +15,11 @@ const props = defineProps<{
   initialContent?: string
   initialRepeatCount?: number
   initialRecurrence?: RecurrenceTypeT
+  initialStartDate?: string
 }>()
 
 const emit = defineEmits<{
-  (e: 'confirm', content: string, repeatCount: number, recurrence: RecurrenceTypeT): void
+  (e: 'confirm', content: string, repeatCount: number, recurrence: RecurrenceTypeT, startDate?: string): void
   (e: 'cancel'): void
 }>()
 
@@ -27,19 +28,105 @@ const repeatCount = ref(1)
 const recurrence = ref<RecurrenceTypeT>(RecurrenceType.Daily)
 const inputRef = ref<HTMLInputElement | null>(null)
 
+// 开始日期相关
+type StartDateOption = 'today' | 'tomorrow' | 'dayAfter' | 'custom'
+const startDateOption = ref<StartDateOption>('today')
+const customDate = ref('')
+const showDatePicker = ref(false)
+
+function toDateStr(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+function getTodayStr(): string {
+  return toDateStr(new Date())
+}
+
+function getOffsetDateStr(days: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  return toDateStr(d)
+}
+
+const resolvedStartDate = computed((): string | undefined => {
+  const today = getTodayStr()
+  switch (startDateOption.value) {
+    case 'today':
+      return undefined // 默认今天，不需要传 startDate
+    case 'tomorrow':
+      return getOffsetDateStr(1)
+    case 'dayAfter':
+      return getOffsetDateStr(2)
+    case 'custom':
+      return customDate.value || today
+    default:
+      return undefined
+  }
+})
+
 watch(() => props.visible, (val) => {
   if (val) {
     content.value = props.initialContent ?? ''
     repeatCount.value = props.initialRepeatCount ?? 1
     recurrence.value = props.initialRecurrence ?? RecurrenceType.Daily
+    showDatePicker.value = false
+
+    // 初始化日期选项
+    if (props.initialStartDate) {
+      const today = getTodayStr()
+      const tomorrow = getOffsetDateStr(1)
+      const dayAfter = getOffsetDateStr(2)
+      if (props.initialStartDate === today || !props.initialStartDate) {
+        startDateOption.value = 'today'
+      } else if (props.initialStartDate === tomorrow) {
+        startDateOption.value = 'tomorrow'
+      } else if (props.initialStartDate === dayAfter) {
+        startDateOption.value = 'dayAfter'
+      } else {
+        startDateOption.value = 'custom'
+        customDate.value = props.initialStartDate
+      }
+    } else {
+      startDateOption.value = 'today'
+      customDate.value = ''
+    }
+
     nextTick(() => inputRef.value?.focus())
   }
 })
 
+function selectDateOption(option: StartDateOption) {
+  if (option === 'custom') {
+    showDatePicker.value = true
+    startDateOption.value = 'custom'
+    if (!customDate.value) {
+      customDate.value = getTodayStr()
+    }
+  } else {
+    showDatePicker.value = false
+    startDateOption.value = option
+  }
+}
+
+function handleDateInput(e: Event) {
+  const target = e.target as HTMLInputElement
+  customDate.value = target.value
+}
+
 function handleConfirm() {
   const trimmed = content.value.trim()
   if (!trimmed) return
-  emit('confirm', trimmed, repeatCount.value, recurrence.value)
+  emit('confirm', trimmed, repeatCount.value, recurrence.value, resolvedStartDate.value)
+}
+
+/** 格式化自定义日期显示 */
+function formatCustomDate(dateStr: string): string {
+  if (!dateStr) return ''
+  const d = new Date(dateStr + 'T00:00:00')
+  return `${d.getMonth() + 1}/${d.getDate()}`
 }
 </script>
 
@@ -76,6 +163,68 @@ function handleConfirm() {
         >
           {{ t(`recurrence.${rt}`) }}
         </button>
+      </div>
+    </div>
+
+    <!-- 开始日期选择 -->
+    <div class="space-y-2">
+      <span class="text-sm" style="color: var(--text-secondary);">{{ t('modal.startDateLabel') }}</span>
+      <div class="flex flex-wrap gap-2">
+        <button
+          @click="selectDateOption('today')"
+          class="u-item-sm rounded-lg text-xs font-medium transition-all duration-200 active:scale-95"
+          :style="{
+            background: startDateOption === 'today' ? 'var(--primary)' : 'rgba(108,99,255,0.06)',
+            color: startDateOption === 'today' ? 'white' : 'var(--primary)',
+            border: startDateOption === 'today' ? '1.5px solid var(--primary)' : '1.5px solid rgba(108,99,255,0.12)',
+          }"
+        >
+          {{ t('modal.startToday') }}
+        </button>
+        <button
+          @click="selectDateOption('tomorrow')"
+          class="u-item-sm rounded-lg text-xs font-medium transition-all duration-200 active:scale-95"
+          :style="{
+            background: startDateOption === 'tomorrow' ? 'var(--primary)' : 'rgba(108,99,255,0.06)',
+            color: startDateOption === 'tomorrow' ? 'white' : 'var(--primary)',
+            border: startDateOption === 'tomorrow' ? '1.5px solid var(--primary)' : '1.5px solid rgba(108,99,255,0.12)',
+          }"
+        >
+          {{ t('modal.startTomorrow') }}
+        </button>
+        <button
+          @click="selectDateOption('dayAfter')"
+          class="u-item-sm rounded-lg text-xs font-medium transition-all duration-200 active:scale-95"
+          :style="{
+            background: startDateOption === 'dayAfter' ? 'var(--primary)' : 'rgba(108,99,255,0.06)',
+            color: startDateOption === 'dayAfter' ? 'white' : 'var(--primary)',
+            border: startDateOption === 'dayAfter' ? '1.5px solid var(--primary)' : '1.5px solid rgba(108,99,255,0.12)',
+          }"
+        >
+          {{ t('modal.startDayAfter') }}
+        </button>
+        <button
+          @click="selectDateOption('custom')"
+          class="u-item-sm rounded-lg text-xs font-medium transition-all duration-200 active:scale-95"
+          :style="{
+            background: startDateOption === 'custom' ? 'var(--primary)' : 'rgba(108,99,255,0.06)',
+            color: startDateOption === 'custom' ? 'white' : 'var(--primary)',
+            border: startDateOption === 'custom' ? '1.5px solid var(--primary)' : '1.5px solid rgba(108,99,255,0.12)',
+          }"
+        >
+          {{ startDateOption === 'custom' && customDate ? formatCustomDate(customDate) : t('modal.startPickDate') }}
+        </button>
+      </div>
+      <!-- 日期选择器 -->
+      <div v-if="showDatePicker" class="mt-2">
+        <input
+          type="date"
+          :value="customDate"
+          :min="getTodayStr()"
+          @input="handleDateInput"
+          class="w-full text-sm px-4 py-2.5 rounded-lg border-none outline-none"
+          style="background: rgba(108,99,255,0.04); color: var(--text-primary);"
+        />
       </div>
     </div>
 

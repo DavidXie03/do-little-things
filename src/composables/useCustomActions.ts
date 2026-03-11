@@ -14,13 +14,14 @@ export function useCustomActions() {
 
   const customActions = computed(() => storageData.value.customActions)
 
-  function addCustomAction(content: string, repeatCount: number = 1, recurrence: RecurrenceType = RT.Daily): void {
+  function addCustomAction(content: string, repeatCount: number = 1, recurrence: RecurrenceType = RT.Daily, startDate?: string): void {
     const newCa = {
       id: `ca_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       content,
       createdAt: Date.now(),
       repeatCount,
       recurrence,
+      startDate,
     }
     storageData.value.customActions.push(newCa)
 

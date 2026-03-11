@@ -75,6 +75,7 @@ export interface CustomAction {
   createdAt: number
   repeatCount: number
   recurrence: RecurrenceType
+  startDate?: string // YYYY-MM-DD，任务开始日期，默认为创建当天
 }
 
 export interface DailyTodoItem {

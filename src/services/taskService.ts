@@ -12,9 +12,19 @@ export const DEFAULT_ACTIONS: { content: string; repeatCount: number; recurrence
  * 判断某个 CustomAction 在给定日期是否应该触发
  */
 export function shouldTriggerOnDate(ca: CustomAction, dateStr: string): boolean {
+  // 如果设置了 startDate，在 startDate 之前不触发
+  if (ca.startDate && dateStr < ca.startDate) {
+    return false
+  }
+
   const date = new Date(dateStr + 'T00:00:00')
   const dayOfWeek = date.getDay() // 0=Sunday, 1=Monday, ..., 6=Saturday
   const dayOfMonth = date.getDate()
+
+  // 使用 startDate 或 createdAt 作为锚点日期
+  const anchorDate = ca.startDate
+    ? new Date(ca.startDate + 'T00:00:00')
+    : new Date(ca.createdAt)
 
   switch (ca.recurrence) {
     case RT.Daily:
@@ -22,19 +32,13 @@ export function shouldTriggerOnDate(ca: CustomAction, dateStr: string): boolean 
     case RT.Weekday:
       return dayOfWeek >= 1 && dayOfWeek <= 5
     case RT.Weekly: {
-      // 每周：以创建日期的星期几为锚点
-      const createdDate = new Date(ca.createdAt)
-      return dayOfWeek === createdDate.getDay()
+      return dayOfWeek === anchorDate.getDay()
     }
     case RT.Monthly: {
-      // 每月：以创建日期的日为锚点
-      const createdDate = new Date(ca.createdAt)
-      return dayOfMonth === createdDate.getDate()
+      return dayOfMonth === anchorDate.getDate()
     }
     case RT.Yearly: {
-      // 每年：以创建日期的月和日为锚点
-      const createdDate = new Date(ca.createdAt)
-      return date.getMonth() === createdDate.getMonth() && dayOfMonth === createdDate.getDate()
+      return date.getMonth() === anchorDate.getMonth() && dayOfMonth === anchorDate.getDate()
     }
     default:
       return true
