@@ -24,6 +24,9 @@ const {
 
 const todayItems = computed(() => dailyTodos.value?.items ?? [])
 
+// 今天未完成的任务
+const todayPendingItems = computed(() => todayItems.value.filter(i => !i.completed))
+
 /** 按日期分组的全部待办（今天 + 未来） */
 interface DateGroup {
   dateStr: string       // YYYY-MM-DD
@@ -36,14 +39,14 @@ interface DateGroup {
 const groupedTodos = computed((): DateGroup[] => {
   const groups: Map<string, DateGroup> = new Map()
 
-  // 1. 加入今天的待办
+  // 1. 加入今天未完成的待办（已完成的不再显示）
   const todayDateStr = dailyTodos.value?.date ?? getTodayStr()
-  if (todayItems.value.length > 0) {
+  if (todayPendingItems.value.length > 0) {
     groups.set(todayDateStr, {
       dateStr: todayDateStr,
       label: '今天',
-      count: todayItems.value.length,
-      items: [...todayItems.value],
+      count: todayPendingItems.value.length,
+      items: [...todayPendingItems.value],
       isFuture: false,
     })
   }
@@ -68,6 +71,12 @@ const groupedTodos = computed((): DateGroup[] => {
 
   // 3. 按日期排序
   return Array.from(groups.values()).sort((a, b) => a.dateStr.localeCompare(b.dateStr))
+})
+
+// 今天所有任务是否全部完成
+const allTodayCompleted = computed(() => {
+  const items = todayItems.value
+  return items.length > 0 && items.every(i => i.completed)
 })
 
 function getTodayStr(): string {
@@ -209,9 +218,20 @@ onMounted(() => {
 
     <div class="flex-1 overflow-y-auto pb-4 px-6" style="-webkit-overflow-scrolling: touch;">
 
+      <!-- 今天全部完成的庆祝状态 -->
+      <div
+        v-if="allTodayCompleted"
+        class="flex flex-col items-center justify-center py-8"
+      >
+        <IconParty :size="48" color="var(--primary)" />
+        <p class="text-sm mt-3 font-semibold" style="color: var(--primary);">
+          🎉 今天的任务全部完成！
+        </p>
+      </div>
+
       <!-- 无任务空状态 -->
       <div
-        v-if="groupedTodos.length === 0"
+        v-if="groupedTodos.length === 0 && !allTodayCompleted"
         class="flex flex-col items-center justify-center py-12"
       >
         <IconParty :size="48" color="var(--text-muted)" />
