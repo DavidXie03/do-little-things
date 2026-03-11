@@ -16,23 +16,20 @@ const {
   getUncompletedTodos,
 } = useStorage()
 
-/** 当前堆叠中的待办列表（第一个是顶部卡片） */
 const stackItems = ref<DailyTodoItem[]>([])
 const allDone = ref(false)
-const cardVisible = ref(false)
 const cardKey = ref(0)
 
-/** 翻牌动画状态 */
-const isFlipping = ref(false)
+/** 翻牌动画阶段：'idle' | 'back' | 'front' */
+const flipPhase = ref<'idle' | 'back' | 'front'>('idle')
 
-/** 最多同时显示几张堆叠卡片 */
 const MAX_STACK = 3
 
-/** 可见的堆叠卡片（最多 MAX_STACK 张） */
 const visibleStack = computed(() => stackItems.value.slice(0, MAX_STACK))
-
-/** 当前顶部卡片 */
 const topItem = computed(() => stackItems.value[0] ?? null)
+
+/** 翻牌容器 ref */
+const flipContainerRef = ref<HTMLElement | null>(null)
 
 function loadStack() {
   const uncompleted = getUncompletedTodos()
@@ -66,35 +63,71 @@ function handleSwipe(direction: SwipeDirection) {
     })
   }
 
-  // 隐藏顶部卡片
-  cardVisible.value = false
+  // 阶段1：隐藏正面，显示卡背
+  flipPhase.value = 'back'
 
-  // 重新加载堆叠 → 触发翻牌动画
+  // 重新加载数据
   setTimeout(() => {
     loadStack()
     cardKey.value++
 
     if (stackItems.value.length > 0) {
-      // 先显示卡牌背面，然后翻转到正面
-      isFlipping.value = true
+      // 阶段2：等卡背渲染后，用 Web Animations API 翻转
       nextTick(() => {
-        requestAnimationFrame(() => {
-          // 触发翻牌动画：从背面翻到正面
-          isFlipping.value = false
-          cardVisible.value = true
-        })
+        playFlipAnimation()
       })
     }
-  }, 100)
+  }, 150)
+}
+
+function playFlipAnimation() {
+  const el = flipContainerRef.value
+  if (!el) {
+    flipPhase.value = 'front'
+    return
+  }
+
+  // 用 Web Animations API 做翻转：先从 0° 转到 90°（卡背消失），再从 90° 转到 0°（正面出现）
+  // 第一阶段：卡背旋转消失
+  const anim1 = el.animate([
+    { transform: 'perspective(1000px) rotateY(0deg)' },
+    { transform: 'perspective(1000px) rotateY(90deg)' },
+  ], {
+    duration: 250,
+    easing: 'ease-in',
+    fill: 'forwards',
+  })
+
+  anim1.onfinish = () => {
+    // 切换到正面
+    flipPhase.value = 'front'
+
+    nextTick(() => {
+      // 第二阶段：正面从 -90° 转到 0°
+      const anim2 = el.animate([
+        { transform: 'perspective(1000px) rotateY(-90deg)' },
+        { transform: 'perspective(1000px) rotateY(0deg)' },
+      ], {
+        duration: 300,
+        easing: 'ease-out',
+        fill: 'forwards',
+      })
+
+      anim2.onfinish = () => {
+        flipPhase.value = 'idle'
+        // 清除 fill: forwards 遗留的样式
+        el.style.transform = ''
+      }
+    })
+  }
 }
 
 onMounted(() => {
   ensureDailyTodos()
   loadStack()
+  flipPhase.value = 'front'
   nextTick(() => {
-    requestAnimationFrame(() => {
-      cardVisible.value = true
-    })
+    flipPhase.value = 'idle'
   })
 })
 </script>
@@ -126,10 +159,8 @@ onMounted(() => {
                 zIndex: MAX_STACK - (idx + 1),
               }"
             >
-              <!-- 卡牌背面 -->
               <div class="card-back">
                 <div class="card-back-pattern">
-                  <!-- 装饰性图案 -->
                   <div class="card-back-diamond"></div>
                   <div class="card-back-border"></div>
                   <div class="card-back-center-icon">✦</div>
@@ -137,35 +168,29 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- 顶部可交互卡片（带翻牌动画） -->
+            <!-- 顶部卡片区域：翻牌动画容器 -->
             <div
-              class="card-stack-top card-flip-wrapper"
-              :class="{ 'is-flipping': isFlipping }"
+              ref="flipContainerRef"
+              class="card-stack-top"
             >
-              <!-- 卡牌背面（翻牌动画时先显示） -->
-              <div class="card-flip-back">
-                <div class="card-back">
-                  <div class="card-back-pattern">
-                    <div class="card-back-diamond"></div>
-                    <div class="card-back-border"></div>
-                    <div class="card-back-center-icon">✦</div>
-                  </div>
+              <!-- 卡牌背面（翻牌动画第一阶段显示） -->
+              <div v-if="flipPhase === 'back'" class="card-back">
+                <div class="card-back-pattern">
+                  <div class="card-back-diamond"></div>
+                  <div class="card-back-border"></div>
+                  <div class="card-back-center-icon">✦</div>
                 </div>
               </div>
 
               <!-- 卡牌正面 -->
-              <div class="card-flip-front">
-                <transition name="card-fade-in">
-                  <TaskCard
-                    v-show="cardVisible"
-                    :key="cardKey"
-                    :task="topItem.task"
-                    :remaining-count="topItem.totalCount - topItem.completedCount"
-                    :total-count="topItem.totalCount"
-                    @swipe="handleSwipe"
-                  />
-                </transition>
-              </div>
+              <TaskCard
+                v-if="flipPhase !== 'back'"
+                :key="cardKey"
+                :task="topItem.task"
+                :remaining-count="topItem.totalCount - topItem.completedCount"
+                :total-count="topItem.totalCount"
+                @swipe="handleSwipe"
+              />
             </div>
           </div>
         </template>
@@ -192,13 +217,12 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* 卡片堆叠容器：启用 3D 透视 */
+/* 卡片堆叠容器 */
 .card-stack-container {
   position: relative;
-  perspective: 1000px;
 }
 
-/* 堆叠层：绝对定位覆盖同一区域 */
+/* 堆叠层 */
 .card-stack-layer {
   position: absolute;
   top: 0;
@@ -262,51 +286,5 @@ onMounted(() => {
   color: rgba(255, 255, 255, 0.25);
   z-index: 1;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* ====== 翻牌动画 ====== */
-.card-flip-wrapper {
-  transform-style: preserve-3d;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-flip-wrapper.is-flipping {
-  transform: rotateY(180deg);
-}
-
-.card-flip-front,
-.card-flip-back {
-  backface-visibility: hidden;
-}
-
-.card-flip-back {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  transform: rotateY(180deg);
-}
-
-.card-flip-front {
-  position: relative;
-}
-
-/* 顶部卡片入场动画 */
-.card-fade-in-enter-active {
-  transition: opacity 0.3s ease;
-}
-.card-fade-in-leave-active {
-  transition: opacity 0.15s ease;
-  position: absolute;
-  width: 100%;
-}
-.card-fade-in-enter-from {
-  opacity: 0;
-}
-.card-fade-in-enter-to {
-  opacity: 1;
-}
-.card-fade-in-leave-to {
-  opacity: 0;
 }
 </style>
