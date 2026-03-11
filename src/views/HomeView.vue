@@ -54,6 +54,9 @@ function handleSwipe(direction: SwipeDirection) {
   const item = topItem.value
   if (!item) return
 
+  // 如果动画还在进行中，忽略新的滑动
+  if (animPhase.value !== 'idle') return
+
   const now = new Date()
   const task = item.task
   const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
@@ -71,33 +74,48 @@ function handleSwipe(direction: SwipeDirection) {
     })
   }
 
-  // 进入升起阶段：顶部 TaskCard 隐藏，堆叠中的第一张卡背开始升起动画
-  animPhase.value = 'rising'
+  // 检查滑走后是否还有更多未完成卡片
+  const remaining = getUncompletedTodos()
 
-  // 等顶部卡片滑走动画结束
-  setTimeout(() => {
-    loadStack()
-    cardKey.value++
+  if (remaining.length > 1) {
+    // 还有多张卡片：走升起 + 翻牌动画
+    animPhase.value = 'rising'
 
-    if (stackItems.value.length > 0) {
+    setTimeout(() => {
+      loadStack()
+      cardKey.value++
+
       nextTick(() => {
         playRisingAnimation()
       })
-    } else {
+    }, 150)
+  } else {
+    // 只剩0或1张：不需要升起动画，直接刷新
+    setTimeout(() => {
+      loadStack()
+      cardKey.value++
       animPhase.value = 'idle'
-    }
-  }, 150)
+    }, 150)
+  }
 }
 
 function playRisingAnimation() {
   const el = risingCardRef.value
   if (!el) {
+    // 没有可升起的卡背（不应该发生，但做安全处理）
     animPhase.value = 'idle'
     return
   }
 
+  // 安全超时：防止动画状态永远卡死
+  const safetyTimeout = setTimeout(() => {
+    animPhase.value = 'idle'
+    if (el) el.style.transform = ''
+    const topEl = topCardRef.value
+    if (topEl) topEl.style.transform = ''
+  }, 2000)
+
   // 卡背从当前堆叠位置 (translateY(14px) scale(0.96)) 升起到顶部位置 (translateY(0) scale(1))
-  // 注意：此时这张卡背 *已经在* 堆叠缩小位置上渲染好了，不会闪跳！
   const riseAnim = el.animate([
     { transform: 'translateY(14px) scale(0.96)', zIndex: 2 },
     { transform: 'translateY(0px) scale(1)', zIndex: 10 },
@@ -112,14 +130,15 @@ function playRisingAnimation() {
     animPhase.value = 'flipping'
 
     nextTick(() => {
-      playFlipAnimation()
+      playFlipAnimation(safetyTimeout)
     })
   }
 }
 
-function playFlipAnimation() {
+function playFlipAnimation(safetyTimeout: ReturnType<typeof setTimeout>) {
   const el = topCardRef.value
   if (!el) {
+    clearTimeout(safetyTimeout)
     animPhase.value = 'idle'
     return
   }
@@ -150,6 +169,7 @@ function playFlipAnimation() {
       })
 
       flipAnim2.onfinish = () => {
+        clearTimeout(safetyTimeout)
         animPhase.value = 'idle'
         el.style.transform = ''
       }
