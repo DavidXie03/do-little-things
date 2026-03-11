@@ -62,9 +62,8 @@ function getSubInfo(): string {
       <!-- 复选圆圈 -->
       <button
         v-if="!isFuture"
-        @click.stop="!item.completed && emit('complete', item.id)"
-        class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
-        :class="item.completed ? '' : 'active:scale-90'"
+        @click.stop="emit('complete', item.id)"
+        class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 active:scale-90"
         :style="{
           background: item.completed ? '#00B894' : 'transparent',
           border: item.completed ? 'none' : '2px solid var(--text-muted)',

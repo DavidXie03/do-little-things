@@ -37,7 +37,15 @@ export function useDailyTodos() {
   function markTodoComplete(todoId: string): void {
     if (!storageData.value.dailyTodos) return
     const item = storageData.value.dailyTodos.items.find(i => i.id === todoId)
-    if (item && !item.completed) {
+    if (!item) return
+
+    if (item.completed) {
+      // 已完成 → 重置为完全未完成
+      item.completed = false
+      item.completedCount = 0
+      delete item.completedAt
+    } else {
+      // 未完成 → 增加完成次数
       item.completedCount = (item.completedCount || 0) + 1
 
       if (item.completedCount >= item.totalCount) {
@@ -54,9 +62,9 @@ export function useDailyTodos() {
         timestamp: now.getTime(),
         date: dateStr,
       })
-
-      saveData(storageData.value)
     }
+
+    saveData(storageData.value)
   }
 
   function removeTodoItem(todoId: string): void {
