@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DailyTodoItem } from '../types'
 import IconCheck from './icons/IconCheck.vue'
-import IconTrash from './icons/IconTrash.vue'
 
 const { t } = useI18n()
 
@@ -16,29 +14,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'complete', todoId: string): void
-  (e: 'delete', todoId: string): void
   (e: 'edit', item: DailyTodoItem): void
 }>()
-
-const confirmingDelete = ref(false)
-let confirmTimer: ReturnType<typeof setTimeout> | null = null
-
-function handleDelete(todoId: string) {
-  if (confirmingDelete.value) {
-    emit('delete', todoId)
-    confirmingDelete.value = false
-    if (confirmTimer) {
-      clearTimeout(confirmTimer)
-      confirmTimer = null
-    }
-  } else {
-    confirmingDelete.value = true
-    if (confirmTimer) clearTimeout(confirmTimer)
-    confirmTimer = setTimeout(() => {
-      confirmingDelete.value = false
-    }, 3000)
-  }
-}
 
 /** 构建副信息文本：仅显示循环类型 */
 function getSubInfo(): string {
@@ -104,20 +81,6 @@ function getSubInfo(): string {
       >
         {{ item.completedCount }}/{{ item.totalCount }}
       </span>
-
-      <!-- 删除按钮（仅今天的任务） -->
-      <button
-        v-if="!isFuture"
-        @click.stop="handleDelete(item.id)"
-        class="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-200 active:scale-90"
-        :style="{
-          background: confirmingDelete ? '#E17055' : 'rgba(225,112,85,0.08)',
-          opacity: confirmingDelete ? 1 : 0.4,
-        }"
-        :title="confirmingDelete ? t('todoItem.deleteConfirm') : t('todoItem.delete')"
-      >
-        <IconTrash :size="14" :color="confirmingDelete ? 'white' : '#E17055'" />
-      </button>
     </div>
   </div>
 </template>

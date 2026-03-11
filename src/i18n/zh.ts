@@ -24,6 +24,7 @@ export default {
     recurrenceLabel: '循环方式',
     repeatLabel: '每次执行次数',
     startDateLabel: '开始日期',
+    dueDateLabel: '到期时间',
     startToday: '今天',
     startTomorrow: '明天',
     startDayAfter: '后天',
@@ -31,6 +32,8 @@ export default {
     cancel: '取消',
     add: '添加',
     save: '保存',
+    delete: '删除此待办',
+    deleteConfirm: '确认删除？',
   },
   recurrence: {
     daily: '每天',

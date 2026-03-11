@@ -86,6 +86,7 @@ const modalContent = ref('')
 const modalRepeatCount = ref(1)
 const modalRecurrence = ref<RecurrenceType>(RT.Daily)
 const modalEditId = ref<string | null>(null)
+const modalEditTodoId = ref<string | null>(null)
 
 function openAddModal() {
   modalMode.value = 'add'
@@ -93,6 +94,7 @@ function openAddModal() {
   modalRepeatCount.value = 1
   modalRecurrence.value = RT.Daily
   modalEditId.value = null
+  modalEditTodoId.value = null
   showModal.value = true
 }
 
@@ -109,6 +111,7 @@ function openEditModal(item: DailyTodoItem) {
   modalRepeatCount.value = ca.repeatCount
   modalRecurrence.value = ca.recurrence || RT.Daily
   modalEditId.value = caId
+  modalEditTodoId.value = item.id
   showModal.value = true
 }
 
@@ -117,6 +120,13 @@ function handleModalConfirm(content: string, repeatCount: number, recurrence: Re
     addCustomAction(content, repeatCount, recurrence, startDate)
   } else if (modalEditId.value) {
     updateCustomAction(modalEditId.value, content, repeatCount, recurrence)
+  }
+  showModal.value = false
+}
+
+function handleModalDelete() {
+  if (modalEditTodoId.value) {
+    removeTodoItem(modalEditTodoId.value)
   }
   showModal.value = false
 }
@@ -210,7 +220,6 @@ onMounted(() => {
             :show-recurrence="true"
             :show-date-label="false"
             @complete="markTodoComplete"
-            @delete="removeTodoItem"
             @edit="openEditModal"
           />
         </template>
@@ -249,6 +258,7 @@ onMounted(() => {
       :initial-recurrence="modalRecurrence"
       @confirm="handleModalConfirm"
       @cancel="showModal = false"
+      @delete="handleModalDelete"
     />
   </div>
 </template>

@@ -6,6 +6,7 @@ import type { RecurrenceType as RecurrenceTypeT } from '../types'
 import BaseModal from './BaseModal.vue'
 import IconPlus from './icons/IconPlus.vue'
 import IconMinus from './icons/IconMinus.vue'
+import IconTrash from './icons/IconTrash.vue'
 
 const { t } = useI18n()
 
@@ -21,12 +22,17 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'confirm', content: string, repeatCount: number, recurrence: RecurrenceTypeT, startDate?: string): void
   (e: 'cancel'): void
+  (e: 'delete'): void
 }>()
 
 const content = ref('')
 const repeatCount = ref(1)
 const recurrence = ref<RecurrenceTypeT>(RecurrenceType.Daily)
 const inputRef = ref<HTMLInputElement | null>(null)
+
+// 删除确认
+const confirmingDelete = ref(false)
+let deleteTimer: ReturnType<typeof setTimeout> | null = null
 
 // 开始日期相关
 type StartDateOption = 'today' | 'tomorrow' | 'dayAfter' | 'custom'
@@ -52,7 +58,6 @@ function getOffsetDateStr(days: number): string {
 }
 
 const resolvedStartDate = computed((): string | undefined => {
-  const today = getTodayStr()
   switch (startDateOption.value) {
     case 'today':
       return undefined // 默认今天，不需要传 startDate
@@ -61,7 +66,7 @@ const resolvedStartDate = computed((): string | undefined => {
     case 'dayAfter':
       return getOffsetDateStr(2)
     case 'custom':
-      return customDate.value || today
+      return customDate.value || getTodayStr()
     default:
       return undefined
   }
@@ -73,6 +78,8 @@ watch(() => props.visible, (val) => {
     repeatCount.value = props.initialRepeatCount ?? 1
     recurrence.value = props.initialRecurrence ?? RecurrenceType.Daily
     showDatePicker.value = false
+    confirmingDelete.value = false
+    if (deleteTimer) { clearTimeout(deleteTimer); deleteTimer = null }
 
     // 初始化日期选项
     if (props.initialStartDate) {
@@ -122,6 +129,20 @@ function handleConfirm() {
   emit('confirm', trimmed, repeatCount.value, recurrence.value, resolvedStartDate.value)
 }
 
+function handleDelete() {
+  if (confirmingDelete.value) {
+    emit('delete')
+    confirmingDelete.value = false
+    if (deleteTimer) { clearTimeout(deleteTimer); deleteTimer = null }
+  } else {
+    confirmingDelete.value = true
+    if (deleteTimer) clearTimeout(deleteTimer)
+    deleteTimer = setTimeout(() => {
+      confirmingDelete.value = false
+    }, 3000)
+  }
+}
+
 /** 格式化自定义日期显示 */
 function formatCustomDate(dateStr: string): string {
   if (!dateStr) return ''
@@ -166,9 +187,11 @@ function formatCustomDate(dateStr: string): string {
       </div>
     </div>
 
-    <!-- 开始日期选择 -->
+    <!-- 日期选择：新建时叫"开始日期"，编辑时叫"到期时间" -->
     <div class="space-y-2">
-      <span class="text-sm" style="color: var(--text-secondary);">{{ t('modal.startDateLabel') }}</span>
+      <span class="text-sm" style="color: var(--text-secondary);">
+        {{ mode === 'add' ? t('modal.startDateLabel') : t('modal.dueDateLabel') }}
+      </span>
       <div class="flex flex-wrap gap-2">
         <button
           @click="selectDateOption('today')"
@@ -248,6 +271,21 @@ function formatCustomDate(dateStr: string): string {
         </button>
       </div>
     </div>
+
+    <!-- 编辑模式：删除按钮 -->
+    <button
+      v-if="mode === 'edit'"
+      @click="handleDelete"
+      class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 active:scale-[0.98]"
+      :style="{
+        background: confirmingDelete ? '#E17055' : 'rgba(225,112,85,0.06)',
+        color: confirmingDelete ? 'white' : '#E17055',
+        border: confirmingDelete ? '1.5px solid #E17055' : '1.5px solid rgba(225,112,85,0.15)',
+      }"
+    >
+      <IconTrash :size="14" :color="confirmingDelete ? 'white' : '#E17055'" />
+      {{ confirmingDelete ? t('modal.deleteConfirm') : t('modal.delete') }}
+    </button>
 
     <div class="flex pt-2" style="gap: var(--gap-sm);">
       <button

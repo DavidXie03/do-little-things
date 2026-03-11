@@ -24,6 +24,7 @@ export default {
     recurrenceLabel: 'Recurrence',
     repeatLabel: 'Repeat count',
     startDateLabel: 'Start date',
+    dueDateLabel: 'Due date',
     startToday: 'Today',
     startTomorrow: 'Tomorrow',
     startDayAfter: 'Day after',
@@ -31,6 +32,8 @@ export default {
     cancel: 'Cancel',
     add: 'Add',
     save: 'Save',
+    delete: 'Delete this todo',
+    deleteConfirm: 'Confirm delete?',
   },
   recurrence: {
     daily: 'Daily',
