@@ -108,14 +108,13 @@ export function useDailyTodos() {
       today
     )
 
-    // 对于"每天"循环类型，今天已经显示了，所以未来列表不需要再显示
-    // 但其他循环类型的任务可能今天没触发，需要显示下一个触发日
     // 去重：每个 customAction 只保留一条
+    // 今天已经显示过的任务，不再在未来列表中重复
     const seen = new Set<string>()
     return futureItems.filter(item => {
       if (seen.has(item.task.id)) return false
-      // 对于今天已有的每天任务，跳过（因为它每天都在）
-      if (todayTaskIds.has(item.task.id) && item.task.recurrence === 'daily') return false
+      // 今天已有的任务，跳过（下次循环日已经在今天显示了）
+      if (todayTaskIds.has(item.task.id)) return false
       seen.add(item.task.id)
       return true
     })

@@ -38,13 +38,12 @@ function handleDelete(todoId: string) {
   }
 }
 
-/** 构建副信息文本，格式：任务 · 📅 日期 🔄 */
+/** 构建副信息文本：仅显示循环类型 */
 function getSubInfo(): string {
-  const parts: string[] = ['任务']
   if (props.showRecurrence && props.item.task.recurrence) {
-    parts.push(RecurrenceTypeLabel[props.item.task.recurrence] || '')
+    return RecurrenceTypeLabel[props.item.task.recurrence] || ''
   }
-  return parts.filter(Boolean).join(' · ')
+  return ''
 }
 </script>
 
@@ -87,12 +86,9 @@ function getSubInfo(): string {
         >
           {{ item.task.content }}
         </p>
-        <!-- 副信息行：任务 · 循环类型 -->
-        <p class="text-[11px] mt-0.5 flex items-center gap-1" style="color: var(--text-muted);">
-          <span>{{ getSubInfo() }}</span>
-          <template v-if="item.task.recurrence && item.task.recurrence !== 'daily'">
-            <span style="opacity: 0.5;">⟳</span>
-          </template>
+        <!-- 副信息行：循环类型 -->
+        <p v-if="getSubInfo()" class="text-[11px] mt-0.5" style="color: var(--text-muted);">
+          {{ getSubInfo() }}
         </p>
       </div>
 
