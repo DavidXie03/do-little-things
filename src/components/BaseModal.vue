@@ -15,9 +15,11 @@ const emit = defineEmits<{
       <div
         v-if="visible"
         class="fixed inset-0 z-[10000] flex items-center justify-center"
-        @click.self="emit('close')"
       >
-        <div class="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+        <div
+          class="absolute inset-0 bg-black/30 backdrop-blur-sm"
+          @click="emit('close')"
+        ></div>
         <div
           class="relative w-[85%] max-w-sm rounded-2xl u-card u-gap-md"
           style="background: #FFFFFF; box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25); margin: 0 24px;"
