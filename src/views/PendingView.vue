@@ -15,7 +15,6 @@ const { t, tm, locale } = useI18n()
 const {
   ensureDailyTodos,
   dailyTodos,
-  dailyProgress,
   markTodoComplete,
   removeTodoItem,
   customActions,
@@ -81,17 +80,6 @@ function getTodayStr(): string {
   return `${y}-${m}-${d}`
 }
 
-const progressPercent = computed(() => {
-  if (dailyProgress.value.total === 0) return 0
-  return (dailyProgress.value.completed / dailyProgress.value.total) * 100
-})
-
-const circleRadius = 30
-const circleCircumference = 2 * Math.PI * circleRadius
-const circleDashOffset = computed(() => {
-  return circleCircumference * (1 - progressPercent.value / 100)
-})
-
 const showModal = ref(false)
 const modalMode = ref<'add' | 'edit'>('add')
 const modalContent = ref('')
@@ -133,17 +121,6 @@ function handleModalConfirm(content: string, repeatCount: number, recurrence: Re
   showModal.value = false
 }
 
-function formatDate(): string {
-  const now = new Date()
-  const months = tm('date.months') as string[]
-  const weekdays = tm('date.weekdays') as string[]
-  if (locale.value === 'zh') {
-    return `${months[now.getMonth()]} ${now.getDate()}日 ${weekdays[now.getDay()]}`
-  } else {
-    return `${months[now.getMonth()]} ${now.getDate()}, ${weekdays[now.getDay()]}`
-  }
-}
-
 function formatGroupDate(dateStr: string): string {
   const date = new Date(dateStr + 'T00:00:00')
   const now = new Date()
@@ -176,51 +153,15 @@ onMounted(() => {
 <template>
   <div class="h-full flex flex-col overflow-hidden">
     <header class="px-8 pb-4" style="padding-top: calc(var(--safe-area-top, 0px) + 24px);">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1
-            class="text-2xl font-bold"
-            style="color: var(--text-primary);"
-          >
-            {{ t('todos.title') }}
-          </h1>
-          <p class="text-xs mt-1" style="color: var(--text-muted);">
-            {{ formatDate() }}
-          </p>
-        </div>
-        <div class="relative flex items-center justify-center">
-          <svg width="68" height="68" viewBox="0 0 68 68">
-            <circle
-              cx="34" cy="34" :r="circleRadius"
-              fill="none"
-              stroke="rgba(108, 99, 255, 0.1)"
-              stroke-width="5"
-            />
-            <circle
-              cx="34" cy="34" :r="circleRadius"
-              fill="none"
-              stroke="var(--primary)"
-              stroke-width="5"
-              stroke-linecap="round"
-              :stroke-dasharray="circleCircumference"
-              :stroke-dashoffset="circleDashOffset"
-              transform="rotate(-90 34 34)"
-              style="transition: stroke-dashoffset 0.5s ease;"
-            />
-          </svg>
-          <div class="absolute text-center">
-            <span class="text-sm font-bold" style="color: var(--primary);">
-              {{ dailyProgress.completed }}
-            </span>
-            <span class="text-[10px] opacity-60" style="color: var(--primary);">
-              /{{ dailyProgress.total }}
-            </span>
-          </div>
-        </div>
-      </div>
+      <h1
+        class="text-2xl font-bold"
+        style="color: var(--text-primary);"
+      >
+        {{ t('todos.title') }}
+      </h1>
     </header>
 
-    <div class="flex-1 overflow-y-auto pb-4 px-6" style="-webkit-overflow-scrolling: touch;">
+    <div class="flex-1 overflow-y-auto pb-4 u-section-x" style="-webkit-overflow-scrolling: touch;">
 
       <!-- 无任务空状态 -->
       <div
@@ -284,7 +225,7 @@ onMounted(() => {
       <div class="flex gap-3 mb-6">
         <button
           @click="openAddModal"
-          class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all duration-300 active:scale-[0.98]"
+          class="flex-1 flex items-center justify-center gap-2 u-item rounded-xl text-sm font-semibold transition-all duration-300 active:scale-[0.98]"
           style="background: var(--primary); color: white;"
         >
           <IconPlus :size="16" color="white" />
@@ -292,7 +233,7 @@ onMounted(() => {
         </button>
         <button
           @click="regenerateDailyTodos"
-          class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all duration-300 active:scale-[0.98]"
+          class="flex-1 flex items-center justify-center gap-2 u-item rounded-xl text-sm font-semibold transition-all duration-300 active:scale-[0.98]"
           style="background: rgba(108,99,255,0.06); color: var(--primary); border: 1.5px solid rgba(108,99,255,0.12);"
         >
           <IconRefresh :size="16" color="var(--primary)" />
