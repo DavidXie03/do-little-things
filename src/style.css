@@ -89,3 +89,36 @@ html, body, #app {
 .animate-pulse-gentle {
   animation: pulse 2s ease-in-out infinite;
 }
+
+/* ===== Reusable Spacing Utility Classes ===== */
+
+/* Standard interactive element: buttons, list items, setting rows */
+.u-item {
+  padding: 14px 20px;
+}
+
+/* Compact item variant for smaller controls */
+.u-item-sm {
+  padding: 10px 16px;
+}
+
+/* Large item variant for hero buttons or cards */
+.u-item-lg {
+  padding: 16px 24px;
+}
+
+/* Standard card padding (cards, panels, modal content) */
+.u-card {
+  padding: 20px 24px;
+}
+
+/* Section/page-level horizontal padding */
+.u-section-x {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* Badge/tag/chip with comfortable padding */
+.u-badge {
+  padding: 4px 12px;
+}

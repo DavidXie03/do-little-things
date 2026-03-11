@@ -122,7 +122,7 @@ const {
           class="flex justify-center"
         >
           <span
-            class="text-xs px-3 py-1 rounded-full"
+            class="text-xs u-badge rounded-full"
             style="background: rgba(108,99,255,0.08); color: var(--primary);"
           >
             {{ t('home.remaining', { remaining: remainingCount, total: totalCount }) }}

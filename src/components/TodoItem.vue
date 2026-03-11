@@ -51,7 +51,7 @@ function getSubInfo(): string {
 
 <template>
   <div
-    class="relative rounded-2xl p-4 mb-3 overflow-hidden transition-all duration-300"
+    class="relative rounded-2xl u-item mb-3 overflow-hidden transition-all duration-300"
     :class="[
       item.completed ? 'opacity-60' : '',
       isFuture ? 'opacity-70' : '',
@@ -97,7 +97,7 @@ function getSubInfo(): string {
       <!-- 次数 -->
       <span
         v-if="item.totalCount > 1"
-        class="flex-shrink-0 text-xs px-2 py-0.5 rounded-full"
+        class="flex-shrink-0 text-xs u-badge rounded-full"
         :style="{
           background: item.completed ? 'rgba(0,184,148,0.1)' : 'rgba(108,99,255,0.08)',
           color: item.completed ? '#00B894' : 'var(--primary)',

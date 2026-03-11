@@ -67,7 +67,7 @@ function handleConfirm() {
           v-for="rt in ALL_RECURRENCE_TYPES"
           :key="rt"
           @click="recurrence = rt"
-          class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-95"
+          class="u-item-sm rounded-lg text-xs font-medium transition-all duration-200 active:scale-95"
           :style="{
             background: recurrence === rt ? 'var(--primary)' : 'rgba(108,99,255,0.06)',
             color: recurrence === rt ? 'white' : 'var(--primary)',
@@ -103,14 +103,14 @@ function handleConfirm() {
     <div class="flex gap-3 pt-2">
       <button
         @click="emit('cancel')"
-        class="flex-1 py-3 rounded-xl text-sm font-semibold transition-all active:scale-95"
+        class="flex-1 u-item-sm rounded-xl text-sm font-semibold transition-all active:scale-95"
         style="background: rgba(0,0,0,0.04); color: var(--text-secondary);"
       >
         {{ t('modal.cancel') }}
       </button>
       <button
         @click="handleConfirm"
-        class="flex-1 py-3 rounded-xl text-sm font-semibold text-white transition-all active:scale-95"
+        class="flex-1 u-item-sm rounded-xl text-sm font-semibold text-white transition-all active:scale-95"
         style="background: var(--primary);"
       >
         {{ mode === 'add' ? t('modal.add') : t('modal.save') }}

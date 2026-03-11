@@ -46,11 +46,11 @@ function switchLanguage(langCode: string) {
       </h1>
     </header>
 
-    <div class="flex-1 overflow-y-auto px-6 pb-4" style="-webkit-overflow-scrolling: touch;">
+    <div class="flex-1 overflow-y-auto u-section-x pb-4" style="-webkit-overflow-scrolling: touch;">
       <!-- 语言设置：图标 + "语言" 标签 + 当前语言 + 箭头，全部在同一行 -->
       <button
         @click="openLangModal"
-        class="w-full flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-300 active:scale-[0.98]"
+        class="w-full flex items-center gap-3 u-item rounded-2xl transition-all duration-300 active:scale-[0.98]"
         style="background: #FFFFFF; box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.06);"
       >
         <!-- 地球图标 -->
@@ -90,7 +90,7 @@ function switchLanguage(langCode: string) {
           v-for="lang in languages"
           :key="lang.code"
           @click="switchLanguage(lang.code)"
-          class="w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 active:scale-[0.98]"
+          class="w-full flex items-center justify-between u-item rounded-2xl transition-all duration-300 active:scale-[0.98]"
           :style="{
             background: locale === lang.code ? 'rgba(108, 99, 255, 0.08)' : 'rgba(108,99,255,0.04)',
             border: locale === lang.code ? '2px solid var(--primary)' : '2px solid transparent',
@@ -126,7 +126,7 @@ function switchLanguage(langCode: string) {
       <div class="pt-2">
         <button
           @click="closeLangModal"
-          class="w-full py-3 rounded-xl text-sm font-semibold transition-all active:scale-95"
+          class="w-full u-item-sm rounded-xl text-sm font-semibold transition-all active:scale-95"
           style="background: rgba(0,0,0,0.04); color: var(--text-secondary);"
         >
           {{ t('modal.cancel') }}

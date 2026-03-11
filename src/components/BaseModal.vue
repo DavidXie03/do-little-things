@@ -19,7 +19,7 @@ const emit = defineEmits<{
       >
         <div class="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
         <div
-          class="relative w-[85%] max-w-sm rounded-2xl px-7 py-6 space-y-5"
+          class="relative w-[85%] max-w-sm rounded-2xl u-card space-y-5"
           style="background: #FFFFFF; box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25); margin: 0 24px;"
         >
           <h3
