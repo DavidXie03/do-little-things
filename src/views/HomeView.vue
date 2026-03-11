@@ -104,7 +104,7 @@ onMounted(() => {
         <template v-if="currentTask">
           <!-- 标题在卡片正上方，相对定位 -->
           <h1
-            class="text-2xl font-bold text-center mb-8"
+            class="text-2xl font-bold text-center u-mb-lg"
             style="color: var(--primary);"
           >
             {{ t('app.title') }}

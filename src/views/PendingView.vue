@@ -152,7 +152,7 @@ onMounted(() => {
 
 <template>
   <div class="h-full flex flex-col overflow-hidden">
-    <header class="px-8 pb-4" style="padding-top: calc(var(--safe-area-top, 0px) + 24px);">
+    <header class="u-page-header">
       <h1
         class="text-2xl font-bold"
         style="color: var(--text-primary);"

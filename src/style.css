@@ -145,3 +145,11 @@ html, body, #app {
 .u-badge {
   padding: 4px 12px;
 }
+
+/* Page header: consistent title-to-content spacing */
+.u-page-header {
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-bottom: var(--gap-lg);  /* 24px gap below title */
+  padding-top: calc(var(--safe-area-top, 0px) + 24px);
+}
