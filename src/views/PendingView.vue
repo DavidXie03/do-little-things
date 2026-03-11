@@ -10,7 +10,7 @@ import IconParty from '../components/icons/IconParty.vue'
 import IconPlus from '../components/icons/IconPlus.vue'
 import IconRefresh from '../components/icons/IconRefresh.vue'
 
-const { t, locale } = useI18n()
+const { t, tm, locale } = useI18n()
 
 const {
   ensureDailyTodos,
@@ -135,8 +135,8 @@ function handleModalConfirm(content: string, repeatCount: number, recurrence: Re
 
 function formatDate(): string {
   const now = new Date()
-  const months = t('date.months') as unknown as string[]
-  const weekdays = t('date.weekdays') as unknown as string[]
+  const months = tm('date.months') as string[]
+  const weekdays = tm('date.weekdays') as string[]
   if (locale.value === 'zh') {
     return `${months[now.getMonth()]} ${now.getDate()}日 ${weekdays[now.getDay()]}`
   } else {
@@ -155,7 +155,7 @@ function formatGroupDate(dateStr: string): string {
   if (diffDays === 1) return t('todos.tomorrow')
   if (diffDays === 2) return t('todos.dayAfterTomorrow')
 
-  const weekdays = t('date.weekdays') as unknown as string[]
+  const weekdays = tm('date.weekdays') as string[]
   const month = date.getMonth() + 1
   const day = date.getDate()
 
