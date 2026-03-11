@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import type { DailyTodoItem, RecurrenceType } from '../types'
 import { RecurrenceType as RT, RecurrenceTypeLabel } from '../types'
 import { useStorage } from '../composables/useStorage'
+import { getNextTriggerDate } from '../services/taskService'
 import TodoItem from '../components/TodoItem.vue'
 import TodoModal from '../components/TodoModal.vue'
 import IconParty from '../components/icons/IconParty.vue'
@@ -24,9 +25,6 @@ const {
 
 const todayItems = computed(() => dailyTodos.value?.items ?? [])
 
-// 今天未完成的任务
-const todayPendingItems = computed(() => todayItems.value.filter(i => !i.completed))
-
 /** 按日期分组的全部待办（今天 + 未来） */
 interface DateGroup {
   dateStr: string       // YYYY-MM-DD
@@ -39,14 +37,14 @@ interface DateGroup {
 const groupedTodos = computed((): DateGroup[] => {
   const groups: Map<string, DateGroup> = new Map()
 
-  // 1. 加入今天未完成的待办（已完成的不再显示）
+  // 1. 加入今天的所有待办（包括已完成的）
   const todayDateStr = dailyTodos.value?.date ?? getTodayStr()
-  if (todayPendingItems.value.length > 0) {
+  if (todayItems.value.length > 0) {
     groups.set(todayDateStr, {
       dateStr: todayDateStr,
       label: '今天',
-      count: todayPendingItems.value.length,
-      items: [...todayPendingItems.value],
+      count: todayItems.value.length,
+      items: [...todayItems.value],
       isFuture: false,
     })
   }
@@ -73,14 +71,54 @@ const groupedTodos = computed((): DateGroup[] => {
   return Array.from(groups.values()).sort((a, b) => a.dateStr.localeCompare(b.dateStr))
 })
 
-// 今天所有任务是否全部完成
-const allTodayCompleted = computed(() => {
-  const items = todayItems.value
-  return items.length > 0 && items.every(i => i.completed)
-})
-
 function getTodayStr(): string {
   return new Date().toISOString().split('T')[0] ?? ''
+}
+
+/**
+ * 为已完成的今天任务计算下次触发日期
+ * 返回 Map<taskId, "下次 X月X日周X">
+ */
+const nextTriggerMap = computed((): Map<string, string> => {
+  const map = new Map<string, string>()
+  const todayStr = dailyTodos.value?.date ?? getTodayStr()
+
+  for (const item of todayItems.value) {
+    if (!item.completed) continue
+    // 找到对应的 CustomAction
+    const taskId = item.task.id
+    const caId = taskId.startsWith('custom_') ? taskId.slice(7) : null
+    if (!caId) continue
+    const ca = customActions.value.find(c => c.id === caId)
+    if (!ca) continue
+
+    // 从明天开始找下一个触发日
+    const tomorrow = new Date(todayStr + 'T00:00:00')
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = tomorrow.toISOString().split('T')[0] ?? ''
+    const nextDate = getNextTriggerDate(ca, tomorrowStr)
+    if (nextDate) {
+      map.set(item.id, `下次 ${formatShortDate(nextDate)}`)
+    }
+  }
+  return map
+})
+
+/** 格式化短日期：明天 / 后天 / X月X日周X */
+function formatShortDate(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00')
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 1) return '明天'
+  if (diffDays === 2) return '后天'
+
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  return `${month}月${day}日${weekdays[date.getDay()]}`
 }
 
 const progressPercent = computed(() => {
@@ -218,20 +256,9 @@ onMounted(() => {
 
     <div class="flex-1 overflow-y-auto pb-4 px-6" style="-webkit-overflow-scrolling: touch;">
 
-      <!-- 今天全部完成的庆祝状态 -->
-      <div
-        v-if="allTodayCompleted"
-        class="flex flex-col items-center justify-center py-8"
-      >
-        <IconParty :size="48" color="var(--primary)" />
-        <p class="text-sm mt-3 font-semibold" style="color: var(--primary);">
-          🎉 今天的任务全部完成！
-        </p>
-      </div>
-
       <!-- 无任务空状态 -->
       <div
-        v-if="groupedTodos.length === 0 && !allTodayCompleted"
+        v-if="groupedTodos.length === 0"
         class="flex flex-col items-center justify-center py-12"
       >
         <IconParty :size="48" color="var(--text-muted)" />
@@ -266,6 +293,7 @@ onMounted(() => {
             :item="item"
             :show-recurrence="true"
             :show-date-label="false"
+            :next-trigger-label="nextTriggerMap.get(item.id)"
             @complete="markTodoComplete"
             @delete="removeTodoItem"
             @edit="openEditModal"
