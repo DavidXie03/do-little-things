@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DailyTodoItem } from '../types'
-import { RecurrenceTypeLabel } from '../types'
 import IconCheck from './icons/IconCheck.vue'
 import IconTrash from './icons/IconTrash.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   item: DailyTodoItem
@@ -41,7 +43,7 @@ function handleDelete(todoId: string) {
 /** 构建副信息文本：仅显示循环类型 */
 function getSubInfo(): string {
   if (props.showRecurrence && props.item.task.recurrence) {
-    return RecurrenceTypeLabel[props.item.task.recurrence] || ''
+    return t(`recurrence.${props.item.task.recurrence}`)
   }
   return ''
 }
@@ -113,7 +115,7 @@ function getSubInfo(): string {
           background: confirmingDelete ? '#E17055' : 'rgba(225,112,85,0.08)',
           opacity: confirmingDelete ? 1 : 0.4,
         }"
-        :title="confirmingDelete ? '再次点击确认删除' : '删除'"
+        :title="confirmingDelete ? t('todoItem.deleteConfirm') : t('todoItem.delete')"
       >
         <IconTrash :size="14" :color="confirmingDelete ? 'white' : '#E17055'" />
       </button>

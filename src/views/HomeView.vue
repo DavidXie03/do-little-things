@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Task, SwipeDirection, DailyTodoItem } from '../types'
 import { useStorage } from '../composables/useStorage'
 import TaskCard from '../components/TaskCard.vue'
 import IconParty from '../components/icons/IconParty.vue'
+
+const { t } = useI18n()
 
 const {
   addRecord,

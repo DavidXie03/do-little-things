@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DailyTodoItem, RecurrenceType } from '../types'
-import { RecurrenceType as RT, RecurrenceTypeLabel } from '../types'
+import { RecurrenceType as RT } from '../types'
 import { useStorage } from '../composables/useStorage'
 import TodoItem from '../components/TodoItem.vue'
 import TodoModal from '../components/TodoModal.vue'
 import IconParty from '../components/icons/IconParty.vue'
 import IconPlus from '../components/icons/IconPlus.vue'
 import IconRefresh from '../components/icons/IconRefresh.vue'
+
+const { t, locale } = useI18n()
 
 const {
   ensureDailyTodos,
@@ -41,7 +44,7 @@ const groupedTodos = computed((): DateGroup[] => {
   if (todayItems.value.length > 0) {
     groups.set(todayDateStr, {
       dateStr: todayDateStr,
-      label: '今天',
+      label: t('todos.today'),
       count: todayItems.value.length,
       items: [...todayItems.value],
       isFuture: false,
@@ -132,9 +135,13 @@ function handleModalConfirm(content: string, repeatCount: number, recurrence: Re
 
 function formatDate(): string {
   const now = new Date()
-  const months = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
-  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-  return `${months[now.getMonth()]} ${now.getDate()}日 ${weekdays[now.getDay()]}`
+  const months = t('date.months') as unknown as string[]
+  const weekdays = t('date.weekdays') as unknown as string[]
+  if (locale.value === 'zh') {
+    return `${months[now.getMonth()]} ${now.getDate()}日 ${weekdays[now.getDay()]}`
+  } else {
+    return `${months[now.getMonth()]} ${now.getDate()}, ${weekdays[now.getDay()]}`
+  }
 }
 
 function formatGroupDate(dateStr: string): string {
@@ -144,20 +151,21 @@ function formatGroupDate(dateStr: string): string {
   const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
   const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
 
-  if (diffDays === 0) return '今天'
-  if (diffDays === 1) return '明天'
-  if (diffDays === 2) return '后天'
+  if (diffDays === 0) return t('todos.today')
+  if (diffDays === 1) return t('todos.tomorrow')
+  if (diffDays === 2) return t('todos.dayAfterTomorrow')
 
-  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  const weekdays = t('date.weekdays') as unknown as string[]
   const month = date.getMonth() + 1
   const day = date.getDate()
-  const yearPrefix = date.getFullYear() !== now.getFullYear() ? `${date.getFullYear()}年` : ''
-  return `${yearPrefix}${month}月${day}日${weekdays[date.getDay()]}`
-}
 
-function getRecurrenceLabel(recurrence?: RecurrenceType): string {
-  if (!recurrence) return ''
-  return RecurrenceTypeLabel[recurrence] || ''
+  if (locale.value === 'zh') {
+    const yearPrefix = date.getFullYear() !== now.getFullYear() ? `${date.getFullYear()}年` : ''
+    return `${yearPrefix}${month}月${day}日${weekdays[date.getDay()]}`
+  } else {
+    const yearPrefix = date.getFullYear() !== now.getFullYear() ? `${date.getFullYear()}/` : ''
+    return `${yearPrefix}${month}/${day} ${weekdays[date.getDay()]}`
+  }
 }
 
 onMounted(() => {
@@ -174,7 +182,7 @@ onMounted(() => {
             class="text-2xl font-bold"
             style="color: var(--text-primary);"
           >
-            待办列表
+            {{ t('todos.title') }}
           </h1>
           <p class="text-xs mt-1" style="color: var(--text-muted);">
             {{ formatDate() }}
@@ -221,7 +229,7 @@ onMounted(() => {
       >
         <IconParty :size="48" color="var(--text-muted)" />
         <p class="text-sm mt-3" style="color: var(--text-muted);">
-          今天没有待办事项
+          {{ t('todos.empty') }}
         </p>
       </div>
 
@@ -280,7 +288,7 @@ onMounted(() => {
           style="background: var(--primary); color: white;"
         >
           <IconPlus :size="16" color="white" />
-          添加待办
+          {{ t('todos.addTodo') }}
         </button>
         <button
           @click="regenerateDailyTodos"
@@ -288,7 +296,7 @@ onMounted(() => {
           style="background: rgba(108,99,255,0.06); color: var(--primary); border: 1.5px solid rgba(108,99,255,0.12);"
         >
           <IconRefresh :size="16" color="var(--primary)" />
-          重新生成
+          {{ t('todos.regenerate') }}
         </button>
       </div>
 

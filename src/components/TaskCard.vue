@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { SwipeDirection, Task } from '../types'
 import { useSwipeGesture } from '../composables/useSwipeGesture'
 import IconCheck from './icons/IconCheck.vue'
 import IconClock from './icons/IconClock.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   task: Task

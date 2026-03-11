@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref, nextTick, watch } from 'vue'
-import { RecurrenceType, RecurrenceTypeLabel, ALL_RECURRENCE_TYPES } from '../types'
+import { useI18n } from 'vue-i18n'
+import { RecurrenceType, ALL_RECURRENCE_TYPES } from '../types'
 import type { RecurrenceType as RecurrenceTypeT } from '../types'
 import IconPlus from './icons/IconPlus.vue'
 import IconMinus from './icons/IconMinus.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   visible: boolean
@@ -53,14 +56,14 @@ function handleConfirm() {
           style="background: #FFFFFF; box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25); margin: 0 24px;"
         >
           <h3 class="text-lg font-bold pb-1" style="color: var(--text-primary);">
-            {{ mode === 'add' ? '添加待办' : '编辑待办' }}
+            {{ mode === 'add' ? t('modal.addTitle') : t('modal.editTitle') }}
           </h3>
 
           <input
             ref="inputRef"
             v-model="content"
             type="text"
-            placeholder="输入待办事项内容..."
+            :placeholder="t('modal.placeholder')"
             class="w-full text-sm px-4 py-3 rounded-lg border-none outline-none"
             style="background: rgba(108,99,255,0.04); color: var(--text-primary);"
             @keyup.enter="handleConfirm"
@@ -68,7 +71,7 @@ function handleConfirm() {
 
           <!-- 循环类型选择 -->
           <div class="space-y-2">
-            <span class="text-sm" style="color: var(--text-secondary);">循环方式</span>
+            <span class="text-sm" style="color: var(--text-secondary);">{{ t('modal.recurrenceLabel') }}</span>
             <div class="flex flex-wrap gap-2">
               <button
                 v-for="rt in ALL_RECURRENCE_TYPES"
@@ -81,13 +84,13 @@ function handleConfirm() {
                   border: recurrence === rt ? '1.5px solid var(--primary)' : '1.5px solid rgba(108,99,255,0.12)',
                 }"
               >
-                {{ RecurrenceTypeLabel[rt] }}
+                {{ t(`recurrence.${rt}`) }}
               </button>
             </div>
           </div>
 
           <div class="flex items-center justify-between py-1">
-            <span class="text-sm" style="color: var(--text-secondary);">每次执行次数</span>
+            <span class="text-sm" style="color: var(--text-secondary);">{{ t('modal.repeatLabel') }}</span>
             <div class="flex items-center gap-3">
               <button
                 @click="repeatCount = Math.max(1, repeatCount - 1)"
@@ -113,14 +116,14 @@ function handleConfirm() {
               class="flex-1 py-3 rounded-xl text-sm font-semibold transition-all active:scale-95"
               style="background: rgba(0,0,0,0.04); color: var(--text-secondary);"
             >
-              取消
+              {{ t('modal.cancel') }}
             </button>
             <button
               @click="handleConfirm"
               class="flex-1 py-3 rounded-xl text-sm font-semibold text-white transition-all active:scale-95"
               style="background: var(--primary);"
             >
-              {{ mode === 'add' ? '添加' : '保存' }}
+              {{ mode === 'add' ? t('modal.add') : t('modal.save') }}
             </button>
           </div>
         </div>
