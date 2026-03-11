@@ -151,7 +151,8 @@ function formatGroupDate(dateStr: string): string {
   const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
   const month = date.getMonth() + 1
   const day = date.getDate()
-  return `${month}月${day}日${weekdays[date.getDay()]}`
+  const yearPrefix = date.getFullYear() !== now.getFullYear() ? `${date.getFullYear()}年` : ''
+  return `${yearPrefix}${month}月${day}日${weekdays[date.getDay()]}`
 }
 
 function getRecurrenceLabel(recurrence?: RecurrenceType): string {
