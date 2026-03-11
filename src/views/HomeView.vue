@@ -50,6 +50,14 @@ function loadStack() {
   }
 }
 
+/** 当前所有活跃的 Web Animation，用于清理 */
+let activeAnimations: Animation[] = []
+
+function cancelAllAnimations() {
+  activeAnimations.forEach(a => { try { a.cancel() } catch {} })
+  activeAnimations = []
+}
+
 function handleSwipe(direction: SwipeDirection) {
   const item = topItem.value
   if (!item) return
@@ -81,16 +89,23 @@ function handleSwipe(direction: SwipeDirection) {
     // 还有多张卡片：走升起 + 翻牌动画
     animPhase.value = 'rising'
 
+    // ⚡ 关键：在 loadStack() 之前，先清除上一轮残留的动画
+    cancelAllAnimations()
+
     setTimeout(() => {
       loadStack()
       cardKey.value++
 
       nextTick(() => {
-        playRisingAnimation()
+        // 等 Vue 渲染完新 DOM 后再启动动画
+        requestAnimationFrame(() => {
+          playRisingAnimation()
+        })
       })
     }, 150)
   } else {
     // 只剩0或1张：不需要升起动画，直接刷新
+    cancelAllAnimations()
     setTimeout(() => {
       loadStack()
       cardKey.value++
@@ -110,24 +125,35 @@ function playRisingAnimation() {
   // 安全超时：防止动画状态永远卡死
   const safetyTimeout = setTimeout(() => {
     animPhase.value = 'idle'
-    if (el) el.style.transform = ''
+    cancelAllAnimations()
+    // 清除可能残留的 inline style
+    if (el) { el.style.transform = ''; el.style.transition = '' }
     const topEl = topCardRef.value
-    if (topEl) topEl.style.transform = ''
+    if (topEl) { topEl.style.transform = ''; topEl.style.transition = '' }
   }, 2000)
+
+  // ⚡ 关键修复：禁用 CSS transition，防止和 animate() 冲突
+  el.style.transition = 'none'
+
+  // 强制浏览器刷新 — 确保 transition:none 先被应用
+  el.getBoundingClientRect()
 
   // 卡背从当前堆叠位置 (translateY(14px) scale(0.96)) 升起到顶部位置 (translateY(0) scale(1))
   const riseAnim = el.animate([
-    { transform: 'translateY(14px) scale(0.96)', zIndex: 2 },
-    { transform: 'translateY(0px) scale(1)', zIndex: 10 },
+    { transform: 'translateY(14px) scale(0.96)', zIndex: '2' },
+    { transform: 'translateY(0px) scale(1)', zIndex: '10' },
   ], {
     duration: 280,
     easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
     fill: 'forwards',
   })
+  activeAnimations.push(riseAnim)
 
   riseAnim.onfinish = () => {
     // 升起完成，进入翻转阶段
     animPhase.value = 'flipping'
+    // 恢复 transition
+    el.style.transition = ''
 
     nextTick(() => {
       playFlipAnimation(safetyTimeout)
@@ -143,6 +169,10 @@ function playFlipAnimation(safetyTimeout: ReturnType<typeof setTimeout>) {
     return
   }
 
+  // 同样禁用 transition 防冲突
+  el.style.transition = 'none'
+  el.getBoundingClientRect()
+
   // 第一阶段：卡背从 0° 翻到 90°（消失）
   const flipAnim1 = el.animate([
     { transform: 'perspective(1000px) rotateY(0deg)' },
@@ -152,12 +182,16 @@ function playFlipAnimation(safetyTimeout: ReturnType<typeof setTimeout>) {
     easing: 'ease-in',
     fill: 'forwards',
   })
+  activeAnimations.push(flipAnim1)
 
   flipAnim1.onfinish = () => {
     // 切换内容为正面
     animPhase.value = 'front'
 
     nextTick(() => {
+      el.style.transition = 'none'
+      el.getBoundingClientRect()
+
       // 第二阶段：正面从 -90° 翻到 0°（出现）
       const flipAnim2 = el.animate([
         { transform: 'perspective(1000px) rotateY(-90deg)' },
@@ -167,11 +201,15 @@ function playFlipAnimation(safetyTimeout: ReturnType<typeof setTimeout>) {
         easing: 'ease-out',
         fill: 'forwards',
       })
+      activeAnimations.push(flipAnim2)
 
       flipAnim2.onfinish = () => {
         clearTimeout(safetyTimeout)
         animPhase.value = 'idle'
         el.style.transform = ''
+        el.style.transition = ''
+        // 清理所有动画引用
+        cancelAllAnimations()
       }
     })
   }
@@ -279,13 +317,12 @@ onMounted(() => {
   position: relative;
 }
 
-/* 堆叠层 */
+/* 堆叠层 — 不使用 CSS transition，全部由 JS animate() 控制 */
 .card-stack-layer {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
 }
 
