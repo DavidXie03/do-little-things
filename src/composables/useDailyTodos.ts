@@ -91,6 +91,14 @@ export function useDailyTodos() {
     return uncompleted[randomIndex] || null
   }
 
+  /** 获取所有未完成的待办列表（用于卡片堆叠） */
+  function getUncompletedTodos(): DailyTodoItem[] {
+    const today = getTodayStr()
+    const todos = storageData.value.dailyTodos
+    if (!todos || todos.date !== today) return []
+    return todos.items.filter(i => !i.completed)
+  }
+
   /**
    * 获取未来待办预览列表
    * 对于每个循环任务，最多只显示一个最近的未来待办
@@ -130,6 +138,7 @@ export function useDailyTodos() {
     removeTodoItem,
     dailyProgress,
     getNextUncompletedTodo,
+    getUncompletedTodos,
     futureTodos,
   }
 }
