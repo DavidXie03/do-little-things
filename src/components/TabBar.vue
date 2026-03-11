@@ -2,6 +2,7 @@
 import { useRoute, useRouter } from 'vue-router'
 import IconHome from './icons/IconHome.vue'
 import IconList from './icons/IconList.vue'
+import IconSettings from './icons/IconSettings.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -9,6 +10,7 @@ const router = useRouter()
 const tabs = [
   { name: 'home', icon: IconHome, path: '/' },
   { name: 'todos', icon: IconList, path: '/todos' },
+  { name: 'settings', icon: IconSettings, path: '/settings' },
 ]
 
 function isActive(tab: typeof tabs[0]): boolean {
