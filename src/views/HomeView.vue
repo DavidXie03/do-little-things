@@ -107,7 +107,7 @@ onMounted(() => {
             class="text-2xl font-bold text-center mb-8"
             style="color: var(--primary);"
           >
-            做件小事
+            {{ t('app.title') }}
           </h1>
           <div class="relative" style="min-height: 360px;">
             <transition name="card-fade-in">
@@ -132,11 +132,11 @@ onMounted(() => {
             <IconParty :size="64" color="#6C63FF" />
           </div>
           <h3 class="text-xl font-bold mb-2" style="color: var(--text-primary);">
-            今日任务完成！
+            {{ t('home.allDoneTitle') }}
           </h3>
           <p class="text-sm text-center leading-relaxed" style="color: var(--text-muted);">
-            太棒了，今天的小事都做完了<br/>
-            明天再来完成新的待办吧
+            {{ t('home.allDoneMsg1') }}<br/>
+            {{ t('home.allDoneMsg2') }}
           </p>
         </div>
       </div>

@@ -125,7 +125,7 @@ const {
             class="text-xs px-3 py-1 rounded-full"
             style="background: rgba(108,99,255,0.08); color: var(--primary);"
           >
-            剩余 {{ remainingCount }} / {{ totalCount }} 次
+            {{ t('home.remaining', { remaining: remainingCount, total: totalCount }) }}
           </span>
         </div>
       </div>
