@@ -24,6 +24,56 @@ const {
 
 const todayItems = computed(() => dailyTodos.value?.items ?? [])
 
+/** 按日期分组的全部待办（今天 + 未来） */
+interface DateGroup {
+  dateStr: string       // YYYY-MM-DD
+  label: string         // 显示标签：今天、明天、3月15日周日
+  count: number
+  items: DailyTodoItem[]
+  isFuture: boolean     // 是否未来日期（不可操作）
+}
+
+const groupedTodos = computed((): DateGroup[] => {
+  const groups: Map<string, DateGroup> = new Map()
+
+  // 1. 加入今天的待办
+  const todayDateStr = dailyTodos.value?.date ?? getTodayStr()
+  if (todayItems.value.length > 0) {
+    groups.set(todayDateStr, {
+      dateStr: todayDateStr,
+      label: '今天',
+      count: todayItems.value.length,
+      items: [...todayItems.value],
+      isFuture: false,
+    })
+  }
+
+  // 2. 加入未来待办，按日期分组
+  for (const item of futureTodos.value) {
+    const dateStr = item.scheduledDate
+    if (groups.has(dateStr)) {
+      const group = groups.get(dateStr)!
+      group.items.push(item)
+      group.count = group.items.length
+    } else {
+      groups.set(dateStr, {
+        dateStr,
+        label: formatGroupDate(dateStr),
+        count: 1,
+        items: [item],
+        isFuture: true,
+      })
+    }
+  }
+
+  // 3. 按日期排序
+  return Array.from(groups.values()).sort((a, b) => a.dateStr.localeCompare(b.dateStr))
+})
+
+function getTodayStr(): string {
+  return new Date().toISOString().split('T')[0] ?? ''
+}
+
 const progressPercent = computed(() => {
   if (dailyProgress.value.total === 0) return 0
   return (dailyProgress.value.completed / dailyProgress.value.total) * 100
@@ -83,7 +133,7 @@ function formatDate(): string {
   return `${months[now.getMonth()]} ${now.getDate()}日 ${weekdays[now.getDay()]}`
 }
 
-function formatScheduledDate(dateStr: string): string {
+function formatGroupDate(dateStr: string): string {
   const date = new Date(dateStr + 'T00:00:00')
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -97,7 +147,7 @@ function formatScheduledDate(dateStr: string): string {
   const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
   const month = date.getMonth() + 1
   const day = date.getDate()
-  return `${month}月${day}日 ${weekdays[date.getDay()]}`
+  return `${month}月${day}日${weekdays[date.getDay()]}`
 }
 
 function getRecurrenceLabel(recurrence?: RecurrenceType): string {
@@ -158,24 +208,10 @@ onMounted(() => {
     </header>
 
     <div class="flex-1 overflow-y-auto pb-4 px-6" style="-webkit-overflow-scrolling: touch;">
-      <!-- 今日待办 -->
-      <template v-if="todayItems.length > 0">
-        <div class="flex items-center gap-2 mb-3">
-          <span class="text-xs font-semibold px-2 py-0.5 rounded-md" style="background: rgba(108,99,255,0.08); color: var(--primary);">今天</span>
-        </div>
-        <TodoItem
-          v-for="item in todayItems"
-          :key="item.id"
-          :item="item"
-          :show-recurrence="true"
-          @complete="markTodoComplete"
-          @delete="removeTodoItem"
-          @edit="openEditModal"
-        />
-      </template>
 
+      <!-- 无任务空状态 -->
       <div
-        v-if="todayItems.length === 0"
+        v-if="groupedTodos.length === 0"
         class="flex flex-col items-center justify-center py-12"
       >
         <IconParty :size="48" color="var(--text-muted)" />
@@ -184,52 +220,53 @@ onMounted(() => {
         </p>
       </div>
 
-      <!-- 未来待办预览 -->
-      <template v-if="futureTodos.length > 0">
-        <div class="flex items-center gap-2 mt-6 mb-3">
-          <span class="text-xs font-semibold px-2 py-0.5 rounded-md" style="background: rgba(0,184,148,0.08); color: #00B894;">即将到来</span>
+      <!-- 按日期分组显示 -->
+      <div v-for="group in groupedTodos" :key="group.dateStr" class="mb-5">
+        <!-- 分组标题 -->
+        <div class="flex items-center gap-2 mb-3">
+          <span
+            class="text-sm font-bold"
+            style="color: var(--primary);"
+          >
+            {{ group.label }}
+          </span>
+          <span
+            class="text-xs font-semibold min-w-[18px] h-[18px] flex items-center justify-center rounded-full"
+            style="background: rgba(108,99,255,0.1); color: var(--primary);"
+          >
+            {{ group.count }}
+          </span>
         </div>
-        <div
-          v-for="item in futureTodos"
-          :key="item.id"
-          class="relative rounded-2xl p-4 mb-3 overflow-hidden"
-          style="background: #FFFFFF; box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.06); opacity: 0.7;"
-          @click="openEditModal(item)"
-        >
-          <div class="flex items-center gap-3">
-            <div
-              class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
-              style="border: 2px dashed var(--text-muted); opacity: 0.4;"
-            ></div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm leading-relaxed" style="color: var(--text-primary);">
-                {{ item.task.content }}
-              </p>
-              <div class="flex items-center gap-2 mt-1">
-                <span class="text-[10px]" style="color: var(--text-muted);">
-                  {{ formatScheduledDate(item.scheduledDate) }}
-                </span>
-                <span
-                  v-if="item.task.recurrence"
-                  class="text-[10px] px-1.5 py-0.5 rounded"
-                  style="background: rgba(108,99,255,0.06); color: var(--primary);"
-                >
-                  {{ getRecurrenceLabel(item.task.recurrence) }}
-                </span>
-              </div>
-            </div>
-            <span
-              v-if="item.totalCount > 1"
-              class="flex-shrink-0 text-xs px-2 py-0.5 rounded-full"
-              style="background: rgba(108,99,255,0.08); color: var(--primary);"
-            >
-              ×{{ item.totalCount }}
-            </span>
-          </div>
-        </div>
-      </template>
 
-      <div class="my-6 border-t" style="border-color: rgba(0,0,0,0.05);"></div>
+        <!-- 今天的待办：可操作 -->
+        <template v-if="!group.isFuture">
+          <TodoItem
+            v-for="item in group.items"
+            :key="item.id"
+            :item="item"
+            :show-recurrence="true"
+            :show-date-label="false"
+            @complete="markTodoComplete"
+            @delete="removeTodoItem"
+            @edit="openEditModal"
+          />
+        </template>
+
+        <!-- 未来的待办：只读预览 -->
+        <template v-else>
+          <TodoItem
+            v-for="item in group.items"
+            :key="item.id"
+            :item="item"
+            :show-recurrence="true"
+            :show-date-label="false"
+            :is-future="true"
+            @edit="openEditModal"
+          />
+        </template>
+      </div>
+
+      <div class="my-4 border-t" style="border-color: rgba(0,0,0,0.05);"></div>
 
       <div class="flex gap-3 mb-6">
         <button
