@@ -112,9 +112,9 @@ function openEditModal(item: DailyTodoItem) {
   showModal.value = true
 }
 
-function handleModalConfirm(content: string, repeatCount: number, recurrence: RecurrenceType) {
+function handleModalConfirm(content: string, repeatCount: number, recurrence: RecurrenceType, startDate?: string) {
   if (modalMode.value === 'add') {
-    addCustomAction(content, repeatCount, recurrence)
+    addCustomAction(content, repeatCount, recurrence, startDate)
   } else if (modalEditId.value) {
     updateCustomAction(modalEditId.value, content, repeatCount, recurrence)
   }
@@ -151,7 +151,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col overflow-hidden">
+  <div class="h-full flex flex-col overflow-hidden relative">
     <header class="u-page-header">
       <h1
         class="text-2xl font-bold"
@@ -190,6 +190,15 @@ onMounted(() => {
           >
             {{ group.count }}
           </span>
+          <!-- 重新生成按钮：仅在"今天"行显示 -->
+          <button
+            v-if="!group.isFuture && group.dateStr === (dailyTodos?.date ?? '')"
+            @click="regenerateDailyTodos"
+            class="ml-auto w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90"
+            style="background: rgba(108,99,255,0.08);"
+          >
+            <IconRefresh :size="14" color="var(--primary)" />
+          </button>
         </div>
 
         <!-- 今天的待办：可操作 -->
@@ -220,29 +229,17 @@ onMounted(() => {
         </template>
       </div>
 
-      <div class="u-mb-md border-t" style="border-color: rgba(0,0,0,0.05); padding-top: var(--gap-md);"></div>
-
-      <div class="flex u-mb-lg" style="gap: var(--gap-sm);">
-        <button
-          @click="openAddModal"
-          class="flex-1 flex items-center justify-center gap-2 u-item rounded-xl text-sm font-semibold transition-all duration-300 active:scale-[0.98]"
-          style="background: var(--primary); color: white;"
-        >
-          <IconPlus :size="16" color="white" />
-          {{ t('todos.addTodo') }}
-        </button>
-        <button
-          @click="regenerateDailyTodos"
-          class="flex-1 flex items-center justify-center gap-2 u-item rounded-xl text-sm font-semibold transition-all duration-300 active:scale-[0.98]"
-          style="background: rgba(108,99,255,0.06); color: var(--primary); border: 1.5px solid rgba(108,99,255,0.12);"
-        >
-          <IconRefresh :size="16" color="var(--primary)" />
-          {{ t('todos.regenerate') }}
-        </button>
-      </div>
-
-      <div class="h-8"></div>
+      <!-- 底部留白，避免 FAB 遮挡内容 -->
+      <div class="h-20"></div>
     </div>
+
+    <!-- 右下角悬浮添加按钮 -->
+    <button
+      @click="openAddModal"
+      class="fab-add"
+    >
+      <IconPlus :size="24" color="white" />
+    </button>
 
     <TodoModal
       :visible="showModal"
@@ -255,3 +252,27 @@ onMounted(() => {
     />
   </div>
 </template>
+
+<style scoped>
+.fab-add {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 4px 16px -2px rgba(108, 99, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 100;
+  border: none;
+  cursor: pointer;
+}
+.fab-add:active {
+  transform: scale(0.92);
+  box-shadow: 0 2px 8px -2px rgba(108, 99, 255, 0.5);
+}
+</style>
