@@ -20,16 +20,24 @@ const stackItems = ref<DailyTodoItem[]>([])
 const allDone = ref(false)
 const cardKey = ref(0)
 
-/** 翻牌动画阶段：'idle' | 'back' | 'front' */
-const flipPhase = ref<'idle' | 'back' | 'front'>('idle')
+/**
+ * 动画阶段：
+ * 'idle'    — 正常显示，顶部为 TaskCard 正面
+ * 'rising'  — 顶部卡片已滑走，第一张卡背正在从堆叠位置升起
+ * 'flipping'— 卡背已升至顶部，正在翻转
+ * 'front'   — 翻转完成，显示正面
+ */
+const animPhase = ref<'idle' | 'rising' | 'flipping' | 'front'>('idle')
 
 const MAX_STACK = 3
 
 const visibleStack = computed(() => stackItems.value.slice(0, MAX_STACK))
 const topItem = computed(() => stackItems.value[0] ?? null)
 
-/** 翻牌容器 ref */
-const flipContainerRef = ref<HTMLElement | null>(null)
+/** 升起动画的卡背元素 ref */
+const risingCardRef = ref<HTMLElement | null>(null)
+/** 顶部卡片容器 ref */
+const topCardRef = ref<HTMLElement | null>(null)
 
 function loadStack() {
   const uncompleted = getUncompletedTodos()
@@ -63,46 +71,36 @@ function handleSwipe(direction: SwipeDirection) {
     })
   }
 
-  // 阶段1：隐藏正面，显示卡背
-  flipPhase.value = 'back'
+  // 进入升起阶段：顶部 TaskCard 隐藏，堆叠中的第一张卡背开始升起动画
+  animPhase.value = 'rising'
 
-  // 重新加载数据
+  // 等顶部卡片滑走动画结束
   setTimeout(() => {
     loadStack()
     cardKey.value++
 
     if (stackItems.value.length > 0) {
-      // 阶段2：等 DOM 更新后启动升起 + 翻牌动画
       nextTick(() => {
-        const el = flipContainerRef.value
-        if (!el) {
-          flipPhase.value = 'front'
-          return
-        }
-        // 立刻用 JS 设置初始缩小位置（不经过 Vue 响应式，避免闪跳）
-        el.style.transform = 'translateY(14px) scale(0.96)'
-        // 等浏览器渲染完这一帧后再启动动画
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            playRiseAndFlipAnimation()
-          })
-        })
+        playRisingAnimation()
       })
+    } else {
+      animPhase.value = 'idle'
     }
   }, 150)
 }
 
-function playRiseAndFlipAnimation() {
-  const el = flipContainerRef.value
+function playRisingAnimation() {
+  const el = risingCardRef.value
   if (!el) {
-    flipPhase.value = 'front'
+    animPhase.value = 'idle'
     return
   }
 
-  // 第一阶段：卡背从堆叠位置"升起"到顶部位置
+  // 卡背从当前堆叠位置 (translateY(14px) scale(0.96)) 升起到顶部位置 (translateY(0) scale(1))
+  // 注意：此时这张卡背 *已经在* 堆叠缩小位置上渲染好了，不会闪跳！
   const riseAnim = el.animate([
-    { transform: 'translateY(14px) scale(0.96)' },
-    { transform: 'translateY(0px) scale(1)' },
+    { transform: 'translateY(14px) scale(0.96)', zIndex: 2 },
+    { transform: 'translateY(0px) scale(1)', zIndex: 10 },
   ], {
     duration: 280,
     easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -110,49 +108,58 @@ function playRiseAndFlipAnimation() {
   })
 
   riseAnim.onfinish = () => {
-    el.style.transform = ''
+    // 升起完成，进入翻转阶段
+    animPhase.value = 'flipping'
 
-    // 第二阶段：卡背翻转消失
-    const flipAnim1 = el.animate([
-      { transform: 'perspective(1000px) rotateY(0deg)' },
-      { transform: 'perspective(1000px) rotateY(90deg)' },
-    ], {
-      duration: 250,
-      easing: 'ease-in',
-      fill: 'forwards',
+    nextTick(() => {
+      playFlipAnimation()
     })
+  }
+}
 
-    flipAnim1.onfinish = () => {
-      // 切换到正面
-      flipPhase.value = 'front'
+function playFlipAnimation() {
+  const el = topCardRef.value
+  if (!el) {
+    animPhase.value = 'idle'
+    return
+  }
 
-      nextTick(() => {
-        // 第三阶段：正面从 -90° 翻出
-        const flipAnim2 = el.animate([
-          { transform: 'perspective(1000px) rotateY(-90deg)' },
-          { transform: 'perspective(1000px) rotateY(0deg)' },
-        ], {
-          duration: 300,
-          easing: 'ease-out',
-          fill: 'forwards',
-        })
+  // 第一阶段：卡背从 0° 翻到 90°（消失）
+  const flipAnim1 = el.animate([
+    { transform: 'perspective(1000px) rotateY(0deg)' },
+    { transform: 'perspective(1000px) rotateY(90deg)' },
+  ], {
+    duration: 250,
+    easing: 'ease-in',
+    fill: 'forwards',
+  })
 
-        flipAnim2.onfinish = () => {
-          flipPhase.value = 'idle'
-          el.style.transform = ''
-        }
+  flipAnim1.onfinish = () => {
+    // 切换内容为正面
+    animPhase.value = 'front'
+
+    nextTick(() => {
+      // 第二阶段：正面从 -90° 翻到 0°（出现）
+      const flipAnim2 = el.animate([
+        { transform: 'perspective(1000px) rotateY(-90deg)' },
+        { transform: 'perspective(1000px) rotateY(0deg)' },
+      ], {
+        duration: 300,
+        easing: 'ease-out',
+        fill: 'forwards',
       })
-    }
+
+      flipAnim2.onfinish = () => {
+        animPhase.value = 'idle'
+        el.style.transform = ''
+      }
+    })
   }
 }
 
 onMounted(() => {
   ensureDailyTodos()
   loadStack()
-  flipPhase.value = 'front'
-  nextTick(() => {
-    flipPhase.value = 'idle'
-  })
 })
 </script>
 
@@ -173,10 +180,14 @@ onMounted(() => {
 
           <!-- 卡片堆叠容器 -->
           <div class="card-stack-container" style="min-height: 360px;">
-            <!-- 背景堆叠卡片：显示为卡牌背面 -->
+            <!--
+              背景堆叠卡片：显示为卡牌背面
+              rising 阶段时，第一张卡背会被 animate() 直接驱动升起
+            -->
             <div
               v-for="(item, idx) in visibleStack.slice(1)"
               :key="'bg-' + item.id"
+              :ref="(el) => { if (idx === 0) risingCardRef = el as HTMLElement }"
               class="card-stack-layer"
               :style="{
                 transform: `translateY(${(idx + 1) * 14}px) scale(${1 - (idx + 1) * 0.04})`,
@@ -192,13 +203,13 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- 顶部卡片区域：翻牌动画容器 -->
+            <!-- 顶部卡片区域 -->
             <div
-              ref="flipContainerRef"
+              ref="topCardRef"
               class="card-stack-top"
             >
-              <!-- 卡牌背面（翻牌动画第一阶段显示） -->
-              <div v-if="flipPhase === 'back'" class="card-back">
+              <!-- 翻转阶段：顶部显示卡牌背面（即将翻走） -->
+              <div v-if="animPhase === 'flipping'" class="card-back">
                 <div class="card-back-pattern">
                   <div class="card-back-diamond"></div>
                   <div class="card-back-border"></div>
@@ -206,15 +217,17 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- 卡牌正面 -->
+              <!-- 正常/front 阶段：显示正面 TaskCard -->
               <TaskCard
-                v-if="flipPhase !== 'back'"
+                v-if="animPhase === 'idle' || animPhase === 'front'"
                 :key="cardKey"
                 :task="topItem.task"
                 :remaining-count="topItem.totalCount - topItem.completedCount"
                 :total-count="topItem.totalCount"
                 @swipe="handleSwipe"
               />
+
+              <!-- rising 阶段：顶部区域什么也不显示，卡背正从堆叠位置升起 -->
             </div>
           </div>
         </template>
