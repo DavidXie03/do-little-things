@@ -42,7 +42,7 @@ function migrateData(data: any): StorageData {
   }
 
   if (data.dailyTodos && data.dailyTodos.items) {
-    const today = new Date().toISOString().split('T')[0] ?? ''
+    const today = toLocalDateStr(new Date())
     for (const item of data.dailyTodos.items) {
       if (item.totalCount === undefined) item.totalCount = 1
       if (item.completedCount === undefined) item.completedCount = item.completed ? 1 : 0
@@ -73,8 +73,16 @@ export function saveData(data: StorageData): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
+/** 将 Date 对象格式化为本地日期字符串 YYYY-MM-DD */
+export function toLocalDateStr(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 export function getTodayStr(): string {
-  return new Date().toISOString().split('T')[0] ?? ''
+  return toLocalDateStr(new Date())
 }
 
 function initializeDefaultActions(data: StorageData): StorageData {

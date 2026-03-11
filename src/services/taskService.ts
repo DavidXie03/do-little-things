@@ -1,5 +1,6 @@
 import type { Task, DailyConfig, CustomAction, DailyTodoItem, RecurrenceType } from '../types'
 import { TaskType, RecurrenceType as RT } from '../types'
+import { toLocalDateStr } from '../composables/storageCore'
 
 export const DEFAULT_ACTIONS: { content: string; repeatCount: number; recurrence: RecurrenceType }[] = [
   { content: '喝一杯水', repeatCount: 3, recurrence: RT.Daily },
@@ -49,7 +50,7 @@ export function getNextTriggerDate(ca: CustomAction, fromDateStr: string): strin
   for (let i = 0; i <= 366; i++) {
     const checkDate = new Date(from)
     checkDate.setDate(checkDate.getDate() + i)
-    const checkStr = checkDate.toISOString().split('T')[0] ?? ''
+    const checkStr = toLocalDateStr(checkDate)
     if (shouldTriggerOnDate(ca, checkStr)) {
       return checkStr
     }
@@ -65,7 +66,7 @@ export function generateDailyTodoItems(
   customActions: CustomAction[],
   dateStr?: string
 ): DailyTodoItem[] {
-  const today = dateStr ?? new Date().toISOString().split('T')[0] ?? ''
+  const today = dateStr ?? toLocalDateStr(new Date())
   const items: DailyTodoItem[] = []
   let todoId = 0
 
@@ -107,7 +108,7 @@ export function generateFutureTodoItems(
   // 明天开始算起
   const tomorrow = new Date(todayStr + 'T00:00:00')
   tomorrow.setDate(tomorrow.getDate() + 1)
-  const tomorrowStr = tomorrow.toISOString().split('T')[0] ?? ''
+  const tomorrowStr = toLocalDateStr(tomorrow)
 
   for (const ca of customActions) {
     // 今天已经会显示的 daily 类型不需要在未来列表中再显示

@@ -1,7 +1,7 @@
 import { computed } from 'vue'
 import type { TaskRecord } from '../types'
 import type { Task } from '../types'
-import { storageData, saveData, getTodayStr } from './storageCore'
+import { storageData, saveData, getTodayStr, toLocalDateStr } from './storageCore'
 
 export function useRecords() {
   function addRecord(record: TaskRecord): void {
@@ -28,7 +28,7 @@ export function useRecords() {
     const pending = storageData.value.pendingTasks.find(p => p.task.id === taskId)
     if (pending) {
       const now = new Date()
-      const dateStr = now.toISOString().split('T')[0] ?? ''
+      const dateStr = toLocalDateStr(now)
       addRecord({
         taskId: pending.task.id,
         type: pending.task.type,
@@ -64,7 +64,7 @@ export function useRecords() {
     const current = new Date()
 
     while (true) {
-      const dateStr = current.toISOString().split('T')[0] ?? ''
+      const dateStr = toLocalDateStr(current)
       if (dates.has(dateStr)) {
         streak++
         current.setDate(current.getDate() - 1)

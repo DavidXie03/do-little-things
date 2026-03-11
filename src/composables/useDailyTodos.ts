@@ -46,7 +46,7 @@ export function useDailyTodos() {
       }
 
       const now = new Date()
-      const dateStr = now.toISOString().split('T')[0] ?? ''
+      const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
       addRecord({
         taskId: item.task.id,
         type: item.task.type,

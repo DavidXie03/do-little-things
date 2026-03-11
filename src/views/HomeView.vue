@@ -40,7 +40,7 @@ function handleSwipe(direction: SwipeDirection) {
 
   const now = new Date()
   const task = currentTask.value
-  const dateStr = now.toISOString().split('T')[0] ?? ''
+  const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
   if (direction === 'right') {
     if (currentTodoId.value) {
