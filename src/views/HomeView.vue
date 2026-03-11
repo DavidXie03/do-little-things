@@ -34,6 +34,28 @@ const MAX_STACK = 3
 const visibleStack = computed(() => stackItems.value.slice(0, MAX_STACK))
 const topItem = computed(() => stackItems.value[0] ?? null)
 
+/**
+ * 计算总的未完成次数（包含当前顶部卡片的剩余次数）
+ * 用于决定是否在卡片下方显示卡背
+ */
+const totalRemainingCount = computed(() => {
+  let count = 0
+  for (const item of stackItems.value) {
+    count += item.totalCount - item.completedCount
+  }
+  return count
+})
+
+/**
+ * 计算需要显示的卡背数量（不含顶部卡片本身）
+ * 只要总未完成次数 > 1，就至少显示 1 个卡背
+ */
+const backgroundCardCount = computed(() => {
+  if (totalRemainingCount.value <= 1) return 0
+  // 用 visibleStack 中除了第一个之外的数量，或者至少 1 个
+  return Math.max(1, Math.min(MAX_STACK - 1, visibleStack.value.length - 1))
+})
+
 /** 升起动画的卡背元素 ref */
 const risingCardRef = ref<HTMLElement | null>(null)
 /** 顶部卡片容器 ref */
@@ -82,11 +104,15 @@ function handleSwipe(direction: SwipeDirection) {
     })
   }
 
-  // 检查滑走后是否还有更多未完成卡片
+  // 检查滑走后是否还有更多未完成次数
   const remaining = getUncompletedTodos()
+  let remainingTotalCount = 0
+  for (const r of remaining) {
+    remainingTotalCount += r.totalCount - r.completedCount
+  }
 
-  if (remaining.length > 1) {
-    // 还有多张卡片：走升起 + 翻牌动画
+  if (remainingTotalCount > 1) {
+    // 还有多个未完成次数：走升起 + 翻牌动画
     animPhase.value = 'rising'
 
     // ⚡ 关键：在 loadStack() 之前，先清除上一轮残留的动画
@@ -104,7 +130,7 @@ function handleSwipe(direction: SwipeDirection) {
       })
     }, 150)
   } else {
-    // 只剩0或1张：不需要升起动画，直接刷新
+    // 只剩0或1次：不需要升起动画，直接刷新
     cancelAllAnimations()
     setTimeout(() => {
       loadStack()
@@ -127,7 +153,7 @@ function playRisingAnimation() {
     animPhase.value = 'idle'
     cancelAllAnimations()
     // 清除可能残留的 inline style
-    if (el) { el.style.transform = ''; el.style.transition = '' }
+    if (el) { el.style.transform = ''; el.style.transition = ''; el.style.visibility = '' }
     const topEl = topCardRef.value
     if (topEl) { topEl.style.transform = ''; topEl.style.transition = '' }
   }, 2000)
@@ -150,7 +176,9 @@ function playRisingAnimation() {
   activeAnimations.push(riseAnim)
 
   riseAnim.onfinish = () => {
-    // 升起完成，进入翻转阶段
+    // 升起完成，隐藏升起的卡背（防止翻转时多显示一个卡背）
+    el.style.visibility = 'hidden'
+    // 进入翻转阶段
     animPhase.value = 'flipping'
     // 恢复 transition
     el.style.transition = ''
@@ -208,6 +236,9 @@ function playFlipAnimation(safetyTimeout: ReturnType<typeof setTimeout>) {
         animPhase.value = 'idle'
         el.style.transform = ''
         el.style.transition = ''
+        // 恢复升起卡背的可见性
+        const rEl = risingCardRef.value
+        if (rEl) rEl.style.visibility = ''
         // 清理所有动画引用
         cancelAllAnimations()
       }
@@ -240,16 +271,17 @@ onMounted(() => {
           <div class="card-stack-container" style="min-height: 360px;">
             <!--
               背景堆叠卡片：显示为卡牌背面
+              数量基于总的未完成次数，而不仅是未完成任务数
               rising 阶段时，第一张卡背会被 animate() 直接驱动升起
             -->
             <div
-              v-for="(item, idx) in visibleStack.slice(1)"
-              :key="'bg-' + item.id"
-              :ref="(el) => { if (idx === 0) risingCardRef = el as HTMLElement }"
+              v-for="idx in backgroundCardCount"
+              :key="'bg-' + idx"
+              :ref="(el) => { if (idx === 1) risingCardRef = el as HTMLElement }"
               class="card-stack-layer"
               :style="{
-                transform: `translateY(${(idx + 1) * 14}px) scale(${1 - (idx + 1) * 0.04})`,
-                zIndex: MAX_STACK - (idx + 1),
+                transform: `translateY(${idx * 14}px) scale(${1 - idx * 0.04})`,
+                zIndex: MAX_STACK - idx,
               }"
             >
               <div class="card-back">

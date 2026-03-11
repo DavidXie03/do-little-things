@@ -1,7 +1,8 @@
 import { computed } from 'vue'
 import type { DailyConfig, RecurrenceType } from '../types'
-import { RecurrenceType as RT } from '../types'
-import { storageData, saveData } from './storageCore'
+import { RecurrenceType as RT, TaskType } from '../types'
+import { storageData, saveData, getTodayStr } from './storageCore'
+import { shouldTriggerOnDate } from '../services/taskService'
 
 export function useCustomActions() {
   const dailyConfig = computed(() => storageData.value.dailyConfig)
@@ -14,13 +15,39 @@ export function useCustomActions() {
   const customActions = computed(() => storageData.value.customActions)
 
   function addCustomAction(content: string, repeatCount: number = 1, recurrence: RecurrenceType = RT.Daily): void {
-    storageData.value.customActions.push({
+    const newCa = {
       id: `ca_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       content,
       createdAt: Date.now(),
       repeatCount,
       recurrence,
-    })
+    }
+    storageData.value.customActions.push(newCa)
+
+    // 如果今天的待办已生成，且新任务今天应该触发，则追加到今天的待办列表
+    const today = getTodayStr()
+    if (
+      storageData.value.dailyTodos &&
+      storageData.value.dailyTodos.date === today &&
+      shouldTriggerOnDate(newCa, today)
+    ) {
+      const nextId = storageData.value.dailyTodos.items.length + 1
+      storageData.value.dailyTodos.items.push({
+        id: `todo_${nextId}_${Date.now()}`,
+        task: {
+          id: `custom_${newCa.id}`,
+          type: TaskType.Action as any,
+          content: newCa.content,
+          repeatCount: newCa.repeatCount,
+          recurrence: newCa.recurrence,
+        },
+        completed: false,
+        totalCount: newCa.repeatCount,
+        completedCount: 0,
+        scheduledDate: today,
+      })
+    }
+
     saveData(storageData.value)
   }
 
