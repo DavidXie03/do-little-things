@@ -18,7 +18,7 @@ export function useSwipeGesture(
 
   const opacity = computed(() => {
     const absX = Math.abs(offsetX.value)
-    return Math.max(0.5, 1 - absX / 500)
+    return Math.max(0.3, 1 - absX / 800)
   })
 
   const leftZoneProgress = computed(() => {

@@ -181,7 +181,7 @@ function playRisingAnimation() {
     { transform: 'translateY(14px) scale(0.96)', zIndex: '2' },
     { transform: 'translateY(0px) scale(1)', zIndex: '10' },
   ], {
-    duration: 280,
+    duration: 180,
     easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
     fill: 'forwards',
   })
@@ -219,7 +219,7 @@ function playFlipAnimation(safetyTimeout: ReturnType<typeof setTimeout>) {
     { transform: 'perspective(1000px) rotateY(0deg)' },
     { transform: 'perspective(1000px) rotateY(90deg)' },
   ], {
-    duration: 250,
+    duration: 160,
     easing: 'ease-in',
     fill: 'forwards',
   })
@@ -238,7 +238,7 @@ function playFlipAnimation(safetyTimeout: ReturnType<typeof setTimeout>) {
         { transform: 'perspective(1000px) rotateY(-90deg)' },
         { transform: 'perspective(1000px) rotateY(0deg)' },
       ], {
-        duration: 300,
+        duration: 180,
         easing: 'ease-out',
         fill: 'forwards',
       })
