@@ -1,0 +1,62 @@
+export default {
+  app: {
+    title: 'Do Little Things',
+  },
+  home: {
+    allDoneTitle: 'All Done for Today!',
+    allDoneMsg1: 'Great job, you\'ve finished all tasks',
+    allDoneMsg2: 'Come back tomorrow for new ones',
+    remaining: '{remaining} / {total} remaining',
+  },
+  todos: {
+    title: 'Todo List',
+    empty: 'No todos for today',
+    addTodo: 'Add Todo',
+    regenerate: 'Regenerate',
+    today: 'Today',
+    tomorrow: 'Tomorrow',
+    dayAfterTomorrow: 'Day After Tomorrow',
+  },
+  modal: {
+    addTitle: 'Add Todo',
+    editTitle: 'Edit Todo',
+    placeholder: 'Enter todo content...',
+    recurrenceLabel: 'Recurrence',
+    repeatLabel: 'Repeat count',
+    cancel: 'Cancel',
+    add: 'Add',
+    save: 'Save',
+  },
+  recurrence: {
+    daily: 'Daily',
+    weekly: 'Weekly',
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+    weekday: 'Weekdays',
+  },
+  taskType: {
+    action: 'Todo',
+  },
+  date: {
+    months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    monthDay: '{month}/{day}',
+    yearMonthDay: '{year}/{month}/{day}',
+  },
+  settings: {
+    title: 'Settings',
+    language: 'Language',
+    langZh: '中文',
+    langEn: 'English',
+    currentLang: 'Current Language',
+  },
+  todoItem: {
+    deleteConfirm: 'Click again to confirm',
+    delete: 'Delete',
+  },
+  defaultActions: {
+    drinkWater: 'Drink a glass of water',
+    standUp: 'Stand up and stretch',
+    lookFar: 'Look into the distance',
+  },
+}

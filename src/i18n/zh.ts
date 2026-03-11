@@ -1,0 +1,62 @@
+export default {
+  app: {
+    title: '做件小事',
+  },
+  home: {
+    allDoneTitle: '今日任务完成！',
+    allDoneMsg1: '太棒了，今天的小事都做完了',
+    allDoneMsg2: '明天再来完成新的待办吧',
+    remaining: '剩余 {remaining} / {total} 次',
+  },
+  todos: {
+    title: '待办列表',
+    empty: '今天没有待办事项',
+    addTodo: '添加待办',
+    regenerate: '重新生成',
+    today: '今天',
+    tomorrow: '明天',
+    dayAfterTomorrow: '后天',
+  },
+  modal: {
+    addTitle: '添加待办',
+    editTitle: '编辑待办',
+    placeholder: '输入待办事项内容...',
+    recurrenceLabel: '循环方式',
+    repeatLabel: '每次执行次数',
+    cancel: '取消',
+    add: '添加',
+    save: '保存',
+  },
+  recurrence: {
+    daily: '每天',
+    weekly: '每周',
+    monthly: '每月',
+    yearly: '每年',
+    weekday: '工作日',
+  },
+  taskType: {
+    action: '待办',
+  },
+  date: {
+    months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+    weekdays: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
+    monthDay: '{month}月{day}日',
+    yearMonthDay: '{year}年{month}月{day}日',
+  },
+  settings: {
+    title: '设置',
+    language: '语言',
+    langZh: '中文',
+    langEn: 'English',
+    currentLang: '当前语言',
+  },
+  todoItem: {
+    deleteConfirm: '再次点击确认删除',
+    delete: '删除',
+  },
+  defaultActions: {
+    drinkWater: '喝一杯水',
+    standUp: '站起来活动一会',
+    lookFar: '去眺望远方',
+  },
+}
