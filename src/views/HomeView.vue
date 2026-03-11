@@ -47,10 +47,18 @@ const totalRemainingCount = computed(() => {
 })
 
 /**
+ * 动画进行中时锁定的卡背数量
+ * 防止 loadStack() 触发响应式重算导致卡背 DOM 被移除
+ */
+const lockedBackgroundCount = ref<number | null>(null)
+
+/**
  * 计算需要显示的卡背数量（不含顶部卡片本身）
  * 只要总未完成次数 > 1，就至少显示 1 个卡背
+ * 动画进行中使用锁定值
  */
 const backgroundCardCount = computed(() => {
+  if (lockedBackgroundCount.value !== null) return lockedBackgroundCount.value
   if (totalRemainingCount.value <= 1) return 0
   // 用 visibleStack 中除了第一个之外的数量，或者至少 1 个
   return Math.max(1, Math.min(MAX_STACK - 1, visibleStack.value.length - 1))
@@ -113,6 +121,8 @@ function handleSwipe(direction: SwipeDirection) {
 
   if (remainingTotalCount > 1) {
     // 还有多个未完成次数：走升起 + 翻牌动画
+    // ⚡ 锁定当前卡背数量，防止 loadStack 触发响应式重算后卡背 DOM 消失
+    lockedBackgroundCount.value = Math.max(1, backgroundCardCount.value || 1)
     animPhase.value = 'rising'
 
     // ⚡ 关键：在 loadStack() 之前，先清除上一轮残留的动画
@@ -145,12 +155,14 @@ function playRisingAnimation() {
   if (!el) {
     // 没有可升起的卡背（不应该发生，但做安全处理）
     animPhase.value = 'idle'
+    lockedBackgroundCount.value = null
     return
   }
 
   // 安全超时：防止动画状态永远卡死
   const safetyTimeout = setTimeout(() => {
     animPhase.value = 'idle'
+    lockedBackgroundCount.value = null
     cancelAllAnimations()
     // 清除可能残留的 inline style
     if (el) { el.style.transform = ''; el.style.transition = ''; el.style.visibility = '' }
@@ -194,6 +206,7 @@ function playFlipAnimation(safetyTimeout: ReturnType<typeof setTimeout>) {
   if (!el) {
     clearTimeout(safetyTimeout)
     animPhase.value = 'idle'
+    lockedBackgroundCount.value = null
     return
   }
 
@@ -239,6 +252,8 @@ function playFlipAnimation(safetyTimeout: ReturnType<typeof setTimeout>) {
         // 恢复升起卡背的可见性
         const rEl = risingCardRef.value
         if (rEl) rEl.style.visibility = ''
+        // 解锁卡背数量，恢复响应式计算
+        lockedBackgroundCount.value = null
         // 清理所有动画引用
         cancelAllAnimations()
       }
