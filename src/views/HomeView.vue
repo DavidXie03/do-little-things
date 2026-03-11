@@ -112,16 +112,13 @@ function handleSwipe(direction: SwipeDirection) {
     })
   }
 
-  // 检查滑走后是否还有更多未完成次数
+  // 检查滑走后是否还有更多未完成任务
   const remaining = getUncompletedTodos()
-  let remainingTotalCount = 0
-  for (const r of remaining) {
-    remainingTotalCount += r.totalCount - r.completedCount
-  }
 
-  if (remainingTotalCount > 1) {
-    // 还有多个未完成次数：走升起 + 翻牌动画
+  if (remaining.length > 0) {
+    // 还有未完成任务：走升起 + 翻牌动画
     // ⚡ 锁定当前卡背数量，防止 loadStack 触发响应式重算后卡背 DOM 消失
+    // 即使只剩最后一个任务，也至少锁定 1 个卡背用于翻转动画
     lockedBackgroundCount.value = Math.max(1, backgroundCardCount.value || 1)
     animPhase.value = 'rising'
 
@@ -140,7 +137,7 @@ function handleSwipe(direction: SwipeDirection) {
       })
     }, 150)
   } else {
-    // 只剩0或1次：不需要升起动画，直接刷新
+    // 全部完成：不需要动画，直接刷新
     cancelAllAnimations()
     setTimeout(() => {
       loadStack()
