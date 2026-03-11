@@ -22,6 +22,9 @@ const allDone = ref(false)
 const cardVisible = ref(false)
 const cardKey = ref(0)
 
+/** 翻牌动画状态 */
+const isFlipping = ref(false)
+
 /** 最多同时显示几张堆叠卡片 */
 const MAX_STACK = 3
 
@@ -66,15 +69,22 @@ function handleSwipe(direction: SwipeDirection) {
   // 隐藏顶部卡片
   cardVisible.value = false
 
-  // 短暂延迟后重新加载堆叠
+  // 重新加载堆叠 → 触发翻牌动画
   setTimeout(() => {
     loadStack()
     cardKey.value++
-    nextTick(() => {
-      requestAnimationFrame(() => {
-        cardVisible.value = true
+
+    if (stackItems.value.length > 0) {
+      // 先显示卡牌背面，然后翻转到正面
+      isFlipping.value = true
+      nextTick(() => {
+        requestAnimationFrame(() => {
+          // 触发翻牌动画：从背面翻到正面
+          isFlipping.value = false
+          cardVisible.value = true
+        })
       })
-    })
+    }
   }, 100)
 }
 
@@ -105,52 +115,58 @@ onMounted(() => {
           </h1>
 
           <!-- 卡片堆叠容器 -->
-          <div class="relative" style="min-height: 360px;">
-            <!-- 背景堆叠卡片：用位置偏移 + 阴影递减体现层次，完全不透明 -->
+          <div class="card-stack-container" style="min-height: 360px;">
+            <!-- 背景堆叠卡片：显示为卡牌背面 -->
             <div
               v-for="(item, idx) in visibleStack.slice(1)"
               :key="'bg-' + item.id"
               class="card-stack-layer"
               :style="{
-                transform: `scale(${1 - (idx + 1) * 0.04}) translateY(${(idx + 1) * 14}px)`,
+                transform: `translateY(${(idx + 1) * 14}px) scale(${1 - (idx + 1) * 0.04})`,
                 zIndex: MAX_STACK - (idx + 1),
               }"
             >
-              <div
-                class="relative rounded-3xl p-6 mx-8 overflow-hidden"
-                :style="{
-                  background: idx === 0 ? '#F7F7F8' : '#EFEFF1',
-                  boxShadow: `0 ${6 - (idx + 1) * 2}px ${20 - (idx + 1) * 6}px -4px rgba(0, 0, 0, ${0.08 - (idx + 1) * 0.02})`,
-                  minHeight: '340px',
-                }"
-              >
-                <div class="relative flex items-center justify-center" style="min-height: 260px;">
-                  <p
-                    class="text-center leading-relaxed font-medium"
-                    :style="{
-                      fontSize: item.task.content.length > 20 ? '20px' : '24px',
-                      color: 'var(--text-secondary)',
-                      lineHeight: '1.8',
-                    }"
-                  >
-                    {{ item.task.content }}
-                  </p>
+              <!-- 卡牌背面 -->
+              <div class="card-back">
+                <div class="card-back-pattern">
+                  <!-- 装饰性图案 -->
+                  <div class="card-back-diamond"></div>
+                  <div class="card-back-border"></div>
+                  <div class="card-back-center-icon">✦</div>
                 </div>
               </div>
             </div>
 
-            <!-- 顶部可交互卡片 -->
-            <transition name="card-fade-in">
-              <TaskCard
-                v-show="cardVisible"
-                :key="cardKey"
-                class="card-stack-top"
-                :task="topItem.task"
-                :remaining-count="topItem.totalCount - topItem.completedCount"
-                :total-count="topItem.totalCount"
-                @swipe="handleSwipe"
-              />
-            </transition>
+            <!-- 顶部可交互卡片（带翻牌动画） -->
+            <div
+              class="card-stack-top card-flip-wrapper"
+              :class="{ 'is-flipping': isFlipping }"
+            >
+              <!-- 卡牌背面（翻牌动画时先显示） -->
+              <div class="card-flip-back">
+                <div class="card-back">
+                  <div class="card-back-pattern">
+                    <div class="card-back-diamond"></div>
+                    <div class="card-back-border"></div>
+                    <div class="card-back-center-icon">✦</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 卡牌正面 -->
+              <div class="card-flip-front">
+                <transition name="card-fade-in">
+                  <TaskCard
+                    v-show="cardVisible"
+                    :key="cardKey"
+                    :task="topItem.task"
+                    :remaining-count="topItem.totalCount - topItem.completedCount"
+                    :total-count="topItem.totalCount"
+                    @swipe="handleSwipe"
+                  />
+                </transition>
+              </div>
+            </div>
           </div>
         </template>
 
@@ -176,17 +192,23 @@ onMounted(() => {
 </template>
 
 <style scoped>
+/* 卡片堆叠容器：启用 3D 透视 */
+.card-stack-container {
+  position: relative;
+  perspective: 1000px;
+}
+
 /* 堆叠层：绝对定位覆盖同一区域 */
 .card-stack-layer {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
 }
 
-/* 顶部卡片：绝对定位，覆盖在堆叠层上 */
+/* 顶部卡片 */
 .card-stack-top {
   position: absolute;
   top: 0;
@@ -195,9 +217,83 @@ onMounted(() => {
   z-index: 10;
 }
 
+/* ====== 卡牌背面样式 ====== */
+.card-back {
+  border-radius: 1.5rem;
+  margin: 0 2rem;
+  min-height: 340px;
+  background: linear-gradient(135deg, #6C63FF 0%, #8B83FF 50%, #6C63FF 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-back-pattern {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 内边框装饰 */
+.card-back-border {
+  position: absolute;
+  inset: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1.2rem;
+}
+
+/* 菱形背景纹理 */
+.card-back-diamond {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(45deg, rgba(255,255,255,0.06) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255,255,255,0.06) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.06) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.06) 75%);
+  background-size: 30px 30px;
+  background-position: 0 0, 0 15px, 15px -15px, -15px 0px;
+}
+
+/* 中心装饰符号 */
+.card-back-center-icon {
+  font-size: 48px;
+  color: rgba(255, 255, 255, 0.25);
+  z-index: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ====== 翻牌动画 ====== */
+.card-flip-wrapper {
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-flip-wrapper.is-flipping {
+  transform: rotateY(180deg);
+}
+
+.card-flip-front,
+.card-flip-back {
+  backface-visibility: hidden;
+}
+
+.card-flip-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  transform: rotateY(180deg);
+}
+
+.card-flip-front {
+  position: relative;
+}
+
 /* 顶部卡片入场动画 */
 .card-fade-in-enter-active {
-  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: opacity 0.3s ease;
 }
 .card-fade-in-leave-active {
   transition: opacity 0.15s ease;
@@ -206,11 +302,9 @@ onMounted(() => {
 }
 .card-fade-in-enter-from {
   opacity: 0;
-  transform: scale(0.92) translateY(20px);
 }
 .card-fade-in-enter-to {
   opacity: 1;
-  transform: scale(1) translateY(0);
 }
 .card-fade-in-leave-to {
   opacity: 0;
