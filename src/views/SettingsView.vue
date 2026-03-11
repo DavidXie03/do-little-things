@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { saveLanguage } from '../i18n'
 
@@ -10,7 +10,20 @@ const languages = [
   { code: 'en', label: 'English' },
 ]
 
-const currentLang = computed(() => locale.value)
+const showLangModal = ref(false)
+
+const currentLangLabel = computed(() => {
+  const lang = languages.find(l => l.code === locale.value)
+  return lang ? lang.label : locale.value
+})
+
+function openLangModal() {
+  showLangModal.value = true
+}
+
+function closeLangModal() {
+  showLangModal.value = false
+}
 
 function switchLanguage(langCode: string) {
   locale.value = langCode
@@ -19,6 +32,7 @@ function switchLanguage(langCode: string) {
   document.title = langCode === 'zh' ? '做件小事' : 'Do Little Things'
   // 更新 html lang 属性
   document.documentElement.lang = langCode === 'zh' ? 'zh-CN' : 'en'
+  showLangModal.value = false
 }
 </script>
 
@@ -47,47 +61,131 @@ function switchLanguage(langCode: string) {
           </span>
         </div>
 
-        <div class="space-y-3">
-          <button
-            v-for="lang in languages"
-            :key="lang.code"
-            @click="switchLanguage(lang.code)"
-            class="w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 active:scale-[0.98]"
-            :style="{
-              background: currentLang === lang.code ? 'rgba(108, 99, 255, 0.08)' : '#FFFFFF',
-              border: currentLang === lang.code ? '2px solid var(--primary)' : '2px solid transparent',
-              boxShadow: currentLang === lang.code ? 'none' : '0 2px 12px -4px rgba(0, 0, 0, 0.06)',
-            }"
-          >
-            <span
-              class="text-sm font-medium"
-              :style="{
-                color: currentLang === lang.code ? 'var(--primary)' : 'var(--text-primary)',
-              }"
-            >
-              {{ lang.label }}
-            </span>
-
-            <!-- 选中指示器 -->
-            <div
-              v-if="currentLang === lang.code"
-              class="w-6 h-6 rounded-full flex items-center justify-center"
-              style="background: var(--primary);"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M20 6L9 17L4 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <div
-              v-else
-              class="w-6 h-6 rounded-full"
-              style="border: 2px solid var(--text-muted);"
-            ></div>
-          </button>
-        </div>
+        <!-- 当前语言显示按钮，点击打开弹窗 -->
+        <button
+          @click="openLangModal"
+          class="w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 active:scale-[0.98]"
+          style="background: #FFFFFF; box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.06);"
+        >
+          <span class="text-sm font-medium" style="color: var(--text-primary);">
+            {{ currentLangLabel }}
+          </span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 18L15 12L9 6" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
 
       <div class="h-8"></div>
     </div>
+
+    <!-- 语言选择弹窗 -->
+    <Teleport to="body">
+      <transition name="modal-fade">
+        <div
+          v-if="showLangModal"
+          class="fixed inset-0 z-[9999] flex items-end justify-center"
+          @click.self="closeLangModal"
+        >
+          <!-- 遮罩层 -->
+          <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" @click="closeLangModal"></div>
+
+          <!-- 弹窗内容 -->
+          <transition name="modal-slide">
+            <div
+              v-if="showLangModal"
+              class="relative w-full max-w-lg bg-white rounded-t-3xl overflow-hidden"
+              style="padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);"
+            >
+              <!-- 拖动指示条 -->
+              <div class="flex justify-center pt-3 pb-2">
+                <div class="w-10 h-1 rounded-full bg-gray-300"></div>
+              </div>
+
+              <!-- 标题 -->
+              <div class="px-6 pb-4">
+                <h3 class="text-lg font-bold" style="color: var(--text-primary);">
+                  {{ t('settings.language') }}
+                </h3>
+              </div>
+
+              <!-- 语言选项列表 -->
+              <div class="px-6 pb-4 space-y-3">
+                <button
+                  v-for="lang in languages"
+                  :key="lang.code"
+                  @click="switchLanguage(lang.code)"
+                  class="w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 active:scale-[0.98]"
+                  :style="{
+                    background: locale === lang.code ? 'rgba(108, 99, 255, 0.08)' : '#F8F9FA',
+                    border: locale === lang.code ? '2px solid var(--primary)' : '2px solid transparent',
+                  }"
+                >
+                  <span
+                    class="text-sm font-medium"
+                    :style="{
+                      color: locale === lang.code ? 'var(--primary)' : 'var(--text-primary)',
+                    }"
+                  >
+                    {{ lang.label }}
+                  </span>
+
+                  <!-- 选中指示器 -->
+                  <div
+                    v-if="locale === lang.code"
+                    class="w-6 h-6 rounded-full flex items-center justify-center"
+                    style="background: var(--primary);"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6L9 17L4 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <div
+                    v-else
+                    class="w-6 h-6 rounded-full"
+                    style="border: 2px solid var(--text-muted);"
+                  ></div>
+                </button>
+              </div>
+
+              <!-- 取消按钮 -->
+              <div class="px-6 pb-2">
+                <button
+                  @click="closeLangModal"
+                  class="w-full py-3 rounded-2xl text-sm font-medium transition-all duration-300 active:scale-[0.98]"
+                  style="background: #F0F0F0; color: var(--text-secondary);"
+                >
+                  {{ t('modal.cancel') }}
+                </button>
+              </div>
+            </div>
+          </transition>
+        </div>
+      </transition>
+    </Teleport>
   </div>
 </template>
+
+<style scoped>
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+.modal-slide-enter-active {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.modal-slide-leave-active {
+  transition: transform 0.25s ease-in;
+}
+.modal-slide-enter-from {
+  transform: translateY(100%);
+}
+.modal-slide-leave-to {
+  transform: translateY(100%);
+}
+</style>
