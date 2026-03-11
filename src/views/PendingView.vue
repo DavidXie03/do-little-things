@@ -3,7 +3,6 @@ import { ref, onMounted, computed } from 'vue'
 import type { DailyTodoItem, RecurrenceType } from '../types'
 import { RecurrenceType as RT, RecurrenceTypeLabel } from '../types'
 import { useStorage } from '../composables/useStorage'
-import { getNextTriggerDate } from '../services/taskService'
 import TodoItem from '../components/TodoItem.vue'
 import TodoModal from '../components/TodoModal.vue'
 import IconParty from '../components/icons/IconParty.vue'
@@ -73,52 +72,6 @@ const groupedTodos = computed((): DateGroup[] => {
 
 function getTodayStr(): string {
   return new Date().toISOString().split('T')[0] ?? ''
-}
-
-/**
- * 为已完成的今天任务计算下次触发日期
- * 返回 Map<taskId, "下次 X月X日周X">
- */
-const nextTriggerMap = computed((): Map<string, string> => {
-  const map = new Map<string, string>()
-  const todayStr = dailyTodos.value?.date ?? getTodayStr()
-
-  for (const item of todayItems.value) {
-    if (!item.completed) continue
-    // 找到对应的 CustomAction
-    const taskId = item.task.id
-    const caId = taskId.startsWith('custom_') ? taskId.slice(7) : null
-    if (!caId) continue
-    const ca = customActions.value.find(c => c.id === caId)
-    if (!ca) continue
-
-    // 从明天开始找下一个触发日
-    const tomorrow = new Date(todayStr + 'T00:00:00')
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    const tomorrowStr = tomorrow.toISOString().split('T')[0] ?? ''
-    const nextDate = getNextTriggerDate(ca, tomorrowStr)
-    if (nextDate) {
-      map.set(item.id, `下次 ${formatShortDate(nextDate)}`)
-    }
-  }
-  return map
-})
-
-/** 格式化短日期：明天 / 后天 / X月X日周X */
-function formatShortDate(dateStr: string): string {
-  const date = new Date(dateStr + 'T00:00:00')
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 1) return '明天'
-  if (diffDays === 2) return '后天'
-
-  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  return `${month}月${day}日${weekdays[date.getDay()]}`
 }
 
 const progressPercent = computed(() => {
@@ -293,7 +246,6 @@ onMounted(() => {
             :item="item"
             :show-recurrence="true"
             :show-date-label="false"
-            :next-trigger-label="nextTriggerMap.get(item.id)"
             @complete="markTodoComplete"
             @delete="removeTodoItem"
             @edit="openEditModal"

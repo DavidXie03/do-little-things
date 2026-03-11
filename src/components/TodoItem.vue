@@ -10,7 +10,6 @@ const props = defineProps<{
   showRecurrence?: boolean
   showDateLabel?: boolean
   isFuture?: boolean
-  nextTriggerLabel?: string  // 已完成时显示下次触发日期，如 "下次 3月18日周三"
 }>()
 
 const emit = defineEmits<{
@@ -39,21 +38,12 @@ function handleDelete(todoId: string) {
   }
 }
 
-/** 构建副信息文本：循环类型 + 完成后显示下次触发日期 */
+/** 构建副信息文本：仅显示循环类型 */
 function getSubInfo(): string {
-  const parts: string[] = []
-
   if (props.showRecurrence && props.item.task.recurrence) {
-    const label = RecurrenceTypeLabel[props.item.task.recurrence] || ''
-    if (label) parts.push(label)
+    return RecurrenceTypeLabel[props.item.task.recurrence] || ''
   }
-
-  // 已完成时追加下次触发日期
-  if (props.item.completed && props.nextTriggerLabel) {
-    parts.push(props.nextTriggerLabel)
-  }
-
-  return parts.join(' · ')
+  return ''
 }
 </script>
 

@@ -94,14 +94,16 @@ export function useDailyTodos() {
   /**
    * 获取未来待办预览列表
    * 对于每个循环任务，最多只显示一个最近的未来待办
-   * 排除今天已显示的任务
+   * 只排除今天未完成的任务；已完成的任务需要显示下次循环日期
    */
   const futureTodos = computed((): DailyTodoItem[] => {
     const today = getTodayStr()
     const todayItems = storageData.value.dailyTodos?.items ?? []
 
-    // 获取今天已经有的任务的 customAction id 集合
-    const todayTaskIds = new Set(todayItems.map(i => i.task.id))
+    // 获取今天未完成任务的 task id 集合（已完成的不排除，让下次循环显示在未来列表）
+    const todayPendingTaskIds = new Set(
+      todayItems.filter(i => !i.completed).map(i => i.task.id)
+    )
 
     const futureItems = generateFutureTodoItems(
       storageData.value.customActions,
@@ -109,12 +111,12 @@ export function useDailyTodos() {
     )
 
     // 去重：每个 customAction 只保留一条
-    // 今天已经显示过的任务，不再在未来列表中重复
+    // 今天未完成的任务不在未来列表显示（避免重复）
     const seen = new Set<string>()
     return futureItems.filter(item => {
       if (seen.has(item.task.id)) return false
-      // 今天已有的任务，跳过（下次循环日已经在今天显示了）
-      if (todayTaskIds.has(item.task.id)) return false
+      // 今天还未完成的任务，跳过
+      if (todayPendingTaskIds.has(item.task.id)) return false
       seen.add(item.task.id)
       return true
     })
