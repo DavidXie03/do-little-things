@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import type { DailyTodoItem } from '../types'
+import type { DailyTodoItem, RecurrenceType } from '../types'
+import { RecurrenceType as RT, RecurrenceTypeLabel } from '../types'
 import { useStorage } from '../composables/useStorage'
 import TodoItem from '../components/TodoItem.vue'
 import TodoModal from '../components/TodoModal.vue'
@@ -18,6 +19,7 @@ const {
   addCustomAction,
   updateCustomAction,
   regenerateDailyTodos,
+  futureTodos,
 } = useStorage()
 
 const todayItems = computed(() => dailyTodos.value?.items ?? [])
@@ -37,12 +39,14 @@ const showModal = ref(false)
 const modalMode = ref<'add' | 'edit'>('add')
 const modalContent = ref('')
 const modalRepeatCount = ref(1)
+const modalRecurrence = ref<RecurrenceType>(RT.Daily)
 const modalEditId = ref<string | null>(null)
 
 function openAddModal() {
   modalMode.value = 'add'
   modalContent.value = ''
   modalRepeatCount.value = 1
+  modalRecurrence.value = RT.Daily
   modalEditId.value = null
   showModal.value = true
 }
@@ -58,15 +62,16 @@ function openEditModal(item: DailyTodoItem) {
   modalMode.value = 'edit'
   modalContent.value = ca.content
   modalRepeatCount.value = ca.repeatCount
+  modalRecurrence.value = ca.recurrence || RT.Daily
   modalEditId.value = caId
   showModal.value = true
 }
 
-function handleModalConfirm(content: string, repeatCount: number) {
+function handleModalConfirm(content: string, repeatCount: number, recurrence: RecurrenceType) {
   if (modalMode.value === 'add') {
-    addCustomAction(content, repeatCount)
+    addCustomAction(content, repeatCount, recurrence)
   } else if (modalEditId.value) {
-    updateCustomAction(modalEditId.value, content, repeatCount)
+    updateCustomAction(modalEditId.value, content, repeatCount, recurrence)
   }
   showModal.value = false
 }
@@ -76,6 +81,28 @@ function formatDate(): string {
   const months = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
   const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
   return `${months[now.getMonth()]} ${now.getDate()}日 ${weekdays[now.getDay()]}`
+}
+
+function formatScheduledDate(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00')
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return '今天'
+  if (diffDays === 1) return '明天'
+  if (diffDays === 2) return '后天'
+
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  return `${month}月${day}日 ${weekdays[date.getDay()]}`
+}
+
+function getRecurrenceLabel(recurrence?: RecurrenceType): string {
+  if (!recurrence) return ''
+  return RecurrenceTypeLabel[recurrence] || ''
 }
 
 onMounted(() => {
@@ -92,7 +119,7 @@ onMounted(() => {
             class="text-2xl font-bold"
             style="color: var(--text-primary);"
           >
-            今日待办
+            待办列表
           </h1>
           <p class="text-xs mt-1" style="color: var(--text-muted);">
             {{ formatDate() }}
@@ -131,11 +158,16 @@ onMounted(() => {
     </header>
 
     <div class="flex-1 overflow-y-auto pb-4 px-6" style="-webkit-overflow-scrolling: touch;">
+      <!-- 今日待办 -->
       <template v-if="todayItems.length > 0">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-xs font-semibold px-2 py-0.5 rounded-md" style="background: rgba(108,99,255,0.08); color: var(--primary);">今天</span>
+        </div>
         <TodoItem
           v-for="item in todayItems"
           :key="item.id"
           :item="item"
+          :show-recurrence="true"
           @complete="markTodoComplete"
           @delete="removeTodoItem"
           @edit="openEditModal"
@@ -148,9 +180,54 @@ onMounted(() => {
       >
         <IconParty :size="48" color="var(--text-muted)" />
         <p class="text-sm mt-3" style="color: var(--text-muted);">
-          还没有生成今日待办
+          今天没有待办事项
         </p>
       </div>
+
+      <!-- 未来待办预览 -->
+      <template v-if="futureTodos.length > 0">
+        <div class="flex items-center gap-2 mt-6 mb-3">
+          <span class="text-xs font-semibold px-2 py-0.5 rounded-md" style="background: rgba(0,184,148,0.08); color: #00B894;">即将到来</span>
+        </div>
+        <div
+          v-for="item in futureTodos"
+          :key="item.id"
+          class="relative rounded-2xl p-4 mb-3 overflow-hidden"
+          style="background: #FFFFFF; box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.06); opacity: 0.7;"
+          @click="openEditModal(item)"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+              style="border: 2px dashed var(--text-muted); opacity: 0.4;"
+            ></div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm leading-relaxed" style="color: var(--text-primary);">
+                {{ item.task.content }}
+              </p>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-[10px]" style="color: var(--text-muted);">
+                  {{ formatScheduledDate(item.scheduledDate) }}
+                </span>
+                <span
+                  v-if="item.task.recurrence"
+                  class="text-[10px] px-1.5 py-0.5 rounded"
+                  style="background: rgba(108,99,255,0.06); color: var(--primary);"
+                >
+                  {{ getRecurrenceLabel(item.task.recurrence) }}
+                </span>
+              </div>
+            </div>
+            <span
+              v-if="item.totalCount > 1"
+              class="flex-shrink-0 text-xs px-2 py-0.5 rounded-full"
+              style="background: rgba(108,99,255,0.08); color: var(--primary);"
+            >
+              ×{{ item.totalCount }}
+            </span>
+          </div>
+        </div>
+      </template>
 
       <div class="my-6 border-t" style="border-color: rgba(0,0,0,0.05);"></div>
 
@@ -181,6 +258,7 @@ onMounted(() => {
       :mode="modalMode"
       :initial-content="modalContent"
       :initial-repeat-count="modalRepeatCount"
+      :initial-recurrence="modalRecurrence"
       @confirm="handleModalConfirm"
       @cancel="showModal = false"
     />

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { DailyTodoItem } from '../types'
+import { RecurrenceTypeLabel } from '../types'
 import IconCheck from './icons/IconCheck.vue'
 import IconTrash from './icons/IconTrash.vue'
 
 defineProps<{
   item: DailyTodoItem
+  showRecurrence?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -62,6 +64,13 @@ function handleDelete(todoId: string) {
         >
           {{ item.task.content }}
         </p>
+        <span
+          v-if="showRecurrence && item.task.recurrence && item.task.recurrence !== 'daily'"
+          class="text-[10px] px-1.5 py-0.5 rounded mt-0.5 inline-block"
+          style="background: rgba(108,99,255,0.06); color: var(--primary);"
+        >
+          {{ RecurrenceTypeLabel[item.task.recurrence] || '' }}
+        </span>
       </div>
 
       <span

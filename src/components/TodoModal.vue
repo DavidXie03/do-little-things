@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, nextTick, watch } from 'vue'
+import { RecurrenceType, RecurrenceTypeLabel, ALL_RECURRENCE_TYPES } from '../types'
+import type { RecurrenceType as RecurrenceTypeT } from '../types'
 import IconPlus from './icons/IconPlus.vue'
 import IconMinus from './icons/IconMinus.vue'
 
@@ -8,21 +10,24 @@ const props = defineProps<{
   mode: 'add' | 'edit'
   initialContent?: string
   initialRepeatCount?: number
+  initialRecurrence?: RecurrenceTypeT
 }>()
 
 const emit = defineEmits<{
-  (e: 'confirm', content: string, repeatCount: number): void
+  (e: 'confirm', content: string, repeatCount: number, recurrence: RecurrenceTypeT): void
   (e: 'cancel'): void
 }>()
 
 const content = ref('')
 const repeatCount = ref(1)
+const recurrence = ref<RecurrenceTypeT>(RecurrenceType.Daily)
 const inputRef = ref<HTMLInputElement | null>(null)
 
 watch(() => props.visible, (val) => {
   if (val) {
     content.value = props.initialContent ?? ''
     repeatCount.value = props.initialRepeatCount ?? 1
+    recurrence.value = props.initialRecurrence ?? RecurrenceType.Daily
     nextTick(() => inputRef.value?.focus())
   }
 })
@@ -30,7 +35,7 @@ watch(() => props.visible, (val) => {
 function handleConfirm() {
   const trimmed = content.value.trim()
   if (!trimmed) return
-  emit('confirm', trimmed, repeatCount.value)
+  emit('confirm', trimmed, repeatCount.value, recurrence.value)
 }
 </script>
 
@@ -61,8 +66,28 @@ function handleConfirm() {
             @keyup.enter="handleConfirm"
           />
 
+          <!-- 循环类型选择 -->
+          <div class="space-y-2">
+            <span class="text-sm" style="color: var(--text-secondary);">循环方式</span>
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="rt in ALL_RECURRENCE_TYPES"
+                :key="rt"
+                @click="recurrence = rt"
+                class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 active:scale-95"
+                :style="{
+                  background: recurrence === rt ? 'var(--primary)' : 'rgba(108,99,255,0.06)',
+                  color: recurrence === rt ? 'white' : 'var(--primary)',
+                  border: recurrence === rt ? '1.5px solid var(--primary)' : '1.5px solid rgba(108,99,255,0.12)',
+                }"
+              >
+                {{ RecurrenceTypeLabel[rt] }}
+              </button>
+            </div>
+          </div>
+
           <div class="flex items-center justify-between py-1">
-            <span class="text-sm" style="color: var(--text-secondary);">每日执行次数</span>
+            <span class="text-sm" style="color: var(--text-secondary);">每次执行次数</span>
             <div class="flex items-center gap-3">
               <button
                 @click="repeatCount = Math.max(1, repeatCount - 1)"
