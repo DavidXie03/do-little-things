@@ -22,8 +22,6 @@ const cardKey = ref(0)
 
 /** 翻牌动画阶段：'idle' | 'back' | 'front' */
 const flipPhase = ref<'idle' | 'back' | 'front'>('idle')
-/** 卡背是否处于"升起"前的缩小状态 */
-const isRising = ref(false)
 
 const MAX_STACK = 3
 
@@ -65,9 +63,8 @@ function handleSwipe(direction: SwipeDirection) {
     })
   }
 
-  // 阶段1：隐藏正面，显示卡背（从堆叠位置的小尺寸开始）
+  // 阶段1：隐藏正面，显示卡背
   flipPhase.value = 'back'
-  isRising.value = true  // 卡背从缩小位置开始
 
   // 重新加载数据
   setTimeout(() => {
@@ -75,9 +72,21 @@ function handleSwipe(direction: SwipeDirection) {
     cardKey.value++
 
     if (stackItems.value.length > 0) {
-      // 阶段2：卡背先从堆叠位置"升起"到顶部位置
+      // 阶段2：等 DOM 更新后启动升起 + 翻牌动画
       nextTick(() => {
-        playRiseAndFlipAnimation()
+        const el = flipContainerRef.value
+        if (!el) {
+          flipPhase.value = 'front'
+          return
+        }
+        // 立刻用 JS 设置初始缩小位置（不经过 Vue 响应式，避免闪跳）
+        el.style.transform = 'translateY(14px) scale(0.96)'
+        // 等浏览器渲染完这一帧后再启动动画
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            playRiseAndFlipAnimation()
+          })
+        })
       })
     }
   }, 150)
@@ -87,12 +96,10 @@ function playRiseAndFlipAnimation() {
   const el = flipContainerRef.value
   if (!el) {
     flipPhase.value = 'front'
-    isRising.value = false
     return
   }
 
   // 第一阶段：卡背从堆叠位置"升起"到顶部位置
-  // 从 scale(0.96) translateY(14px) → scale(1) translateY(0)
   const riseAnim = el.animate([
     { transform: 'translateY(14px) scale(0.96)' },
     { transform: 'translateY(0px) scale(1)' },
@@ -103,8 +110,6 @@ function playRiseAndFlipAnimation() {
   })
 
   riseAnim.onfinish = () => {
-    isRising.value = false
-    // 清除 fill:forwards 的残留
     el.style.transform = ''
 
     // 第二阶段：卡背翻转消失
@@ -191,7 +196,6 @@ onMounted(() => {
             <div
               ref="flipContainerRef"
               class="card-stack-top"
-              :style="isRising ? { transform: 'translateY(14px) scale(0.96)' } : {}"
             >
               <!-- 卡牌背面（翻牌动画第一阶段显示） -->
               <div v-if="flipPhase === 'back'" class="card-back">
