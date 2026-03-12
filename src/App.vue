@@ -36,6 +36,13 @@ watch(() => route.path, (newPath, oldPath) => {
 </template>
 
 <style scoped>
+main > :deep(*) {
+  width: 100%;
+  height: 100%;
+}
+</style>
+
+<style>
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;
@@ -52,11 +59,12 @@ watch(() => route.path, (newPath, oldPath) => {
 .slide-right-leave-active {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: absolute;
+  position: absolute !important;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  will-change: transform, opacity;
 }
 
 .slide-left-enter-from {
