@@ -97,7 +97,7 @@ const {
       @mousedown="onMouseDown"
     >
       <div
-        class="relative rounded-3xl p-6 mx-8 overflow-hidden"
+        class="relative rounded-3xl p-6 mx-4 overflow-hidden"
         style="
           background: #FFFFFF;
           box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.1);

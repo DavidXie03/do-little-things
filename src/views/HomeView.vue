@@ -116,26 +116,45 @@ function handleSwipe(direction: SwipeDirection) {
   const remaining = getUncompletedTodos()
 
   if (remaining.length > 0) {
-    // 还有未完成任务：走升起 + 翻牌动画
-    // ⚡ 锁定当前卡背数量，防止 loadStack 触发响应式重算后卡背 DOM 消失
-    // 即使只剩最后一个任务，也至少锁定 1 个卡背用于翻转动画
-    lockedBackgroundCount.value = Math.max(1, backgroundCardCount.value || 1)
-    animPhase.value = 'rising'
+    if (direction === 'left') {
+      // 左滑：翻回牌堆底部动画已在 useSwipeGesture 中处理
+      // 这里只需静默刷新数据并播放翻牌
+      cancelAllAnimations()
+      lockedBackgroundCount.value = Math.max(1, backgroundCardCount.value || 1)
+      animPhase.value = 'rising'
 
-    // ⚡ 关键：在 loadStack() 之前，先清除上一轮残留的动画
-    cancelAllAnimations()
+      setTimeout(() => {
+        loadStack()
+        cardKey.value++
 
-    setTimeout(() => {
-      loadStack()
-      cardKey.value++
-
-      nextTick(() => {
-        // 等 Vue 渲染完新 DOM 后再启动动画
-        requestAnimationFrame(() => {
-          playRisingAnimation()
+        nextTick(() => {
+          requestAnimationFrame(() => {
+            playRisingAnimation()
+          })
         })
-      })
-    }, 150)
+      }, 100)
+    } else {
+      // 右滑：走升起 + 翻牌动画
+      // ⚡ 锁定当前卡背数量，防止 loadStack 触发响应式重算后卡背 DOM 消失
+      // 即使只剩最后一个任务，也至少锁定 1 个卡背用于翻转动画
+      lockedBackgroundCount.value = Math.max(1, backgroundCardCount.value || 1)
+      animPhase.value = 'rising'
+
+      // ⚡ 关键：在 loadStack() 之前，先清除上一轮残留的动画
+      cancelAllAnimations()
+
+      setTimeout(() => {
+        loadStack()
+        cardKey.value++
+
+        nextTick(() => {
+          // 等 Vue 渲染完新 DOM 后再启动动画
+          requestAnimationFrame(() => {
+            playRisingAnimation()
+          })
+        })
+      }, 150)
+    }
   } else {
     // 全部完成：不需要动画，直接刷新
     cancelAllAnimations()
@@ -173,9 +192,9 @@ function playRisingAnimation() {
   // 强制浏览器刷新 — 确保 transition:none 先被应用
   el.getBoundingClientRect()
 
-  // 卡背从当前堆叠位置 (translateY(14px) scale(0.96)) 升起到顶部位置 (translateY(0) scale(1))
+  // 卡背从当前堆叠位置 (translateY(4px) scale(0.985)) 升起到顶部位置 (translateY(0) scale(1))
   const riseAnim = el.animate([
-    { transform: 'translateY(14px) scale(0.96)', zIndex: '2' },
+    { transform: 'translateY(4px) scale(0.985)', zIndex: '2' },
     { transform: 'translateY(0px) scale(1)', zIndex: '10' },
   ], {
     duration: 180,
@@ -267,8 +286,8 @@ onMounted(() => {
 <template>
   <div class="h-full flex flex-col relative overflow-hidden">
     <!-- 卡片区域 -->
-    <div class="flex-1 flex flex-col items-center justify-center px-2">
-      <div class="w-full max-w-sm">
+    <div class="flex-1 flex flex-col items-center justify-center px-6">
+      <div class="w-full max-w-xs">
         <!-- 有未完成的待办 -->
         <template v-if="topItem">
           <!-- 标题 -->
@@ -292,7 +311,7 @@ onMounted(() => {
               :ref="(el) => { if (idx === 1) risingCardRef = el as HTMLElement }"
               class="card-stack-layer"
               :style="{
-                transform: `translateY(${idx * 14}px) scale(${1 - idx * 0.04})`,
+                transform: `translateY(${idx * 4}px) scale(${1 - idx * 0.015})`,
                 zIndex: MAX_STACK - idx,
               }"
             >
@@ -382,7 +401,7 @@ onMounted(() => {
 /* ====== 卡牌背面样式 ====== */
 .card-back {
   border-radius: 1.5rem;
-  margin: 0 2rem;
+  margin: 0 1rem;
   min-height: 340px;
   background: linear-gradient(135deg, #6C63FF 0%, #8B83FF 50%, #6C63FF 100%);
   position: relative;
