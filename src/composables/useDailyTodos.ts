@@ -99,6 +99,12 @@ export function useDailyTodos() {
         storageData.value.customActions = storageData.value.customActions.filter(
           ca => ca.id !== caId
         )
+        // 同步清理今天待办中同一 taskId 的项目（包括已完成的）
+        if (storageData.value.dailyTodos) {
+          storageData.value.dailyTodos.items = storageData.value.dailyTodos.items.filter(
+            i => i.task.id !== taskId
+          )
+        }
         saveData(storageData.value)
       }
     }
