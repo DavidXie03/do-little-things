@@ -159,7 +159,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col overflow-hidden relative">
+  <div class="h-full flex flex-col overflow-hidden relative" style="background-color: var(--bg-primary); transition: background-color 0.3s ease;">
     <header class="u-page-header">
       <h1
         class="text-2xl font-bold"

@@ -291,7 +291,7 @@ function formatCustomDate(dateStr: string): string {
       <button
         @click="emit('cancel')"
         class="flex-1 u-item-sm rounded-xl text-sm font-semibold transition-all active:scale-95"
-        style="background: rgba(0,0,0,0.04); color: var(--text-secondary);"
+        style="background: var(--divider); color: var(--text-secondary);"
       >
         {{ t('modal.cancel') }}
       </button>

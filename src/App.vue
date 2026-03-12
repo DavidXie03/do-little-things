@@ -24,7 +24,7 @@ watch(() => route.path, (newPath, oldPath) => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col bg-[var(--bg-primary)] overflow-hidden">
+  <div class="h-full flex flex-col overflow-hidden" style="background-color: var(--bg-primary); transition: background-color 0.3s ease;">
     <main class="flex-1 overflow-hidden" style="padding-bottom: calc(52px + var(--safe-area-bottom));">
       <RouterView v-slot="{ Component }">
         <transition :name="transitionName" mode="out-in">

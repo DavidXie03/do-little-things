@@ -408,7 +408,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col relative overflow-hidden">
+  <div class="h-full flex flex-col relative overflow-hidden" style="background-color: var(--bg-primary); transition: background-color 0.3s ease;">
     <!-- 卡片区域 -->
     <div class="flex-1 flex flex-col items-center justify-center px-6">
       <div class="w-full max-w-xs">

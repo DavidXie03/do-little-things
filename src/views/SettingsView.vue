@@ -38,7 +38,7 @@ function switchLanguage(langCode: string) {
 </script>
 
 <template>
-  <div class="h-full flex flex-col overflow-hidden">
+  <div class="h-full flex flex-col overflow-hidden" style="background-color: var(--bg-primary); transition: background-color 0.3s ease;">
     <header class="u-page-header">
       <h1
         class="text-2xl font-bold"
