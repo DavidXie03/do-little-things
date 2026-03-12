@@ -15,10 +15,17 @@ function loadTheme() {
 }
 
 function applyTheme() {
+  const targets = [document.documentElement, document.body]
   if (isDark.value) {
-    document.documentElement.classList.add('dark')
+    targets.forEach(el => {
+      el.classList.add('dark')
+      el.setAttribute('data-theme', 'dark')
+    })
   } else {
-    document.documentElement.classList.remove('dark')
+    targets.forEach(el => {
+      el.classList.remove('dark')
+      el.removeAttribute('data-theme')
+    })
   }
 }
 

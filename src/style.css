@@ -31,8 +31,11 @@
   --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
-/* 深色模式 */
-:root.dark {
+/* 深色模式 — 多选择器兼容 iframe / 嵌入式预览环境 */
+:root.dark,
+html.dark,
+body.dark,
+[data-theme="dark"] {
   --bg-primary: #1A1A2E;
   --bg-white: #16213E;
   --bg-secondary: #1F2A47;
