@@ -32,7 +32,7 @@ function getIconColor(tab: typeof tabs[0]): string {
       paddingBottom: 'var(--safe-area-bottom)',
     }"
   >
-    <div class="absolute inset-0 bg-white/90 backdrop-blur-xl border-t border-gray-100/50"></div>
+    <div class="absolute inset-0 backdrop-blur-xl border-t" style="background: var(--nav-bg); border-color: var(--nav-border);"></div>
 
     <div class="relative flex items-center justify-around h-[52px] w-full">
       <button

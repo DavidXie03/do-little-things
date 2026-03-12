@@ -33,7 +33,7 @@ function getSubInfo(): string {
       item.completed ? 'opacity-60' : '',
       isFuture ? 'opacity-70' : '',
     ]"
-    style="background: #FFFFFF; box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.06);"
+    style="background: var(--item-bg); box-shadow: var(--card-shadow);"
   >
     <div class="flex items-center gap-3" @click="emit('edit', item)">
       <!-- 复选圆圈 -->

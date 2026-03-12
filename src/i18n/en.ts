@@ -57,6 +57,7 @@ export default {
     langZh: '中文',
     langEn: 'English',
     currentLang: 'Current Language',
+    darkMode: 'Dark Mode',
   },
   todoItem: {
     deleteConfirm: 'Click again to confirm',

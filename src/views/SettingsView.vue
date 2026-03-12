@@ -2,9 +2,11 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { saveLanguage } from '../i18n'
+import { useTheme } from '../composables/useTheme'
 import BaseModal from '../components/BaseModal.vue'
 
 const { t, locale } = useI18n()
+const { isDark, toggleDark } = useTheme()
 
 const languages = [
   { code: 'zh', label: '中文' },
@@ -47,11 +49,56 @@ function switchLanguage(langCode: string) {
     </header>
 
     <div class="flex-1 overflow-y-auto u-section-x pb-4" style="-webkit-overflow-scrolling: touch;">
-      <!-- 语言设置：图标 + "语言" 标签 + 当前语言 + 箭头，全部在同一行 -->
+      <!-- 深色模式开关 -->
+      <div
+        class="w-full flex items-center gap-3 u-item rounded-2xl transition-all duration-300"
+        style="background: var(--item-bg); box-shadow: var(--card-shadow);"
+      >
+        <!-- 月亮/太阳图标 -->
+        <svg v-if="isDark" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
+          <circle cx="12" cy="12" r="5" stroke="var(--primary)" stroke-width="2"/>
+          <line x1="12" y1="1" x2="12" y2="3" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="12" y1="21" x2="12" y2="23" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="1" y1="12" x2="3" y2="12" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="21" y1="12" x2="23" y2="12" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+
+        <!-- 标签 -->
+        <span class="text-sm font-medium flex-1 text-left" style="color: var(--text-primary);">
+          {{ t('settings.darkMode') }}
+        </span>
+
+        <!-- 滑动开关 -->
+        <button
+          @click="toggleDark()"
+          class="relative w-12 h-7 rounded-full transition-all duration-300 flex-shrink-0"
+          :style="{
+            background: isDark ? 'var(--primary)' : 'var(--text-muted)',
+          }"
+        >
+          <div
+            class="absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-sm transition-all duration-300"
+            :style="{
+              left: isDark ? '22px' : '2px',
+            }"
+          ></div>
+        </button>
+      </div>
+
+      <div class="h-3"></div>
+
+      <!-- 语言设置 -->
       <button
         @click="openLangModal"
         class="w-full flex items-center gap-3 u-item rounded-2xl transition-all duration-300 active:scale-[0.98]"
-        style="background: #FFFFFF; box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.06);"
+        style="background: var(--item-bg); box-shadow: var(--card-shadow);"
       >
         <!-- 地球图标 -->
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
@@ -79,7 +126,7 @@ function switchLanguage(langCode: string) {
       <div class="h-8"></div>
     </div>
 
-    <!-- 语言选择弹窗，复用 BaseModal -->
+    <!-- 语言选择弹窗 -->
     <BaseModal
       :visible="showLangModal"
       :title="t('settings.language')"
@@ -127,7 +174,7 @@ function switchLanguage(langCode: string) {
         <button
           @click="closeLangModal"
           class="w-full u-item-sm rounded-xl text-sm font-semibold transition-all active:scale-95"
-          style="background: rgba(0,0,0,0.04); color: var(--text-secondary);"
+          style="background: var(--divider); color: var(--text-secondary);"
         >
           {{ t('modal.cancel') }}
         </button>

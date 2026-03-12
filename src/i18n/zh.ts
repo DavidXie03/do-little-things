@@ -57,6 +57,7 @@ export default {
     langZh: '中文',
     langEn: 'English',
     currentLang: '当前语言',
+    darkMode: '深色模式',
   },
   todoItem: {
     deleteConfirm: '再次点击确认删除',

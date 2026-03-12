@@ -22,7 +22,7 @@ const emit = defineEmits<{
         ></div>
         <div
           class="relative w-[85%] max-w-sm rounded-2xl u-card u-gap-md"
-          style="background: #FFFFFF; box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25); margin: 0 24px;"
+          style="background: var(--modal-bg); box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25); margin: 0 24px;"
         >
           <h3
             v-if="title"
