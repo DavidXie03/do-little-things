@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { SwipeDirection, Task } from '../types'
-import { useSwipeGesture, type SwipeInfo } from '../composables/useSwipeGesture'
+import { useSwipeGesture } from '../composables/useSwipeGesture'
 import IconCheck from './icons/IconCheck.vue'
 import IconClock from './icons/IconClock.vue'
 
@@ -15,7 +15,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'swipe', direction: SwipeDirection, info?: SwipeInfo): void
+  (e: 'swipe', direction: SwipeDirection): void
 }>()
 
 const cardRef = ref<HTMLElement | null>(null)
@@ -30,7 +30,7 @@ const {
   onTouchMove,
   onTouchEnd,
   onMouseDown,
-} = useSwipeGesture(cardRef, (direction, info) => emit('swipe', direction, info))
+} = useSwipeGesture(cardRef, (direction) => emit('swipe', direction))
 </script>
 
 <template>

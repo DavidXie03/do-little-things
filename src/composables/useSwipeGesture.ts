@@ -3,15 +3,9 @@ import type { SwipeDirection } from '../types'
 
 const SWIPE_THRESHOLD_X = 100
 
-export interface SwipeInfo {
-  direction: SwipeDirection
-  /** 松手时的 X 偏移量（左滑为负） */
-  releaseOffsetX: number
-}
-
 export function useSwipeGesture(
   cardRef: Ref<HTMLElement | null>,
-  onSwipe: (direction: SwipeDirection, info?: SwipeInfo) => void,
+  onSwipe: (direction: SwipeDirection) => void,
 ) {
   const offsetX = ref(0)
   const isDragging = ref(false)
@@ -73,11 +67,7 @@ export function useSwipeGesture(
     const absX = Math.abs(offsetX.value)
     if (absX > SWIPE_THRESHOLD_X) {
       const direction: SwipeDirection = offsetX.value > 0 ? 'right' : 'left'
-      if (direction === 'left') {
-        animateLeftSwipe()
-      } else {
-        animateOut(direction)
-      }
+      animateOut(direction)
     } else {
       offsetX.value = 0
     }
@@ -104,7 +94,7 @@ export function useSwipeGesture(
     onTouchEnd()
   }
 
-  /** 右滑：飞出屏幕 */
+  /** 卡片飞出屏幕 */
   function animateOut(direction: SwipeDirection) {
     isAnimatingOut.value = true
     animatingDirection.value = direction
@@ -155,26 +145,6 @@ export function useSwipeGesture(
     } catch {
       doSwipe()
     }
-  }
-
-  /** 左滑：记录松手偏移，直接通知 HomeView 接管动画 */
-  function animateLeftSwipe() {
-    const releaseX = offsetX.value
-    isAnimatingOut.value = true
-    animatingDirection.value = 'left'
-
-    let swiped = false
-    const doSwipe = () => {
-      if (swiped) return
-      swiped = true
-      isAnimatingOut.value = false
-      animatingDirection.value = null
-      offsetX.value = 0
-      onSwipe('left', { direction: 'left', releaseOffsetX: releaseX })
-    }
-
-    // 直接通知，由 HomeView 接管动画
-    doSwipe()
   }
 
   onUnmounted(() => {

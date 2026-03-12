@@ -2,7 +2,6 @@
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { SwipeDirection } from '../types'
-import type { SwipeInfo } from '../composables/useSwipeGesture'
 import { useStorage } from '../composables/useStorage'
 import { useCardAnimation } from '../composables/useCardAnimation'
 import TaskCard from '../components/TaskCard.vue'
@@ -33,7 +32,7 @@ const {
   MAX_STACK,
 } = useCardAnimation(getUncompletedTodos)
 
-function handleSwipe(direction: SwipeDirection, info?: SwipeInfo) {
+function handleSwipe(direction: SwipeDirection) {
   const item = topItem.value
   if (!item) return
   if (animPhase.value !== 'idle') return
@@ -59,7 +58,7 @@ function handleSwipe(direction: SwipeDirection, info?: SwipeInfo) {
 
   if (remaining.length > 0) {
     if (direction === 'left') {
-      triggerLeftSwipe(info?.releaseOffsetX ?? -120)
+      triggerLeftSwipe()
     } else {
       triggerRightSwipe()
     }
@@ -120,8 +119,8 @@ onMounted(() => {
               ref="topCardRef"
               class="card-stack-top"
             >
-              <!-- 翻转阶段 / 左滑背面阶段：顶部显示卡牌背面 -->
-              <div v-if="animPhase === 'flipping' || animPhase === 'left-back' || animPhase === 'left-sink'" class="card-back">
+              <!-- 翻转阶段：顶部显示卡牌背面 -->
+              <div v-if="animPhase === 'flipping'" class="card-back">
                 <div class="card-back-pattern">
                   <div class="card-back-diamond"></div>
                   <div class="card-back-border"></div>
@@ -129,9 +128,9 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- 正常/front/left-flip 阶段：显示正面 TaskCard -->
+              <!-- 正常/front 阶段：显示正面 TaskCard -->
               <TaskCard
-                v-if="animPhase === 'idle' || animPhase === 'front' || animPhase === 'left-flip'"
+                v-if="animPhase === 'idle' || animPhase === 'front'"
                 :key="cardKey"
                 :task="topItem.task"
                 :remaining-count="topItem.totalCount - topItem.completedCount"
