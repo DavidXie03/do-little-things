@@ -2,6 +2,14 @@ import { ref, computed, onUnmounted, type Ref } from 'vue'
 import type { SwipeDirection } from '../types'
 
 const SWIPE_THRESHOLD_X = 100
+const LEFT_DAMPED_MAX = 30
+
+/** 阻尼函数：将实际拖拽距离映射为有上限的衰减距离 */
+function dampedOffset(rawOffset: number): number {
+  const abs = Math.abs(rawOffset)
+  // 对数衰减，越往后阻力越大，上限约 LEFT_DAMPED_MAX
+  return -LEFT_DAMPED_MAX * (1 - Math.exp(-abs / 120))
+}
 
 export function useSwipeGesture(
   cardRef: Ref<HTMLElement | null>,
@@ -60,7 +68,7 @@ export function useSwipeGesture(
     if (!touch) return
     const newOffsetX = touch.clientX - startX.value
     if (newOffsetX < 0 && options?.canSwipeLeft && !options.canSwipeLeft()) {
-      offsetX.value = 0
+      offsetX.value = dampedOffset(newOffsetX)
       return
     }
     offsetX.value = newOffsetX
@@ -93,7 +101,7 @@ export function useSwipeGesture(
     if (!isDragging.value || isAnimatingOut.value) return
     const newOffsetX = e.clientX - startX.value
     if (newOffsetX < 0 && options?.canSwipeLeft && !options.canSwipeLeft()) {
-      offsetX.value = 0
+      offsetX.value = dampedOffset(newOffsetX)
       return
     }
     offsetX.value = newOffsetX
