@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { SwipeDirection, DailyTodoItem } from '../types'
+import type { SwipeInfo } from '../composables/useSwipeGesture'
 import { useStorage } from '../composables/useStorage'
 import TaskCard from '../components/TaskCard.vue'
 import IconParty from '../components/icons/IconParty.vue'
@@ -22,12 +23,15 @@ const cardKey = ref(0)
 
 /**
  * 动画阶段：
- * 'idle'    — 正常显示，顶部为 TaskCard 正面
- * 'rising'  — 顶部卡片已滑走，第一张卡背正在从堆叠位置升起
- * 'flipping'— 卡背已升至顶部，正在翻转
- * 'front'   — 翻转完成，显示正面
+ * 'idle'        — 正常显示，顶部为 TaskCard 正面
+ * 'rising'      — 顶部卡片已滑走，第一张卡背正在从堆叠位置升起
+ * 'flipping'    — 卡背已升至顶部，正在翻转
+ * 'front'       — 翻转完成，显示正面
+ * 'left-flip'   — 左滑：正面翻到90°
+ * 'left-back'   — 左滑：显示卡背从-90°翻出
+ * 'left-sink'   — 左滑：卡背缩小沉入牌堆底部
  */
-const animPhase = ref<'idle' | 'rising' | 'flipping' | 'front'>('idle')
+const animPhase = ref<'idle' | 'rising' | 'flipping' | 'front' | 'left-flip' | 'left-back' | 'left-sink'>('idle')
 
 const MAX_STACK = 3
 
@@ -88,7 +92,7 @@ function cancelAllAnimations() {
   activeAnimations = []
 }
 
-function handleSwipe(direction: SwipeDirection) {
+function handleSwipe(direction: SwipeDirection, info?: SwipeInfo) {
   const item = topItem.value
   if (!item) return
 
@@ -117,30 +121,14 @@ function handleSwipe(direction: SwipeDirection) {
 
   if (remaining.length > 0) {
     if (direction === 'left') {
-      // 左滑：翻回牌堆底部动画已在 useSwipeGesture 中处理
-      // 这里只需静默刷新数据并播放翻牌
+      // 左滑：在 HomeView 层面执行翻回牌堆动画
       cancelAllAnimations()
       lockedBackgroundCount.value = Math.max(1, backgroundCardCount.value || 1)
-      animPhase.value = 'rising'
-
-      setTimeout(() => {
-        loadStack()
-        cardKey.value++
-
-        nextTick(() => {
-          requestAnimationFrame(() => {
-            playRisingAnimation()
-          })
-        })
-      }, 100)
+      playLeftSwipeAnimation(info?.releaseOffsetX ?? -120)
     } else {
       // 右滑：走升起 + 翻牌动画
-      // ⚡ 锁定当前卡背数量，防止 loadStack 触发响应式重算后卡背 DOM 消失
-      // 即使只剩最后一个任务，也至少锁定 1 个卡背用于翻转动画
       lockedBackgroundCount.value = Math.max(1, backgroundCardCount.value || 1)
       animPhase.value = 'rising'
-
-      // ⚡ 关键：在 loadStack() 之前，先清除上一轮残留的动画
       cancelAllAnimations()
 
       setTimeout(() => {
@@ -148,7 +136,6 @@ function handleSwipe(direction: SwipeDirection) {
         cardKey.value++
 
         nextTick(() => {
-          // 等 Vue 渲染完新 DOM 后再启动动画
           requestAnimationFrame(() => {
             playRisingAnimation()
           })
@@ -163,6 +150,143 @@ function handleSwipe(direction: SwipeDirection) {
       cardKey.value++
       animPhase.value = 'idle'
     }, 150)
+  }
+}
+
+/** 左滑翻回牌堆动画：从松手位置开始 → 翻转 → 显示卡背 → 缩入牌堆底部 */
+function playLeftSwipeAnimation(releaseX: number) {
+  const el = topCardRef.value
+  if (!el) {
+    animPhase.value = 'idle'
+    lockedBackgroundCount.value = null
+    return
+  }
+
+  const releaseRot = releaseX * 0.06
+
+  // 安全超时
+  const safetyTimeout = setTimeout(() => {
+    animPhase.value = 'idle'
+    lockedBackgroundCount.value = null
+    cancelAllAnimations()
+    if (el) { el.style.transform = ''; el.style.transition = ''; el.style.zIndex = '' }
+  }, 2500)
+
+  el.style.transition = 'none'
+  el.getBoundingClientRect()
+
+  // 阶段1：从松手位置回到中间并开始翻转（正面翻到 90°）
+  animPhase.value = 'left-flip'
+  const flipOut = el.animate([
+    {
+      transform: `translateX(${releaseX}px) rotate(${releaseRot}deg) perspective(800px) rotateY(0deg)`,
+      opacity: 1,
+    },
+    {
+      transform: 'translateX(0px) rotate(0deg) perspective(800px) rotateY(90deg)',
+      opacity: 0.9,
+    },
+  ], {
+    duration: 300,
+    easing: 'ease-in-out',
+    fill: 'forwards',
+  })
+  activeAnimations.push(flipOut)
+
+  flipOut.onfinish = () => {
+    // 阶段2：切换到卡背，从 -90° 翻出
+    animPhase.value = 'left-back'
+
+    nextTick(() => {
+      el.style.transition = 'none'
+      el.getBoundingClientRect()
+
+      const flipIn = el.animate([
+        {
+          transform: 'perspective(800px) rotateY(-90deg) scale(1)',
+          opacity: 0.9,
+        },
+        {
+          transform: 'perspective(800px) rotateY(0deg) scale(1)',
+          opacity: 1,
+        },
+      ], {
+        duration: 250,
+        easing: 'ease-out',
+        fill: 'forwards',
+      })
+      activeAnimations.push(flipIn)
+
+      flipIn.onfinish = () => {
+        // 阶段3：卡背缩小沉入牌堆底部（z-index 降低产生遮挡效果）
+        animPhase.value = 'left-sink'
+        el.style.zIndex = '0'  // 降到卡背下方，产生被遮挡效果
+
+        nextTick(() => {
+          el.style.transition = 'none'
+          el.getBoundingClientRect()
+
+          const sinkAnim = el.animate([
+            {
+              transform: 'scale(1) translateY(0px)',
+              opacity: 1,
+            },
+            {
+              transform: 'scale(0.96) translateY(16px)',
+              opacity: 0.3,
+            },
+          ], {
+            duration: 300,
+            easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            fill: 'forwards',
+          })
+          activeAnimations.push(sinkAnim)
+
+          sinkAnim.onfinish = () => {
+            clearTimeout(safetyTimeout)
+            // 清理样式
+            el.style.transform = ''
+            el.style.transition = ''
+            el.style.zIndex = ''
+            cancelAllAnimations()
+
+            // 刷新数据并播放翻牌动画
+            loadStack()
+            cardKey.value++
+
+            if (getUncompletedTodos().length > 0) {
+              animPhase.value = 'rising'
+              nextTick(() => {
+                requestAnimationFrame(() => {
+                  playRisingAnimation()
+                })
+              })
+            } else {
+              animPhase.value = 'idle'
+              lockedBackgroundCount.value = null
+            }
+          }
+          sinkAnim.oncancel = () => {
+            clearTimeout(safetyTimeout)
+            el.style.transform = ''
+            el.style.transition = ''
+            el.style.zIndex = ''
+            animPhase.value = 'idle'
+            lockedBackgroundCount.value = null
+          }
+        })
+      }
+      flipIn.oncancel = () => {
+        clearTimeout(safetyTimeout)
+        animPhase.value = 'idle'
+        lockedBackgroundCount.value = null
+      }
+    })
+  }
+  flipOut.oncancel = () => {
+    clearTimeout(safetyTimeout)
+    animPhase.value = 'idle'
+    lockedBackgroundCount.value = null
   }
 }
 
@@ -192,9 +316,9 @@ function playRisingAnimation() {
   // 强制浏览器刷新 — 确保 transition:none 先被应用
   el.getBoundingClientRect()
 
-  // 卡背从当前堆叠位置 (translateY(4px) scale(0.985)) 升起到顶部位置 (translateY(0) scale(1))
+  // 卡背从当前堆叠位置 (translateY(12px) scale(0.98)) 升起到顶部位置 (translateY(0) scale(1))
   const riseAnim = el.animate([
-    { transform: 'translateY(4px) scale(0.985)', zIndex: '2' },
+    { transform: 'translateY(12px) scale(0.98)', zIndex: '2' },
     { transform: 'translateY(0px) scale(1)', zIndex: '10' },
   ], {
     duration: 180,
@@ -311,7 +435,7 @@ onMounted(() => {
               :ref="(el) => { if (idx === 1) risingCardRef = el as HTMLElement }"
               class="card-stack-layer"
               :style="{
-                transform: `translateY(${idx * 4}px) scale(${1 - idx * 0.015})`,
+                transform: `translateY(${idx * 12}px) scale(${1 - idx * 0.02})`,
                 zIndex: MAX_STACK - idx,
               }"
             >
@@ -329,8 +453,8 @@ onMounted(() => {
               ref="topCardRef"
               class="card-stack-top"
             >
-              <!-- 翻转阶段：顶部显示卡牌背面（即将翻走） -->
-              <div v-if="animPhase === 'flipping'" class="card-back">
+              <!-- 翻转阶段 / 左滑背面阶段：顶部显示卡牌背面 -->
+              <div v-if="animPhase === 'flipping' || animPhase === 'left-back' || animPhase === 'left-sink'" class="card-back">
                 <div class="card-back-pattern">
                   <div class="card-back-diamond"></div>
                   <div class="card-back-border"></div>
@@ -338,9 +462,9 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- 正常/front 阶段：显示正面 TaskCard -->
+              <!-- 正常/front/left-flip 阶段：显示正面 TaskCard -->
               <TaskCard
-                v-if="animPhase === 'idle' || animPhase === 'front'"
+                v-if="animPhase === 'idle' || animPhase === 'front' || animPhase === 'left-flip'"
                 :key="cardKey"
                 :task="topItem.task"
                 :remaining-count="topItem.totalCount - topItem.completedCount"
