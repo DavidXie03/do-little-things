@@ -48,7 +48,6 @@ watch(() => route.path, (newPath, oldPath) => {
   opacity: 0;
 }
 
-/* 左滑切换 (切到右边的 tab) */
 .slide-left-enter-active,
 .slide-left-leave-active {
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -64,7 +63,6 @@ watch(() => route.path, (newPath, oldPath) => {
   opacity: 0;
 }
 
-/* 右滑切换 (切到左边的 tab) */
 .slide-right-enter-active,
 .slide-right-leave-active {
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);

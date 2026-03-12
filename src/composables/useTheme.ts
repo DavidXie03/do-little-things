@@ -35,7 +35,6 @@ function toggleDark(value?: boolean) {
   applyTheme()
 }
 
-// 初始化
 loadTheme()
 
 export function useTheme() {

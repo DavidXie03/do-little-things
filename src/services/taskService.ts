@@ -137,7 +137,6 @@ export function generateFutureTodoItems(
     })
   }
 
-  // 按日期排序
   items.sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate))
 
   return items

@@ -51,10 +51,8 @@ export function useTabSwipe() {
     if (currentIdx === -1) return
 
     if (dx < 0 && currentIdx < TAB_PATHS.length - 1) {
-      // 左滑 -> 下一个 tab
       router.push(TAB_PATHS[currentIdx + 1])
     } else if (dx > 0 && currentIdx > 0) {
-      // 右滑 -> 上一个 tab
       router.push(TAB_PATHS[currentIdx - 1])
     }
   }

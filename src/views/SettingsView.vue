@@ -49,12 +49,10 @@ function switchLanguage(langCode: string) {
     </header>
 
     <div class="flex-1 overflow-y-auto u-section-x pb-4" style="-webkit-overflow-scrolling: touch;">
-      <!-- 深色模式开关 -->
       <div
         class="w-full flex items-center gap-3 u-item rounded-2xl transition-all duration-300"
         style="background: var(--item-bg); box-shadow: var(--card-shadow);"
       >
-        <!-- 月亮/太阳图标 -->
         <svg v-if="isDark" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -70,12 +68,10 @@ function switchLanguage(langCode: string) {
           <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
         </svg>
 
-        <!-- 标签 -->
         <span class="text-sm font-medium flex-1 text-left" style="color: var(--text-primary);">
           {{ t('settings.darkMode') }}
         </span>
 
-        <!-- 滑动开关 -->
         <button
           @click="toggleDark()"
           class="relative w-11 h-6 rounded-full transition-all duration-300 flex-shrink-0"
@@ -94,30 +90,25 @@ function switchLanguage(langCode: string) {
 
       <div class="h-3"></div>
 
-      <!-- 语言设置 -->
       <button
         @click="openLangModal"
         class="w-full flex items-center gap-3 u-item rounded-2xl transition-all duration-300 active:scale-[0.98]"
         style="background: var(--item-bg); box-shadow: var(--card-shadow);"
       >
-        <!-- 地球图标 -->
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
           <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M2 12H22" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
 
-        <!-- "语言"文字 -->
         <span class="text-sm font-medium flex-1 text-left" style="color: var(--text-primary);">
           {{ t('settings.language') }}
         </span>
 
-        <!-- 当前语言 -->
         <span class="text-sm" style="color: var(--text-muted);">
           {{ currentLangLabel }}
         </span>
 
-        <!-- 右箭头 -->
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
           <path d="M9 18L15 12L9 6" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -126,7 +117,6 @@ function switchLanguage(langCode: string) {
       <div class="h-8"></div>
     </div>
 
-    <!-- 语言选择弹窗 -->
     <BaseModal
       :visible="showLangModal"
       :title="t('settings.language')"
@@ -152,7 +142,6 @@ function switchLanguage(langCode: string) {
             {{ lang.label }}
           </span>
 
-          <!-- 选中指示器 -->
           <div
             v-if="locale === lang.code"
             class="w-6 h-6 rounded-full flex items-center justify-center"

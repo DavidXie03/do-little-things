@@ -16,13 +16,12 @@ export const ALL_TASK_TYPES: TaskType[] = [
   TaskType.Action,
 ]
 
-// 循环类型
 export const RecurrenceType = {
-  Daily: 'daily',       // 每一天
-  Weekly: 'weekly',     // 每一周
-  Monthly: 'monthly',   // 每一月
-  Yearly: 'yearly',     // 每一年
-  Weekday: 'weekday',   // 工作日（周一到周五）
+  Daily: 'daily',
+  Weekly: 'weekly',
+  Monthly: 'monthly',
+  Yearly: 'yearly',
+  Weekday: 'weekday',
 } as const
 
 export type RecurrenceType = (typeof RecurrenceType)[keyof typeof RecurrenceType]

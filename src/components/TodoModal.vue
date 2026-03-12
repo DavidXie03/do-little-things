@@ -30,11 +30,9 @@ const repeatCount = ref(1)
 const recurrence = ref<RecurrenceTypeT>(RecurrenceType.Daily)
 const inputRef = ref<HTMLInputElement | null>(null)
 
-// 删除确认
 const confirmingDelete = ref(false)
 let deleteTimer: ReturnType<typeof setTimeout> | null = null
 
-// 开始日期相关
 type StartDateOption = 'today' | 'tomorrow' | 'dayAfter' | 'custom'
 const startDateOption = ref<StartDateOption>('today')
 const customDate = ref('')
@@ -81,7 +79,6 @@ watch(() => props.visible, (val) => {
     confirmingDelete.value = false
     if (deleteTimer) { clearTimeout(deleteTimer); deleteTimer = null }
 
-    // 初始化日期选项
     if (props.initialStartDate) {
       const today = getTodayStr()
       const tomorrow = getOffsetDateStr(1)
@@ -143,7 +140,6 @@ function handleDelete() {
   }
 }
 
-/** 格式化自定义日期显示 */
 function formatCustomDate(dateStr: string): string {
   if (!dateStr) return ''
   const d = new Date(dateStr + 'T00:00:00')

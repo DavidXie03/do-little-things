@@ -73,7 +73,6 @@ export function saveData(data: StorageData): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
-/** 将 Date 对象格式化为本地日期字符串 YYYY-MM-DD */
 export function toLocalDateStr(date: Date): string {
   const y = date.getFullYear()
   const m = String(date.getMonth() + 1).padStart(2, '0')

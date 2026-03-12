@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* ===== CSS Variables ===== */
 :root {
   --primary: #6C63FF;
   --primary-light: #8B83FF;
@@ -74,13 +73,11 @@ html, body, #app {
   padding-right: var(--safe-area-right);
 }
 
-/* ===== Scrollbar ===== */
 ::-webkit-scrollbar {
   width: 0;
   display: none;
 }
 
-/* ===== Card Animations ===== */
 /* cardSlideRight/Left 动画通过 JS 用 Web Animations API 动态创建，
    起始帧从松手位置开始，避免闪回到中心 */
 
@@ -118,9 +115,6 @@ html, body, #app {
   animation: pulse 2s ease-in-out infinite;
 }
 
-/* ===== Reusable Spacing Utility Classes ===== */
-
-/* --- Spacing scale variables (inherit & override anywhere) --- */
 :root {
   --gap-xs: 6px;    /* tiny gaps: inline tags, chips */
   --gap-sm: 10px;   /* compact gaps: modal internals, button groups */

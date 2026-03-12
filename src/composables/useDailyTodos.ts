@@ -69,13 +69,11 @@ export function useDailyTodos() {
 
   function removeTodoItem(todoId: string): void {
     if (!storageData.value.dailyTodos) return
-    // 找到要删除的待办项
     const item = storageData.value.dailyTodos.items.find(i => i.id === todoId)
     if (item) {
-      // 同时删除对应的 CustomAction，防止明天又重新生成
       const taskId = item.task.id
       if (taskId.startsWith('custom_')) {
-        const caId = taskId.slice(7) // 去掉 'custom_' 前缀
+        const caId = taskId.slice(7)
         storageData.value.customActions = storageData.value.customActions.filter(
           ca => ca.id !== caId
         )

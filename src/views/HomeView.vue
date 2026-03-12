@@ -96,7 +96,6 @@ function handleSwipe(direction: SwipeDirection, info?: SwipeInfo) {
   const item = topItem.value
   if (!item) return
 
-  // 如果动画还在进行中，忽略新的滑动
   if (animPhase.value !== 'idle') return
 
   const now = new Date()
@@ -116,7 +115,6 @@ function handleSwipe(direction: SwipeDirection, info?: SwipeInfo) {
     })
   }
 
-  // 检查滑走后是否还有更多未完成任务
   const remaining = getUncompletedTodos()
 
   if (remaining.length > 0) {
@@ -244,7 +242,6 @@ function playLeftSwipeAnimation(releaseX: number) {
 
           sinkAnim.onfinish = () => {
             clearTimeout(safetyTimeout)
-            // 清理样式
             el.style.transform = ''
             el.style.transition = ''
             el.style.zIndex = ''
@@ -499,12 +496,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* 卡片堆叠容器 */
 .card-stack-container {
   position: relative;
 }
 
-/* 堆叠层 — 不使用 CSS transition，全部由 JS animate() 控制 */
 .card-stack-layer {
   position: absolute;
   top: 0;
@@ -513,7 +508,6 @@ onMounted(() => {
   pointer-events: none;
 }
 
-/* 顶部卡片 */
 .card-stack-top {
   position: absolute;
   top: 0;
@@ -522,7 +516,6 @@ onMounted(() => {
   z-index: 10;
 }
 
-/* ====== 卡牌背面样式 ====== */
 .card-back {
   border-radius: 1.5rem;
   margin: 0 1rem;
@@ -540,7 +533,6 @@ onMounted(() => {
   justify-content: center;
 }
 
-/* 内边框装饰 */
 .card-back-border {
   position: absolute;
   inset: 12px;
@@ -548,7 +540,6 @@ onMounted(() => {
   border-radius: 1.2rem;
 }
 
-/* 菱形背景纹理 */
 .card-back-diamond {
   position: absolute;
   inset: 0;
@@ -561,7 +552,6 @@ onMounted(() => {
   background-position: 0 0, 0 15px, 15px -15px, -15px 0px;
 }
 
-/* 中心装饰符号 */
 .card-back-center-icon {
   font-size: 48px;
   color: rgba(255, 255, 255, 0.25);

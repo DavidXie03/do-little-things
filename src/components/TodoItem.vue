@@ -36,7 +36,6 @@ function getSubInfo(): string {
     style="background: var(--item-bg); box-shadow: var(--card-shadow);"
   >
     <div class="flex items-center gap-3" @click="emit('edit', item)">
-      <!-- 复选圆圈 -->
       <button
         v-if="!isFuture"
         @click.stop="emit('complete', item.id)"
@@ -48,14 +47,12 @@ function getSubInfo(): string {
       >
         <IconCheck v-if="item.completed" :size="16" color="white" />
       </button>
-      <!-- 未来任务用虚线圈 -->
       <div
         v-else
         class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
         style="border: 2px dashed var(--text-muted); opacity: 0.4;"
       ></div>
 
-      <!-- 内容区 -->
       <div class="flex-1 min-w-0">
         <p
           class="text-sm leading-relaxed transition-all duration-300"
@@ -64,13 +61,11 @@ function getSubInfo(): string {
         >
           {{ item.task.content }}
         </p>
-        <!-- 副信息行：循环类型 -->
         <p v-if="getSubInfo()" class="text-[11px] mt-0.5" style="color: var(--text-muted);">
           {{ getSubInfo() }}
         </p>
       </div>
 
-      <!-- 次数 -->
       <span
         v-if="item.totalCount > 1"
         class="flex-shrink-0 text-xs u-badge rounded-full"
