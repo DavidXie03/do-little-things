@@ -25,8 +25,8 @@ watch(() => route.path, (newPath, oldPath) => {
   <div class="h-full flex flex-col overflow-hidden" style="background-color: var(--bg-primary); transition: background-color 0.3s ease;">
     <main class="flex-1 overflow-hidden relative" style="padding-bottom: calc(52px + var(--safe-area-bottom));">
       <RouterView v-slot="{ Component }">
-        <transition :name="transitionName" mode="out-in">
-          <component :is="Component" />
+        <transition :name="transitionName">
+          <component :is="Component" :key="route.path" />
         </transition>
       </RouterView>
     </main>
@@ -50,12 +50,8 @@ watch(() => route.path, (newPath, oldPath) => {
 .slide-left-leave-active,
 .slide-right-enter-active,
 .slide-right-leave-active {
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.slide-left-leave-active,
-.slide-right-leave-active {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: absolute;
   top: 0;
   left: 0;
@@ -64,22 +60,22 @@ watch(() => route.path, (newPath, oldPath) => {
 }
 
 .slide-left-enter-from {
-  transform: translateX(30px);
+  transform: translateX(100%);
   opacity: 0;
 }
 
 .slide-left-leave-to {
-  transform: translateX(-30px);
+  transform: translateX(-30%);
   opacity: 0;
 }
 
 .slide-right-enter-from {
-  transform: translateX(-30px);
+  transform: translateX(-100%);
   opacity: 0;
 }
 
 .slide-right-leave-to {
-  transform: translateX(30px);
+  transform: translateX(30%);
   opacity: 0;
 }
 </style>
