@@ -37,6 +37,9 @@ watch(() => route.path, (newPath, oldPath) => {
 
 <style scoped>
 main > :deep(*) {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
 }
@@ -59,31 +62,22 @@ main > :deep(*) {
 .slide-right-leave-active {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: absolute !important;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
   will-change: transform, opacity;
 }
 
 .slide-left-enter-from {
   transform: translateX(100%);
-  opacity: 0;
 }
 
 .slide-left-leave-to {
-  transform: translateX(-30%);
-  opacity: 0;
+  transform: translateX(-100%);
 }
 
 .slide-right-enter-from {
   transform: translateX(-100%);
-  opacity: 0;
 }
 
 .slide-right-leave-to {
-  transform: translateX(30%);
-  opacity: 0;
+  transform: translateX(100%);
 }
 </style>
