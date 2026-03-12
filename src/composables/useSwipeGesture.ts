@@ -6,6 +6,7 @@ const SWIPE_THRESHOLD_X = 100
 export function useSwipeGesture(
   cardRef: Ref<HTMLElement | null>,
   onSwipe: (direction: SwipeDirection) => void,
+  options?: { canSwipeLeft?: () => boolean },
 ) {
   const offsetX = ref(0)
   const isDragging = ref(false)
@@ -57,7 +58,12 @@ export function useSwipeGesture(
     e.preventDefault()
     const touch = e.touches[0]
     if (!touch) return
-    offsetX.value = touch.clientX - startX.value
+    const newOffsetX = touch.clientX - startX.value
+    if (newOffsetX < 0 && options?.canSwipeLeft && !options.canSwipeLeft()) {
+      offsetX.value = 0
+      return
+    }
+    offsetX.value = newOffsetX
   }
 
   function onTouchEnd() {
@@ -85,7 +91,12 @@ export function useSwipeGesture(
 
   function onMouseMove(e: MouseEvent) {
     if (!isDragging.value || isAnimatingOut.value) return
-    offsetX.value = e.clientX - startX.value
+    const newOffsetX = e.clientX - startX.value
+    if (newOffsetX < 0 && options?.canSwipeLeft && !options.canSwipeLeft()) {
+      offsetX.value = 0
+      return
+    }
+    offsetX.value = newOffsetX
   }
 
   function onMouseUp() {

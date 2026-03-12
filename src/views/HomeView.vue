@@ -22,6 +22,7 @@ const {
   cardKey,
   animPhase,
   backgroundCardCount,
+  isLastRemaining,
   risingCardRef,
   topCardRef,
   topItem,
@@ -135,6 +136,7 @@ onMounted(() => {
                 :task="topItem.task"
                 :remaining-count="topItem.totalCount - topItem.completedCount"
                 :total-count="topItem.totalCount"
+                :disable-left="isLastRemaining"
                 @swipe="handleSwipe"
               />
 

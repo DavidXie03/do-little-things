@@ -12,6 +12,7 @@ const props = defineProps<{
   task: Task
   remainingCount?: number
   totalCount?: number
+  disableLeft?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -30,7 +31,11 @@ const {
   onTouchMove,
   onTouchEnd,
   onMouseDown,
-} = useSwipeGesture(cardRef, (direction) => emit('swipe', direction))
+} = useSwipeGesture(
+  cardRef,
+  (direction) => emit('swipe', direction),
+  { canSwipeLeft: () => !props.disableLeft },
+)
 </script>
 
 <template>

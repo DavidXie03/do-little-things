@@ -36,6 +36,8 @@ export function useCardAnimation(
     return Math.max(1, Math.min(MAX_STACK - 1, visibleStack.value.length - 1))
   })
 
+  const isLastRemaining = computed(() => totalRemainingCount.value <= 1)
+
   function loadStack() {
     const uncompleted = getUncompletedTodos()
     if (uncompleted.length > 0) {
@@ -197,6 +199,7 @@ export function useCardAnimation(
     cardKey,
     animPhase,
     backgroundCardCount,
+    isLastRemaining,
     risingCardRef,
     topCardRef,
     topItem,
