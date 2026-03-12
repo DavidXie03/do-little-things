@@ -125,6 +125,17 @@ function handleDateInput(e: Event) {
   customDate.value = target.value
 }
 
+function validateInput() {
+  const trimmed = content.value.trim()
+  if (trimmed.length > MAX_NAME_LENGTH) {
+    errorMsg.value = t('modal.errorTooLong', { max: MAX_NAME_LENGTH })
+  } else if (trimmed && props.existingNames?.has(trimmed)) {
+    errorMsg.value = t('modal.errorDuplicate')
+  } else {
+    errorMsg.value = ''
+  }
+}
+
 function handleConfirm() {
   const trimmed = content.value.trim()
   if (!trimmed) return
@@ -174,12 +185,11 @@ function formatCustomDate(dateStr: string): string {
       ref="inputRef"
       v-model="content"
       type="text"
-      :maxlength="MAX_NAME_LENGTH"
       :placeholder="t('modal.placeholder')"
       class="w-full text-sm px-4 py-3 rounded-lg border-none outline-none"
       style="background: rgba(108,99,255,0.04); color: var(--text-primary);"
       @keyup.enter="handleConfirm"
-      @input="errorMsg = ''"
+      @input="validateInput"
     />
     <p
       v-if="errorMsg"
