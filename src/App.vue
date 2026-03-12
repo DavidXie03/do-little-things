@@ -9,7 +9,6 @@ useTabSwipe()
 const route = useRoute()
 const TAB_PATHS = ['/', '/todos', '/settings']
 const transitionName = ref('fade')
-let prevIndex = 0
 
 watch(() => route.path, (newPath, oldPath) => {
   const newIdx = TAB_PATHS.indexOf(newPath)
@@ -19,7 +18,6 @@ watch(() => route.path, (newPath, oldPath) => {
   } else {
     transitionName.value = 'fade'
   }
-  if (newIdx >= 0) prevIndex = newIdx
 })
 </script>
 
