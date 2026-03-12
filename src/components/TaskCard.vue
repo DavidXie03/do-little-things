@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { SwipeDirection, Task } from '../types'
-import { useSwipeGesture } from '../composables/useSwipeGesture'
+import { useSwipeGesture, type SwipeInfo } from '../composables/useSwipeGesture'
 import IconCheck from './icons/IconCheck.vue'
 import IconClock from './icons/IconClock.vue'
 
@@ -15,7 +15,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'swipe', direction: SwipeDirection): void
+  (e: 'swipe', direction: SwipeDirection, info?: SwipeInfo): void
 }>()
 
 const cardRef = ref<HTMLElement | null>(null)
@@ -30,7 +30,7 @@ const {
   onTouchMove,
   onTouchEnd,
   onMouseDown,
-} = useSwipeGesture(cardRef, (direction) => emit('swipe', direction))
+} = useSwipeGesture(cardRef, (direction, info) => emit('swipe', direction, info))
 </script>
 
 <template>
@@ -99,8 +99,8 @@ const {
       <div
         class="relative rounded-3xl p-6 mx-4 overflow-hidden"
         style="
-          background: #FFFFFF;
-          box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.1);
+          background: var(--card-bg);
+          box-shadow: var(--card-shadow);
           min-height: 340px;
         "
       >
