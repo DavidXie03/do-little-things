@@ -130,7 +130,7 @@ const {
             class="text-xs u-badge rounded-full"
             style="background: rgba(108,99,255,0.08); color: var(--primary);"
           >
-            {{ t('home.remaining', { remaining: remainingCount, total: totalCount }) }}
+            {{ t('home.remaining', { remaining: remainingCount }) }}
           </span>
         </div>
       </div>

@@ -6,7 +6,7 @@ export default {
     allDoneTitle: '今日任务完成！',
     allDoneMsg1: '太棒了，今天的小事都做完了',
     allDoneMsg2: '明天再来完成新的待办吧',
-    remaining: '剩余 {remaining} / {total} 次',
+    remaining: '剩余 {remaining} 次',
   },
   todos: {
     title: '待办列表',

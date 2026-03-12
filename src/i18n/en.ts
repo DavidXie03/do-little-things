@@ -6,7 +6,7 @@ export default {
     allDoneTitle: 'All Done for Today!',
     allDoneMsg1: 'Great job, you\'ve finished all tasks',
     allDoneMsg2: 'Come back tomorrow for new ones',
-    remaining: '{remaining} / {total} remaining',
+    remaining: '{remaining} remaining',
   },
   todos: {
     title: 'Todo List',
