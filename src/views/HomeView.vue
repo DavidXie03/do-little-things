@@ -232,7 +232,7 @@ function playLeftSwipeAnimation(releaseX: number) {
               opacity: 1,
             },
             {
-              transform: 'scale(0.96) translateY(24px)',
+              transform: 'scale(0.96) translateY(16px)',
               opacity: 0.3,
             },
           ], {
@@ -316,9 +316,9 @@ function playRisingAnimation() {
   // 强制浏览器刷新 — 确保 transition:none 先被应用
   el.getBoundingClientRect()
 
-  // 卡背从当前堆叠位置 (translateY(20px) scale(0.98)) 升起到顶部位置 (translateY(0) scale(1))
+  // 卡背从当前堆叠位置 (translateY(12px) scale(0.98)) 升起到顶部位置 (translateY(0) scale(1))
   const riseAnim = el.animate([
-    { transform: 'translateY(20px) scale(0.98)', zIndex: '2' },
+    { transform: 'translateY(12px) scale(0.98)', zIndex: '2' },
     { transform: 'translateY(0px) scale(1)', zIndex: '10' },
   ], {
     duration: 180,
@@ -423,7 +423,7 @@ onMounted(() => {
           </h1>
 
           <!-- 卡片堆叠容器 -->
-          <div class="card-stack-container" style="min-height: 380px;">
+          <div class="card-stack-container" style="min-height: 360px;">
             <!--
               背景堆叠卡片：显示为卡牌背面
               数量基于总的未完成次数，而不仅是未完成任务数
@@ -435,7 +435,7 @@ onMounted(() => {
               :ref="(el) => { if (idx === 1) risingCardRef = el as HTMLElement }"
               class="card-stack-layer"
               :style="{
-                transform: `translateY(${idx * 20}px) scale(${1 - idx * 0.02})`,
+                transform: `translateY(${idx * 12}px) scale(${1 - idx * 0.02})`,
                 zIndex: MAX_STACK - idx,
               }"
             >
