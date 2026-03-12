@@ -24,6 +24,25 @@ const {
 
 const todayItems = computed(() => dailyTodos.value?.items ?? [])
 
+/** 所有已有任务名的 Set（用于重名检查） */
+const existingNames = computed((): Set<string> => {
+  const names = new Set<string>()
+  for (const ca of customActions.value) {
+    names.add(ca.content)
+  }
+  return names
+})
+
+/** 编辑时排除当前编辑任务名的 Set */
+const existingNamesForModal = computed((): Set<string> => {
+  if (modalMode.value === 'edit' && modalContent.value) {
+    const names = new Set(existingNames.value)
+    names.delete(modalContent.value)
+    return names
+  }
+  return existingNames.value
+})
+
 /** 按日期分组的全部待办（今天 + 未来） */
 interface DateGroup {
   dateStr: string       // YYYY-MM-DD
@@ -245,6 +264,7 @@ onMounted(() => {
       :initial-content="modalContent"
       :initial-repeat-count="modalRepeatCount"
       :initial-recurrence="modalRecurrence"
+      :existing-names="existingNamesForModal"
       @confirm="handleModalConfirm"
       @cancel="showModal = false"
       @delete="handleModalDelete"

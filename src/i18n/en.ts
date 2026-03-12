@@ -34,6 +34,8 @@ export default {
     save: 'Save',
     delete: 'Delete this todo',
     deleteConfirm: 'Confirm delete?',
+    errorDuplicate: 'A task with this name already exists',
+    errorTooLong: 'Task name cannot exceed {max} characters',
   },
   recurrence: {
     daily: 'Daily',

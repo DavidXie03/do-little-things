@@ -34,6 +34,8 @@ export default {
     save: '保存',
     delete: '删除此待办',
     deleteConfirm: '确认删除？',
+    errorDuplicate: '已存在同名任务',
+    errorTooLong: '任务名不能超过 {max} 个字',
   },
   recurrence: {
     daily: '每天',

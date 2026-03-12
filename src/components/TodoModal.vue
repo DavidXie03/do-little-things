@@ -17,6 +17,7 @@ const props = defineProps<{
   initialRepeatCount?: number
   initialRecurrence?: RecurrenceTypeT
   initialStartDate?: string
+  existingNames?: Set<string>
 }>()
 
 const emit = defineEmits<{
@@ -29,6 +30,9 @@ const content = ref('')
 const repeatCount = ref(1)
 const recurrence = ref<RecurrenceTypeT>(RecurrenceType.Daily)
 const inputRef = ref<HTMLInputElement | null>(null)
+const errorMsg = ref('')
+
+const MAX_NAME_LENGTH = 20
 
 const confirmingDelete = ref(false)
 let deleteTimer: ReturnType<typeof setTimeout> | null = null
@@ -77,6 +81,7 @@ watch(() => props.visible, (val) => {
     recurrence.value = props.initialRecurrence ?? RecurrenceType.Daily
     showDatePicker.value = false
     confirmingDelete.value = false
+    errorMsg.value = ''
     if (deleteTimer) { clearTimeout(deleteTimer); deleteTimer = null }
 
     if (props.initialStartDate) {
@@ -123,6 +128,18 @@ function handleDateInput(e: Event) {
 function handleConfirm() {
   const trimmed = content.value.trim()
   if (!trimmed) return
+
+  if (trimmed.length > MAX_NAME_LENGTH) {
+    errorMsg.value = t('modal.errorTooLong', { max: MAX_NAME_LENGTH })
+    return
+  }
+
+  if (props.existingNames?.has(trimmed)) {
+    errorMsg.value = t('modal.errorDuplicate')
+    return
+  }
+
+  errorMsg.value = ''
   emit('confirm', trimmed, repeatCount.value, recurrence.value, resolvedStartDate.value)
 }
 
@@ -157,11 +174,20 @@ function formatCustomDate(dateStr: string): string {
       ref="inputRef"
       v-model="content"
       type="text"
+      :maxlength="MAX_NAME_LENGTH"
       :placeholder="t('modal.placeholder')"
       class="w-full text-sm px-4 py-3 rounded-lg border-none outline-none"
       style="background: rgba(108,99,255,0.04); color: var(--text-primary);"
       @keyup.enter="handleConfirm"
+      @input="errorMsg = ''"
     />
+    <p
+      v-if="errorMsg"
+      class="text-xs px-1"
+      style="color: #E17055;"
+    >
+      {{ errorMsg }}
+    </p>
 
     <!-- 循环类型选择 -->
     <div class="space-y-2">
