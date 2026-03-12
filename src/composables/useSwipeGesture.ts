@@ -31,6 +31,7 @@ export function useSwipeGesture(
   })
 
   const leftZoneProgress = computed(() => {
+    if (options?.canSwipeLeft && !options.canSwipeLeft()) return 0
     if (isAnimatingOut.value && animatingDirection.value === 'left') return 1
     if (offsetX.value >= 0) return 0
     return Math.min(1, Math.abs(offsetX.value) / SWIPE_THRESHOLD_X)
