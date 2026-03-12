@@ -68,21 +68,40 @@ export function useDailyTodos() {
   }
 
   function removeTodoItem(todoId: string): void {
-    if (!storageData.value.dailyTodos) return
-    const item = storageData.value.dailyTodos.items.find(i => i.id === todoId)
-    if (item) {
-      const taskId = item.task.id
+    // 1. 先尝试从今天的待办列表中查找
+    const todayItem = storageData.value.dailyTodos?.items.find(i => i.id === todoId)
+
+    if (todayItem) {
+      const taskId = todayItem.task.id
       if (taskId.startsWith('custom_')) {
         const caId = taskId.slice(7)
         storageData.value.customActions = storageData.value.customActions.filter(
           ca => ca.id !== caId
         )
       }
+      storageData.value.dailyTodos!.items = storageData.value.dailyTodos!.items.filter(
+        i => i.id !== todoId
+      )
+      saveData(storageData.value)
+      return
     }
-    storageData.value.dailyTodos.items = storageData.value.dailyTodos.items.filter(
-      i => i.id !== todoId
+
+    // 2. 未找到，可能是未来待办——从 futureTodos 中查找对应的 customAction 并删除
+    const futureItems = generateFutureTodoItems(
+      storageData.value.customActions,
+      getTodayStr()
     )
-    saveData(storageData.value)
+    const futureItem = futureItems.find(i => i.id === todoId)
+    if (futureItem) {
+      const taskId = futureItem.task.id
+      if (taskId.startsWith('custom_')) {
+        const caId = taskId.slice(7)
+        storageData.value.customActions = storageData.value.customActions.filter(
+          ca => ca.id !== caId
+        )
+        saveData(storageData.value)
+      }
+    }
   }
 
   function getUncompletedTodos(): DailyTodoItem[] {
