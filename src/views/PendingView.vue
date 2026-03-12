@@ -8,7 +8,6 @@ import TodoItem from '../components/TodoItem.vue'
 import TodoModal from '../components/TodoModal.vue'
 import IconParty from '../components/icons/IconParty.vue'
 import IconPlus from '../components/icons/IconPlus.vue'
-import IconRefresh from '../components/icons/IconRefresh.vue'
 
 const { t, tm, locale } = useI18n()
 
@@ -20,7 +19,6 @@ const {
   customActions,
   addCustomAction,
   updateCustomAction,
-  regenerateDailyTodos,
   futureTodos,
 } = useStorage()
 
@@ -200,15 +198,6 @@ onMounted(() => {
           >
             {{ group.count }}
           </span>
-          <!-- 重新生成按钮：仅在"今天"行显示 -->
-          <button
-            v-if="!group.isFuture && group.dateStr === (dailyTodos?.date ?? '')"
-            @click="regenerateDailyTodos"
-            class="ml-auto w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90"
-            style="background: rgba(108,99,255,0.08);"
-          >
-            <IconRefresh :size="14" color="var(--primary)" />
-          </button>
         </div>
 
         <!-- 今天的待办：可操作 -->
