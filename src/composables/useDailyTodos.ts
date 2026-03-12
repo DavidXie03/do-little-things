@@ -85,31 +85,6 @@ export function useDailyTodos() {
     saveData(storageData.value)
   }
 
-  const dailyProgress = computed(() => {
-    const todos = storageData.value.dailyTodos
-    if (!todos || todos.date !== getTodayStr()) {
-      return { completed: 0, total: 0 }
-    }
-    let total = 0
-    let completed = 0
-    for (const item of todos.items) {
-      total += item.totalCount
-      completed += item.completedCount || 0
-    }
-    return { completed, total }
-  })
-
-  function getNextUncompletedTodo() {
-    const today = getTodayStr()
-    const todos = storageData.value.dailyTodos
-    if (!todos || todos.date !== today) return null
-    const uncompleted = todos.items.filter(i => !i.completed)
-    if (uncompleted.length === 0) return null
-    const randomIndex = Math.floor(Math.random() * uncompleted.length)
-    return uncompleted[randomIndex] || null
-  }
-
-  /** 获取所有未完成的待办列表（用于卡片堆叠） */
   function getUncompletedTodos(): DailyTodoItem[] {
     const today = getTodayStr()
     const todos = storageData.value.dailyTodos
@@ -151,11 +126,8 @@ export function useDailyTodos() {
   return {
     dailyTodos,
     ensureDailyTodos,
-    regenerateDailyTodos,
     markTodoComplete,
     removeTodoItem,
-    dailyProgress,
-    getNextUncompletedTodo,
     getUncompletedTodos,
     futureTodos,
   }

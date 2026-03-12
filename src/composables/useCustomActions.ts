@@ -1,17 +1,10 @@
 import { computed } from 'vue'
-import type { DailyConfig, RecurrenceType } from '../types'
+import type { RecurrenceType } from '../types'
 import { RecurrenceType as RT, TaskType } from '../types'
 import { storageData, saveData, getTodayStr } from './storageCore'
 import { shouldTriggerOnDate } from '../services/taskService'
 
 export function useCustomActions() {
-  const dailyConfig = computed(() => storageData.value.dailyConfig)
-
-  function updateDailyConfig(config: DailyConfig): void {
-    storageData.value.dailyConfig = config
-    saveData(storageData.value)
-  }
-
   const customActions = computed(() => storageData.value.customActions)
 
   function addCustomAction(content: string, repeatCount: number = 1, recurrence: RecurrenceType = RT.Daily, startDate?: string): void {
@@ -25,7 +18,6 @@ export function useCustomActions() {
     }
     storageData.value.customActions.push(newCa)
 
-    // 如果今天的待办已生成，且新任务今天应该触发，则追加到今天的待办列表
     const today = getTodayStr()
     if (
       storageData.value.dailyTodos &&
@@ -52,21 +44,6 @@ export function useCustomActions() {
     saveData(storageData.value)
   }
 
-  function removeCustomAction(id: string): void {
-    storageData.value.customActions = storageData.value.customActions.filter(
-      ca => ca.id !== id
-    )
-    saveData(storageData.value)
-  }
-
-  function updateCustomActionRepeatCount(id: string, repeatCount: number): void {
-    const ca = storageData.value.customActions.find(c => c.id === id)
-    if (ca) {
-      ca.repeatCount = Math.max(1, repeatCount)
-      saveData(storageData.value)
-    }
-  }
-
   function updateCustomAction(id: string, content: string, repeatCount: number, recurrence: RecurrenceType = RT.Daily): void {
     const ca = storageData.value.customActions.find(c => c.id === id)
     if (ca) {
@@ -89,12 +66,8 @@ export function useCustomActions() {
   }
 
   return {
-    dailyConfig,
-    updateDailyConfig,
     customActions,
     addCustomAction,
-    removeCustomAction,
-    updateCustomActionRepeatCount,
     updateCustomAction,
   }
 }

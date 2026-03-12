@@ -4,18 +4,6 @@ export const TaskType = {
 
 export type TaskType = (typeof TaskType)[keyof typeof TaskType]
 
-export const TaskTypeLabel: Record<TaskType, string> = {
-  [TaskType.Action]: '待办',
-}
-
-export const TaskTypeColor: Record<TaskType, string> = {
-  [TaskType.Action]: '#6C63FF',
-}
-
-export const ALL_TASK_TYPES: TaskType[] = [
-  TaskType.Action,
-]
-
 export const RecurrenceType = {
   Daily: 'daily',
   Weekly: 'weekly',
@@ -25,14 +13,6 @@ export const RecurrenceType = {
 } as const
 
 export type RecurrenceType = (typeof RecurrenceType)[keyof typeof RecurrenceType]
-
-export const RecurrenceTypeLabel: Record<RecurrenceType, string> = {
-  [RecurrenceType.Daily]: '每天',
-  [RecurrenceType.Weekly]: '每周',
-  [RecurrenceType.Monthly]: '每月',
-  [RecurrenceType.Yearly]: '每年',
-  [RecurrenceType.Weekday]: '工作日',
-}
 
 export const ALL_RECURRENCE_TYPES: RecurrenceType[] = [
   RecurrenceType.Daily,
