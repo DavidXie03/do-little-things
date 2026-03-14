@@ -58,10 +58,14 @@ function closeSettings() {
     if (progress < 1) {
       requestAnimationFrame(tick)
     } else {
+      // 先隐藏面板再重置 offset，避免面板先跳回原位再消失导致的闪烁
       showSettings.value = false
-      settingsPanelOffset.value = 0
       settingsOpen.value = false
       settingsClosing = false
+      // 在下一帧重置 offset，此时面板已经从 DOM 移除
+      requestAnimationFrame(() => {
+        settingsPanelOffset.value = 0
+      })
     }
   }
   requestAnimationFrame(tick)
