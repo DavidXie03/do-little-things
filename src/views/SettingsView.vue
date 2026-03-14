@@ -344,12 +344,12 @@ async function importConfig() {
         <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="card-grad" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#6C63FF"/>
-              <stop offset="100%" stop-color="#8B83FF"/>
+              <stop offset="0%" stop-color="var(--primary)"/>
+              <stop offset="100%" stop-color="var(--primary-light)"/>
             </linearGradient>
           </defs>
           <!-- 底部卡片（右下偏移露出边缘） -->
-          <rect x="16" y="10" width="36" height="44" rx="6" fill="#6C63FF" opacity="0.35"/>
+          <rect x="16" y="10" width="36" height="44" rx="6" fill="var(--primary)" opacity="0.35"/>
           <!-- 顶部卡片（左上） -->
           <rect x="4" y="2" width="36" height="44" rx="6" fill="url(#card-grad)"/>
           <!-- 白色对勾 -->

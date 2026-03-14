@@ -21,7 +21,7 @@ function navigate(tab: typeof tabs[0]): void {
 }
 
 function getIconColor(tab: typeof tabs[0]): string {
-  return isActive(tab) ? '#6C63FF' : 'var(--text-muted)'
+  return isActive(tab) ? 'var(--primary)' : 'var(--text-muted)'
 }
 </script>
 

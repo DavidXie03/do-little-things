@@ -13,6 +13,9 @@
   --text-secondary: #636E72;
   --text-muted: #B2BEC3;
   --success: #00B894;
+  --success-light: rgba(0, 184, 148, 0.3);
+  --warning-zone: #FDCB6E;
+  --warning-zone-light: rgba(253, 203, 110, 0.3);
   --danger: #E17055;
   --info: #74B9FF;
   --card-bg: #FFFFFF;
@@ -22,6 +25,14 @@
   --nav-border: rgba(241, 243, 245, 0.5);
   --modal-bg: #FFFFFF;
   --divider: rgba(0, 0, 0, 0.06);
+
+  /* Toast 配色 — 基于主题色衍生 */
+  --toast-success-bg: rgba(0, 184, 148, 0.15);
+  --toast-success-text: #00B894;
+  --toast-info-bg: rgba(108, 99, 255, 0.12);
+  --toast-info-text: #6C63FF;
+  --toast-error-bg: #fef2f2;
+  --toast-error-text: #991b1b;
 
   --font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   --safe-area-top: env(safe-area-inset-top, 0px);
@@ -48,6 +59,14 @@ body.dark,
   --nav-border: rgba(255, 255, 255, 0.08);
   --modal-bg: #1F2A47;
   --divider: rgba(255, 255, 255, 0.08);
+
+  /* Toast 深色模式 */
+  --toast-success-bg: rgba(0, 184, 148, 0.2);
+  --toast-success-text: #00D2A4;
+  --toast-info-bg: rgba(108, 99, 255, 0.2);
+  --toast-info-text: #8B83FF;
+  --toast-error-bg: rgba(225, 112, 85, 0.2);
+  --toast-error-text: #E17055;
 }
 
 html, body, #app {

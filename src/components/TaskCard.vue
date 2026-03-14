@@ -48,7 +48,7 @@ const {
           width: `${50 + leftZoneProgress * 30}px`,
           height: `${200 + leftZoneProgress * 80}px`,
           borderRadius: '0 100% 100% 0 / 0 50% 50% 0',
-          background: leftZoneProgress >= 1 ? '#FDCB6E' : `rgba(253,203,110,${0.3 + leftZoneProgress * 0.5})`,
+          background: leftZoneProgress >= 1 ? 'var(--warning-zone)' : `rgba(253,203,110,${0.3 + leftZoneProgress * 0.5})`,
           transition: 'all 0.15s ease-out',
         }"
       >
@@ -73,7 +73,7 @@ const {
           width: `${50 + rightZoneProgress * 30}px`,
           height: `${200 + rightZoneProgress * 80}px`,
           borderRadius: '100% 0 0 100% / 50% 0 0 50%',
-          background: rightZoneProgress >= 1 ? '#00B894' : `rgba(0,184,148,${0.3 + rightZoneProgress * 0.5})`,
+          background: rightZoneProgress >= 1 ? 'var(--success)' : `rgba(0,184,148,${0.3 + rightZoneProgress * 0.5})`,
           transition: 'all 0.15s ease-out',
         }"
       >

@@ -40,14 +40,36 @@ export function useCardAnimation(
 
   const isLastRemaining = computed(() => totalRemainingCount.value <= 1)
 
+  /** 上一次展示的卡片 ID，用于避免连续重复 */
+  let lastShownId: string | null = null
+
+  /** Fisher-Yates 洗牌 */
+  function shuffle<T>(arr: T[]): T[] {
+    const a = [...arr]
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[a[i], a[j]] = [a[j], a[i]]
+    }
+    return a
+  }
+
   function loadStack() {
     const uncompleted = getUncompletedTodos()
     if (uncompleted.length > 0) {
-      stackItems.value = [...uncompleted]
+      let shuffled = shuffle(uncompleted)
+      // 避免连续展示同一张卡片（当有 ≥2 张时）
+      if (shuffled.length >= 2 && lastShownId && shuffled[0].id === lastShownId) {
+        // 把第一张和随机后面的交换
+        const swapIdx = 1 + Math.floor(Math.random() * (shuffled.length - 1))
+        ;[shuffled[0], shuffled[swapIdx]] = [shuffled[swapIdx], shuffled[0]]
+      }
+      lastShownId = shuffled[0].id
+      stackItems.value = shuffled
       allDone.value = false
     } else {
       stackItems.value = []
       allDone.value = true
+      lastShownId = null
     }
   }
 
@@ -169,12 +191,37 @@ export function useCardAnimation(
     }
   }
 
+  let pendingSwipeTimer: ReturnType<typeof setTimeout> | null = null
+
+  /** 中断当前正在进行的动画，立即重置状态 */
+  function interruptCurrentAnimation() {
+    if (pendingSwipeTimer) {
+      clearTimeout(pendingSwipeTimer)
+      pendingSwipeTimer = null
+    }
+    cancelAllAnimations()
+    // 重置所有 DOM 状态
+    const rEl = risingCardRef.value
+    if (rEl) { rEl.style.transform = ''; rEl.style.transition = ''; rEl.style.visibility = '' }
+    const topEl = topCardRef.value
+    if (topEl) { topEl.style.transform = ''; topEl.style.transition = '' }
+    const sEl = secondBgCardRef.value
+    if (sEl) { sEl.style.display = '' }
+    resetAnimState()
+  }
+
   function triggerLeftSwipe() {
+    // 如果有动画正在进行，先中断
+    if (animPhase.value !== 'idle') {
+      interruptCurrentAnimation()
+    }
+
     lockBackground()
     animPhase.value = 'rising'
     cancelAllAnimations()
 
-    setTimeout(() => {
+    pendingSwipeTimer = setTimeout(() => {
+      pendingSwipeTimer = null
       loadStack()
       cardKey.value++
 
@@ -185,11 +232,17 @@ export function useCardAnimation(
   }
 
   function triggerRightSwipe() {
+    // 如果有动画正在进行，先中断
+    if (animPhase.value !== 'idle') {
+      interruptCurrentAnimation()
+    }
+
     lockBackground()
     animPhase.value = 'rising'
     cancelAllAnimations()
 
-    setTimeout(() => {
+    pendingSwipeTimer = setTimeout(() => {
+      pendingSwipeTimer = null
       loadStack()
       cardKey.value++
 
@@ -200,8 +253,12 @@ export function useCardAnimation(
   }
 
   function triggerAllDone() {
+    if (animPhase.value !== 'idle') {
+      interruptCurrentAnimation()
+    }
     cancelAllAnimations()
-    setTimeout(() => {
+    pendingSwipeTimer = setTimeout(() => {
+      pendingSwipeTimer = null
       loadStack()
       cardKey.value++
       animPhase.value = 'idle'

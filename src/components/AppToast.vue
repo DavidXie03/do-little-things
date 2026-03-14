@@ -44,18 +44,18 @@ const { state } = useToast()
 }
 
 .toast-success {
-  background: var(--toast-success-bg, #ecfdf5);
-  color: var(--toast-success-text, #065f46);
+  background: var(--toast-success-bg);
+  color: var(--toast-success-text);
 }
 
 .toast-info {
-  background: var(--toast-info-bg, #f0edff);
-  color: var(--toast-info-text, #5b4fc4);
+  background: var(--toast-info-bg);
+  color: var(--toast-info-text);
 }
 
 .toast-error {
-  background: var(--toast-error-bg, #fef2f2);
-  color: var(--toast-error-text, #991b1b);
+  background: var(--toast-error-bg);
+  color: var(--toast-error-text);
 }
 
 .toast-icon {

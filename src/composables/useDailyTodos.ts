@@ -34,37 +34,44 @@ export function useDailyTodos() {
     return todoList
   }
 
-  function markTodoComplete(todoId: string): void {
-    if (!storageData.value.dailyTodos) return
+  /**
+   * 标记一次完成，返回是否全部次数已完成
+   */
+  function markTodoComplete(todoId: string): boolean {
+    if (!storageData.value.dailyTodos) return false
     const item = storageData.value.dailyTodos.items.find(i => i.id === todoId)
-    if (!item) return
+    if (!item) return false
 
     if (item.completed) {
       // 已完成 → 重置为完全未完成
       item.completed = false
       item.completedCount = 0
       delete item.completedAt
-    } else {
-      // 未完成 → 增加完成次数
-      item.completedCount = (item.completedCount || 0) + 1
-
-      if (item.completedCount >= item.totalCount) {
-        item.completed = true
-        item.completedAt = Date.now()
-      }
-
-      const now = new Date()
-      const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-      addRecord({
-        taskId: item.task.id,
-        type: item.task.type,
-        action: 'complete',
-        timestamp: now.getTime(),
-        date: dateStr,
-      })
+      saveData(storageData.value)
+      return false
     }
 
+    // 未完成 → 增加完成次数
+    item.completedCount = (item.completedCount || 0) + 1
+
+    const fullyDone = item.completedCount >= item.totalCount
+    if (fullyDone) {
+      item.completed = true
+      item.completedAt = Date.now()
+    }
+
+    const now = new Date()
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    addRecord({
+      taskId: item.task.id,
+      type: item.task.type,
+      action: 'complete',
+      timestamp: now.getTime(),
+      date: dateStr,
+    })
+
     saveData(storageData.value)
+    return fullyDone
   }
 
   function removeTodoItem(todoId: string): void {

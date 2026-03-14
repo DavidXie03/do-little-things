@@ -45,15 +45,16 @@ function showCompleteToast() {
 function handleSwipe(direction: SwipeDirection) {
   const item = topItem.value
   if (!item) return
-  if (animPhase.value !== 'idle') return
 
   const now = new Date()
   const task = item.task
   const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
   if (direction === 'right') {
-    markTodoComplete(item.id)
-    showCompleteToast()
+    const fullyDone = markTodoComplete(item.id)
+    if (fullyDone) {
+      showCompleteToast()
+    }
   } else if (direction === 'left') {
     addPendingTask(task)
     addRecord({
@@ -161,7 +162,7 @@ onMounted(() => {
           class="flex flex-col items-center justify-center px-8 py-16"
         >
           <div class="mb-6">
-            <IconParty :size="64" color="#6C63FF" />
+            <IconParty :size="64" color="var(--primary)" />
           </div>
           <h3 class="text-xl font-bold mb-2" style="color: var(--text-primary);">
             {{ t('home.allDoneTitle') }}
@@ -201,7 +202,7 @@ onMounted(() => {
   border-radius: 1.5rem;
   margin: 0 1rem;
   min-height: 340px;
-  background: linear-gradient(135deg, #6C63FF 0%, #8B83FF 50%, #6C63FF 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 50%, var(--primary) 100%);
   position: relative;
   overflow: hidden;
 }
