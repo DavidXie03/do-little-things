@@ -33,7 +33,7 @@ export function useCardAnimation(
   const backgroundCardCount = computed(() => {
     if (lockedBackgroundCount.value !== null) return lockedBackgroundCount.value
     if (totalRemainingCount.value <= 1) return 0
-    return Math.max(1, Math.min(MAX_STACK - 1, visibleStack.value.length - 1))
+    return 2
   })
 
   const isLastRemaining = computed(() => totalRemainingCount.value <= 1)
@@ -60,7 +60,7 @@ export function useCardAnimation(
   }
 
   function lockBackground() {
-    lockedBackgroundCount.value = Math.max(1, backgroundCardCount.value || 1)
+    lockedBackgroundCount.value = Math.max(2, backgroundCardCount.value || 2)
   }
 
   function playRisingAnimation() {
