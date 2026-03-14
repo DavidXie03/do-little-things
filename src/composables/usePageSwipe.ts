@@ -22,8 +22,19 @@ const translateX = computed(() => {
   return -(currentIndex.value * containerWidth.value) + dragOffset.value
 })
 
+let animationFrameId: number | null = null
+
+function cancelAnimation() {
+  if (animationFrameId !== null) {
+    cancelAnimationFrame(animationFrameId)
+    animationFrameId = null
+  }
+  isAnimating.value = false
+}
+
 function animateTo(targetIndex: number, duration = 300): Promise<void> {
   return new Promise(resolve => {
+    cancelAnimation()
     isAnimating.value = true
     const startOffset = dragOffset.value
     const startTime = performance.now()
@@ -36,15 +47,16 @@ function animateTo(targetIndex: number, duration = 300): Promise<void> {
       dragOffset.value = startOffset * (1 - eased)
 
       if (progress < 1) {
-        requestAnimationFrame(tick)
+        animationFrameId = requestAnimationFrame(tick)
       } else {
         dragOffset.value = 0
         isAnimating.value = false
+        animationFrameId = null
         resolve()
       }
     }
 
-    requestAnimationFrame(tick)
+    animationFrameId = requestAnimationFrame(tick)
   })
 }
 
@@ -60,6 +72,11 @@ export function usePageSwipe() {
   function goToPage(index: number, animate = true) {
     const clamped = Math.max(0, Math.min(TAB_PATHS.length - 1, index))
     if (clamped === currentIndex.value && dragOffset.value === 0) return
+
+    // 打断正在进行的动画
+    if (isAnimating.value) {
+      cancelAnimation()
+    }
 
     const diff = clamped - currentIndex.value
     dragOffset.value += diff * containerWidth.value
@@ -78,12 +95,15 @@ export function usePageSwipe() {
   let velocity = 0
 
   function handleTouchStart(e: TouchEvent) {
-    if (isAnimating.value) return
-
     const target = e.target as HTMLElement
     if (target.closest('.touch-none') || target.closest('[data-no-tab-swipe]')) {
       isIgnored = true
       return
+    }
+
+    // 如果正在动画中，打断当前动画，将当前位置作为起点
+    if (isAnimating.value) {
+      cancelAnimation()
     }
 
     isIgnored = false
@@ -100,7 +120,7 @@ export function usePageSwipe() {
   }
 
   function handleTouchMove(e: TouchEvent) {
-    if (isAnimating.value || isIgnored) return
+    if (isIgnored) return
 
     const touch = e.touches[0]
     if (!touch) return

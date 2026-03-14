@@ -27,11 +27,20 @@ const languages = [
 const showLangModal = ref(false)
 const showImportExportModal = ref(false)
 const showAboutModal = ref(false)
+const showThemeModal = ref(false)
 
-const colorThemeOptions: { key: ColorTheme; labelKey: string; color: string }[] = [
-  { key: 'purple', labelKey: 'settings.themeColorPurple', color: COLOR_THEMES.purple.primary },
-  { key: 'teal', labelKey: 'settings.themeColorTeal', color: COLOR_THEMES.teal.primary },
+const colorThemeOptions: { key: ColorTheme; labelKey: string; color: string; secondaryColor: string }[] = [
+  { key: 'purple', labelKey: 'settings.themeColorPurple', color: COLOR_THEMES.purple.primary, secondaryColor: COLOR_THEMES.purple.secondary },
+  { key: 'ocean', labelKey: 'settings.themeColorOcean', color: COLOR_THEMES.ocean.primary, secondaryColor: COLOR_THEMES.ocean.secondary },
+  { key: 'sunset', labelKey: 'settings.themeColorSunset', color: COLOR_THEMES.sunset.primary, secondaryColor: COLOR_THEMES.sunset.secondary },
+  { key: 'forest', labelKey: 'settings.themeColorForest', color: COLOR_THEMES.forest.primary, secondaryColor: COLOR_THEMES.forest.secondary },
+  { key: 'rose', labelKey: 'settings.themeColorRose', color: COLOR_THEMES.rose.primary, secondaryColor: COLOR_THEMES.rose.secondary },
 ]
+
+const currentThemeLabel = computed(() => {
+  const opt = colorThemeOptions.find(o => o.key === colorTheme.value)
+  return opt ? t(opt.labelKey) : ''
+})
 
 const currentLangLabel = computed(() => {
   const lang = languages.find(l => l.code === locale.value)
@@ -203,7 +212,10 @@ async function importConfig() {
         <div style="border-bottom: 1px solid var(--divider);"></div>
 
         <!-- 主题颜色 -->
-        <div class="flex items-center gap-3 u-item">
+        <button
+          @click="showThemeModal = true"
+          class="w-full flex items-center gap-3 u-item transition-all duration-300 active:scale-[0.98]"
+        >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
             <circle cx="12" cy="12" r="10" stroke="var(--primary)" stroke-width="2"/>
             <circle cx="12" cy="12" r="4" fill="var(--primary)"/>
@@ -213,23 +225,26 @@ async function importConfig() {
             {{ t('settings.themeColor') }}
           </span>
 
-          <div class="flex items-center gap-2">
-            <button
-              v-for="opt in colorThemeOptions"
-              :key="opt.key"
-              @click="setColorTheme(opt.key)"
-              class="w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90"
-              :style="{
-                background: opt.color,
-                boxShadow: colorTheme === opt.key ? `0 0 0 2.5px var(--bg-primary), 0 0 0 4.5px ${opt.color}` : 'none',
-              }"
-            >
-              <svg v-if="colorTheme === opt.key" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M20 6L9 17L4 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
+          <div class="flex items-center gap-1.5">
+            <div class="flex items-center -space-x-1">
+              <div
+                class="w-5 h-5 rounded-full border-2"
+                :style="{ background: COLOR_THEMES[colorTheme].primary, borderColor: 'var(--bg-primary)' }"
+              ></div>
+              <div
+                class="w-5 h-5 rounded-full border-2"
+                :style="{ background: COLOR_THEMES[colorTheme].secondary, borderColor: 'var(--bg-primary)' }"
+              ></div>
+            </div>
+            <span class="text-sm" style="color: var(--text-muted);">
+              {{ currentThemeLabel }}
+            </span>
           </div>
-        </div>
+
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
+            <path d="M9 18L15 12L9 6" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
 
       <div class="h-3"></div>
@@ -438,6 +453,71 @@ async function importConfig() {
       <div class="pt-2">
         <button
           @click="showAboutModal = false"
+          class="w-full u-item-sm rounded-xl text-sm font-semibold transition-all active:scale-95"
+          style="background: var(--divider); color: var(--text-secondary);"
+        >
+          {{ t('modal.cancel') }}
+        </button>
+      </div>
+    </BaseModal>
+
+    <!-- 主题颜色选择弹窗 -->
+    <BaseModal
+      :visible="showThemeModal"
+      :title="t('settings.themeColor')"
+      @close="showThemeModal = false"
+    >
+      <div class="u-gap-sm">
+        <button
+          v-for="opt in colorThemeOptions"
+          :key="opt.key"
+          @click="setColorTheme(opt.key); showThemeModal = false"
+          class="w-full flex items-center gap-3 u-item rounded-2xl transition-all duration-300 active:scale-[0.98]"
+          :style="{
+            background: colorTheme === opt.key ? `${opt.color}10` : 'rgba(108,99,255,0.04)',
+            border: colorTheme === opt.key ? `2px solid ${opt.color}` : '2px solid transparent',
+          }"
+        >
+          <div class="flex items-center -space-x-1.5 flex-shrink-0">
+            <div
+              class="w-7 h-7 rounded-full border-2"
+              :style="{ background: opt.color, borderColor: colorTheme === opt.key ? `${opt.color}10` : 'rgba(108,99,255,0.04)' }"
+            ></div>
+            <div
+              class="w-7 h-7 rounded-full border-2"
+              :style="{ background: opt.secondaryColor, borderColor: colorTheme === opt.key ? `${opt.color}10` : 'rgba(108,99,255,0.04)' }"
+            ></div>
+          </div>
+
+          <span
+            class="text-sm font-medium flex-1 text-left"
+            :style="{
+              color: colorTheme === opt.key ? opt.color : 'var(--text-primary)',
+            }"
+          >
+            {{ t(opt.labelKey) }}
+          </span>
+
+          <div
+            v-if="colorTheme === opt.key"
+            class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+            :style="{ background: opt.color }"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M20 6L9 17L4 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div
+            v-else
+            class="w-6 h-6 rounded-full flex-shrink-0"
+            style="border: 2px solid var(--text-muted);"
+          ></div>
+        </button>
+      </div>
+
+      <div class="pt-2">
+        <button
+          @click="showThemeModal = false"
           class="w-full u-item-sm rounded-xl text-sm font-semibold transition-all active:scale-95"
           style="background: var(--divider); color: var(--text-secondary);"
         >

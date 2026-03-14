@@ -43,25 +43,24 @@ const {
     <transition name="zone-fade">
       <div
         v-if="(isDragging || isAnimatingOut) && leftZoneProgress > 0"
-        class="fixed left-0 top-0 bottom-0 z-[9999] flex items-center justify-end pointer-events-none"
+        class="fixed left-0 top-1/2 -translate-y-1/2 z-[9999] flex items-center justify-end pointer-events-none"
         :style="{
-          width: `${40 + leftZoneProgress * 24}px`,
-          background: `linear-gradient(to left, ${leftZoneProgress >= 1 ? 'var(--warning-zone)' : `rgba(253,203,110,${0.3 + leftZoneProgress * 0.5})`}, transparent)`,
-          maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
+          width: `${50 + leftZoneProgress * 30}px`,
+          height: `${200 + leftZoneProgress * 80}px`,
+          borderRadius: '0 100% 100% 0 / 0 50% 50% 0',
+          background: leftZoneProgress >= 1 ? 'var(--warning-zone)' : `rgba(253,203,110,${0.3 + leftZoneProgress * 0.5})`,
           transition: 'all 0.15s ease-out',
         }"
       >
         <div
-          class="flex items-center justify-center"
+          class="flex items-center justify-center pr-3"
           :style="{
             opacity: 0.5 + leftZoneProgress * 0.5,
             transform: `scale(${0.7 + leftZoneProgress * 0.3})`,
             transition: 'all 0.15s ease-out',
-            paddingRight: '10px',
           }"
         >
-          <IconClock :size="leftZoneProgress >= 1 ? 36 : 28" :color="leftZoneProgress >= 1 ? '#2D3436' : '#8B7028'" />
+          <IconClock :size="leftZoneProgress >= 1 ? 28 : 22" :color="leftZoneProgress >= 1 ? '#2D3436' : '#8B7028'" />
         </div>
       </div>
     </transition>
@@ -69,25 +68,24 @@ const {
     <transition name="zone-fade">
       <div
         v-if="(isDragging || isAnimatingOut) && rightZoneProgress > 0"
-        class="fixed right-0 top-0 bottom-0 z-[9999] flex items-center justify-start pointer-events-none"
+        class="fixed right-0 top-1/2 -translate-y-1/2 z-[9999] flex items-center justify-start pointer-events-none"
         :style="{
-          width: `${40 + rightZoneProgress * 24}px`,
-          background: `linear-gradient(to right, ${rightZoneProgress >= 1 ? 'var(--success)' : `rgba(0,184,148,${0.3 + rightZoneProgress * 0.5})`}, transparent)`,
-          maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
+          width: `${50 + rightZoneProgress * 30}px`,
+          height: `${200 + rightZoneProgress * 80}px`,
+          borderRadius: '100% 0 0 100% / 50% 0 0 50%',
+          background: rightZoneProgress >= 1 ? 'var(--success)' : `rgba(0,184,148,${0.3 + rightZoneProgress * 0.5})`,
           transition: 'all 0.15s ease-out',
         }"
       >
         <div
-          class="flex items-center justify-center"
+          class="flex items-center justify-center pl-3"
           :style="{
             opacity: 0.5 + rightZoneProgress * 0.5,
             transform: `scale(${0.7 + rightZoneProgress * 0.3})`,
             transition: 'all 0.15s ease-out',
-            paddingLeft: '10px',
           }"
         >
-          <IconCheck :size="rightZoneProgress >= 1 ? 36 : 28" :color="rightZoneProgress >= 1 ? 'white' : 'rgba(255,255,255,0.8)'" />
+          <IconCheck :size="rightZoneProgress >= 1 ? 28 : 22" :color="rightZoneProgress >= 1 ? 'white' : 'rgba(255,255,255,0.8)'" />
         </div>
       </div>
     </transition>
