@@ -11,6 +11,7 @@ const containerWidth = ref(window.innerWidth)
 let startX = 0
 let startY = 0
 let isDragging = false
+let isIgnored = false
 let directionLocked: 'horizontal' | 'vertical' | null = null
 
 const LOCK_THRESHOLD = 8
@@ -81,9 +82,11 @@ export function usePageSwipe() {
 
     const target = e.target as HTMLElement
     if (target.closest('.touch-none') || target.closest('[data-no-tab-swipe]')) {
+      isIgnored = true
       return
     }
 
+    isIgnored = false
     const touch = e.touches[0]
     if (!touch) return
 
@@ -97,7 +100,7 @@ export function usePageSwipe() {
   }
 
   function handleTouchMove(e: TouchEvent) {
-    if (isAnimating.value) return
+    if (isAnimating.value || isIgnored) return
 
     const touch = e.touches[0]
     if (!touch) return
@@ -134,6 +137,11 @@ export function usePageSwipe() {
   }
 
   function handleTouchEnd() {
+    if (isIgnored) {
+      isIgnored = false
+      return
+    }
+
     if (!isDragging) {
       directionLocked = null
       return

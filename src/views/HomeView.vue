@@ -90,7 +90,7 @@ onMounted(() => {
           </h1>
 
           <!-- 卡片堆叠容器 -->
-          <div class="card-stack-container" style="min-height: 360px;">
+          <div class="card-stack-container" data-no-tab-swipe style="min-height: 360px;">
             <!--
               背景堆叠卡片：显示为卡牌背面
               数量基于总的未完成次数，而不仅是未完成任务数
