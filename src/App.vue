@@ -58,14 +58,10 @@ function closeSettings() {
     if (progress < 1) {
       requestAnimationFrame(tick)
     } else {
-      // 先隐藏面板再重置 offset，避免面板先跳回原位再消失导致的闪烁
       showSettings.value = false
+      settingsPanelOffset.value = 0
       settingsOpen.value = false
       settingsClosing = false
-      // 在下一帧重置 offset，此时面板已经从 DOM 移除
-      requestAnimationFrame(() => {
-        settingsPanelOffset.value = 0
-      })
     }
   }
   requestAnimationFrame(tick)
@@ -157,7 +153,7 @@ function onSettingsTouchEnd() {
 
     <!-- 设置面板（从右侧滑入，支持左滑退出） -->
     <div
-      v-if="showSettings"
+      v-show="showSettings"
       class="fixed inset-0 z-[200]"
       @touchstart.passive="onSettingsTouchStart"
       @touchmove="onSettingsTouchMove"
@@ -186,11 +182,11 @@ function onSettingsTouchEnd() {
 .settings-slide-panel {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
   bottom: 0;
   width: 100%;
-  max-width: 100%;
   z-index: 1;
+  background-color: var(--bg-primary);
 }
 
 .settings-mask {
