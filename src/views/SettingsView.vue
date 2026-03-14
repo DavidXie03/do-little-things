@@ -283,7 +283,7 @@ async function importConfig() {
             {{ t('settings.slogan') }}
           </span>
 
-          <span class="text-xs max-w-[120px] truncate" style="color: var(--text-muted);">
+          <span class="text-sm max-w-[120px] truncate" style="color: var(--text-muted);">
             {{ displaySlogan }}
           </span>
 
@@ -596,8 +596,12 @@ async function importConfig() {
         </div>
 
         <!-- 打字效果开关 -->
-        <div class="flex items-center justify-between u-item rounded-2xl"
-          style="background: rgba(108,99,255,0.04);"
+        <div class="flex items-center justify-between u-item rounded-2xl transition-opacity duration-300"
+          :style="{
+            background: 'rgba(108,99,255,0.04)',
+            opacity: tempShowSlogan ? 1 : 0.4,
+            pointerEvents: tempShowSlogan ? 'auto' : 'none',
+          }"
         >
           <span class="text-sm font-medium" style="color: var(--text-primary);">
             {{ t('settings.sloganTyping') }}
@@ -623,9 +627,15 @@ async function importConfig() {
           v-model="sloganInput"
           type="text"
           maxlength="30"
+          :disabled="!tempShowSlogan"
           :placeholder="t('settings.sloganPlaceholder')"
-          class="w-full u-item rounded-2xl text-sm outline-none"
-          style="background: rgba(108,99,255,0.04); color: var(--text-primary); border: 2px solid transparent;"
+          class="w-full u-item rounded-2xl text-sm outline-none transition-opacity duration-300"
+          :style="{
+            background: 'rgba(108,99,255,0.04)',
+            color: 'var(--text-primary)',
+            border: '2px solid transparent',
+            opacity: tempShowSlogan ? 1 : 0.4,
+          }"
           @focus="($event.target as HTMLInputElement).style.borderColor = 'var(--primary)'"
           @blur="($event.target as HTMLInputElement).style.borderColor = 'transparent'"
         />
