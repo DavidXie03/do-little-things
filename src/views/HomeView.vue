@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { SwipeDirection } from '../types'
 import { useStorage } from '../composables/useStorage'
@@ -16,6 +16,35 @@ const displaySlogan = computed(() => {
   const custom = storageData.value.slogan
   if (custom && custom.trim()) return custom
   return t('home.defaultSlogan')
+})
+
+const typedSlogan = ref('')
+const isTyping = ref(false)
+let typeTimer: ReturnType<typeof setTimeout> | null = null
+
+function startTyping(text: string) {
+  if (typeTimer) { clearTimeout(typeTimer); typeTimer = null }
+  typedSlogan.value = ''
+  isTyping.value = true
+  let i = 0
+  function typeNext() {
+    if (i < text.length) {
+      typedSlogan.value = text.slice(0, i + 1)
+      i++
+      typeTimer = setTimeout(typeNext, 60)
+    } else {
+      isTyping.value = false
+    }
+  }
+  typeNext()
+}
+
+watch(displaySlogan, (val) => {
+  startTyping(val)
+}, { immediate: true })
+
+onUnmounted(() => {
+  if (typeTimer) clearTimeout(typeTimer)
 })
 
 const {
@@ -104,10 +133,10 @@ onMounted(() => {
             {{ t('app.title') }}
           </h1>
           <p
-            class="text-sm text-center u-mb-lg"
+            class="text-sm text-center u-mb-lg slogan-text"
             style="color: var(--text-muted);"
           >
-            {{ displaySlogan }}
+            {{ typedSlogan }}<span v-if="isTyping" class="typing-cursor">|</span>
           </p>
 
           <!-- 卡片堆叠容器 -->
@@ -181,6 +210,18 @@ onMounted(() => {
 <style scoped>
 .card-stack-container {
   position: relative;
+}
+
+.typing-cursor {
+  display: inline;
+  animation: blink 1s step-end infinite;
+  color: var(--text-muted);
+  font-weight: 300;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .card-stack-layer {
