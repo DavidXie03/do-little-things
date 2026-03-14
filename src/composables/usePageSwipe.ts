@@ -1,9 +1,9 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
-const TAB_PATHS = ['/', '/todos', '/settings']
+const TAB_PATHS = ['/todos', '/', '/settings']
 
-const currentIndex = ref(0)
+const currentIndex = ref(1)
 const dragOffset = ref(0)
 const isAnimating = ref(false)
 const containerWidth = ref(window.innerWidth)

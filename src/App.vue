@@ -20,10 +20,10 @@ const { translateX, containerWidth } = usePageSwipe()
         }"
       >
         <div :style="{ width: containerWidth + 'px', flexShrink: 0 }" class="h-full">
-          <HomeView />
+          <PendingView />
         </div>
         <div :style="{ width: containerWidth + 'px', flexShrink: 0 }" class="h-full">
-          <PendingView />
+          <HomeView />
         </div>
         <div :style="{ width: containerWidth + 'px', flexShrink: 0 }" class="h-full">
           <SettingsView />

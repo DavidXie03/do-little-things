@@ -7,8 +7,8 @@ import IconSettings from './icons/IconSettings.vue'
 const { currentIndex, goToPage } = usePageSwipe()
 
 const tabs = [
-  { name: 'home', icon: IconCards, index: 0 },
-  { name: 'todos', icon: IconList, index: 1 },
+  { name: 'todos', icon: IconList, index: 0 },
+  { name: 'home', icon: IconCards, index: 1 },
   { name: 'settings', icon: IconSettings, index: 2 },
 ]
 
