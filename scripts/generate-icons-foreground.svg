@@ -1,0 +1,12 @@
+<svg width="1024" height="1024" viewBox="0 0 108 108" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 底部卡片（长条形，向右倾斜 6°） -->
+  <g transform="rotate(6 60 54)">
+    <rect x="40" y="22" width="32" height="64" rx="6" fill="#6C63FF" opacity="0.35"/>
+  </g>
+  <!-- 顶部卡片（长条形，向左倾斜 6°） -->
+  <g transform="rotate(-6 46 54)">
+    <rect x="28" y="22" width="32" height="64" rx="6" fill="#6C63FF"/>
+    <!-- 白色对勾 -->
+    <polyline points="38,56 45,63 58,48" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

@@ -3,7 +3,7 @@ import { ref } from 'vue'
 const DARK_STORAGE_KEY = 'do-little-things-dark-mode'
 const COLOR_STORAGE_KEY = 'do-little-things-color-theme'
 
-export type ColorTheme = 'purple' | 'blue' | 'green'
+export type ColorTheme = 'purple' | 'blue'
 
 export interface ThemeColorSet {
   primary: string
@@ -49,20 +49,6 @@ export const COLOR_THEMES: Record<ColorTheme, ThemeColorSet> = {
     toastSuccessBgDark: '#3D2233',
     toastSuccessTextDark: '#F9A8D4',
   },
-  green: {
-    primary: '#059669',
-    primaryLight: '#34D399',
-    secondary: '#F59E0B',
-    secondaryLight: '#FBBF24',
-    toastInfoBg: '#DCFCE7',
-    toastInfoText: '#059669',
-    toastInfoBgDark: '#1A3328',
-    toastInfoTextDark: '#34D399',
-    toastSuccessBg: '#FEF3C7',
-    toastSuccessText: '#F59E0B',
-    toastSuccessBgDark: '#3D3118',
-    toastSuccessTextDark: '#FBBF24',
-  },
 }
 
 const isDark = ref(false)
@@ -77,7 +63,7 @@ function loadTheme() {
   }
 
   const savedColor = localStorage.getItem(COLOR_STORAGE_KEY) as string | null
-  const MIGRATION: Record<string, ColorTheme> = { ocean: 'blue', forest: 'green' }
+  const MIGRATION: Record<string, ColorTheme> = { ocean: 'blue', forest: 'purple' }
   const migrated = savedColor && MIGRATION[savedColor] ? MIGRATION[savedColor] : savedColor
   if (migrated && COLOR_THEMES[migrated as ColorTheme]) {
     colorTheme.value = migrated as ColorTheme

@@ -34,7 +34,6 @@ const sloganInput = ref('')
 const colorThemeOptions: { key: ColorTheme; color: string; secondaryColor: string }[] = [
   { key: 'purple', color: COLOR_THEMES.purple.primary, secondaryColor: COLOR_THEMES.purple.secondary },
   { key: 'blue', color: COLOR_THEMES.blue.primary, secondaryColor: COLOR_THEMES.blue.secondary },
-  { key: 'green', color: COLOR_THEMES.green.primary, secondaryColor: COLOR_THEMES.green.secondary },
 ]
 
 const currentLangLabel = computed(() => {
