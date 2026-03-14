@@ -21,7 +21,6 @@ function openSettings() {
   showSettings.value = true
   settingsOpen.value = true
   settingsClosing = false
-  // 用 JS 动画从右侧滑入
   settingsPanelOffset.value = window.innerWidth
   const start = window.innerWidth
   const duration = 300
@@ -42,7 +41,6 @@ function openSettings() {
 function closeSettings() {
   if (settingsClosing) return
   settingsClosing = true
-  // 用 JS 动画滑出到右侧
   settingsIsDragging.value = false
   const start = settingsPanelOffset.value
   const target = window.innerWidth
@@ -89,7 +87,6 @@ function onSettingsTouchMove(e: TouchEvent) {
 
   if (settingsDirectionLocked !== 'horizontal') return
 
-  // 只允许向右滑（关闭方向）
   if (dx > 0) {
     settingsIsDragging.value = true
     settingsPanelOffset.value = dx
@@ -106,10 +103,8 @@ function onSettingsTouchEnd() {
 
   const width = window.innerWidth
   if (settingsPanelOffset.value > width * 0.25) {
-    // 滑动超过阈值，动画关闭
     closeSettings()
   } else {
-    // 未达到阈值，动画弹回
     const start = settingsPanelOffset.value
     const duration = 200
     const startTime = performance.now()
@@ -151,7 +146,6 @@ function onSettingsTouchEnd() {
     <TabBar />
     <AppToast />
 
-    <!-- 设置面板（从右侧滑入，支持左滑退出） -->
     <div
       v-show="showSettings"
       class="fixed inset-0 z-[200]"
@@ -159,13 +153,11 @@ function onSettingsTouchEnd() {
       @touchmove="onSettingsTouchMove"
       @touchend.passive="onSettingsTouchEnd"
     >
-      <!-- 遮罩 -->
       <div
         class="settings-mask"
         :style="{ opacity: Math.max(0, 1 - settingsPanelOffset / (containerWidth || 1)) }"
         @click="closeSettings"
       ></div>
-      <!-- 面板 -->
       <div
         class="settings-slide-panel"
         :style="{

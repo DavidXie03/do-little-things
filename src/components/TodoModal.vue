@@ -200,7 +200,6 @@ function formatCustomDate(dateStr: string): string {
       {{ errorMsg }}
     </p>
 
-    <!-- 循环类型选择 -->
     <div class="space-y-2">
       <span class="text-sm" style="color: var(--text-secondary);">{{ t('modal.recurrenceLabel') }}</span>
       <div class="flex flex-wrap gap-2">
@@ -220,7 +219,6 @@ function formatCustomDate(dateStr: string): string {
       </div>
     </div>
 
-    <!-- 日期选择：新建时叫"开始日期"，编辑时叫"到期时间" -->
     <div class="space-y-2">
       <span class="text-sm" style="color: var(--text-secondary);">
         {{ mode === 'add' ? t('modal.startDateLabel') : t('modal.dueDateLabel') }}
@@ -271,7 +269,6 @@ function formatCustomDate(dateStr: string): string {
           {{ startDateOption === 'custom' && customDate ? formatCustomDate(customDate) : t('modal.startPickDate') }}
         </button>
       </div>
-      <!-- 日期选择器 -->
       <div v-if="showDatePicker" class="mt-2">
         <input
           type="date"
@@ -305,7 +302,6 @@ function formatCustomDate(dateStr: string): string {
       </div>
     </div>
 
-    <!-- 编辑模式：删除按钮 -->
     <button
       v-if="mode === 'edit'"
       @click="handleDelete"

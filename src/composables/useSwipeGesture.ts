@@ -108,7 +108,6 @@ export function useSwipeGesture(
     onTouchEnd()
   }
 
-  /** 卡片飞出屏幕 */
   function animateOut(direction: SwipeDirection) {
     isAnimatingOut.value = true
     animatingDirection.value = direction

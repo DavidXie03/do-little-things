@@ -39,11 +39,9 @@ function migrateData(data: any): StorageData {
 
   for (const ca of data.customActions) {
     if (ca.repeatCount === undefined) ca.repeatCount = 1
-    // v5 迁移：添加 recurrence 字段，默认为 daily
     if (!ca.recurrence) ca.recurrence = 'daily'
   }
 
-  // 确保签名和打字效果字段有显式值（老用户可能为 undefined）
   if (data.showSlogan === undefined) data.showSlogan = false
   if (data.typingEffect === undefined) data.typingEffect = true
 
@@ -52,7 +50,6 @@ function migrateData(data: any): StorageData {
     for (const item of data.dailyTodos.items) {
       if (item.totalCount === undefined) item.totalCount = 1
       if (item.completedCount === undefined) item.completedCount = item.completed ? 1 : 0
-      // v5 迁移：添加 scheduledDate 字段
       if (!item.scheduledDate) item.scheduledDate = data.dailyTodos.date || today
     }
   }

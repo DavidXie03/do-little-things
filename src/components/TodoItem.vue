@@ -18,7 +18,6 @@ const emit = defineEmits<{
   (e: 'edit', item: DailyTodoItem): void
 }>()
 
-/** 构建副信息文本：仅显示循环类型 */
 function getSubInfo(): string {
   if (props.showRecurrence && props.item.task.recurrence) {
     return t(`recurrence.${props.item.task.recurrence}`)

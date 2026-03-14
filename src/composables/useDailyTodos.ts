@@ -34,16 +34,12 @@ export function useDailyTodos() {
     return todoList
   }
 
-  /**
-   * 标记一次完成，返回是否全部次数已完成
-   */
   function markTodoComplete(todoId: string): boolean {
     if (!storageData.value.dailyTodos) return false
     const item = storageData.value.dailyTodos.items.find(i => i.id === todoId)
     if (!item) return false
 
     if (item.completed) {
-      // 已完成 → 重置为完全未完成
       item.completed = false
       item.completedCount = 0
       delete item.completedAt
@@ -51,7 +47,6 @@ export function useDailyTodos() {
       return false
     }
 
-    // 未完成 → 增加完成次数
     item.completedCount = (item.completedCount || 0) + 1
 
     const fullyDone = item.completedCount >= item.totalCount
@@ -75,7 +70,6 @@ export function useDailyTodos() {
   }
 
   function removeTodoItem(todoId: string): void {
-    // 1. 先尝试从今天的待办列表中查找
     const todayItem = storageData.value.dailyTodos?.items.find(i => i.id === todoId)
 
     if (todayItem) {
@@ -93,7 +87,6 @@ export function useDailyTodos() {
       return
     }
 
-    // 2. 未找到，可能是未来待办——从 futureTodos 中查找对应的 customAction 并删除
     const futureItems = generateFutureTodoItems(
       storageData.value.customActions,
       getTodayStr()
@@ -106,7 +99,6 @@ export function useDailyTodos() {
         storageData.value.customActions = storageData.value.customActions.filter(
           ca => ca.id !== caId
         )
-        // 同步清理今天待办中同一 taskId 的项目（包括已完成的）
         if (storageData.value.dailyTodos) {
           storageData.value.dailyTodos.items = storageData.value.dailyTodos.items.filter(
             i => i.task.id !== taskId
@@ -124,16 +116,10 @@ export function useDailyTodos() {
     return todos.items.filter(i => !i.completed)
   }
 
-  /**
-   * 获取未来待办预览列表
-   * 对于每个循环任务，最多只显示一个最近的未来待办
-   * 只排除今天未完成的任务；已完成的任务需要显示下次循环日期
-   */
   const futureTodos = computed((): DailyTodoItem[] => {
     const today = getTodayStr()
     const todayItems = storageData.value.dailyTodos?.items ?? []
 
-    // 获取今天未完成任务的 task id 集合（已完成的不排除，让下次循环显示在未来列表）
     const todayPendingTaskIds = new Set(
       todayItems.filter(i => !i.completed).map(i => i.task.id)
     )
@@ -143,12 +129,9 @@ export function useDailyTodos() {
       today
     )
 
-    // 去重：每个 customAction 只保留一条
-    // 今天未完成的任务不在未来列表显示（避免重复）
     const seen = new Set<string>()
     return futureItems.filter(item => {
       if (seen.has(item.task.id)) return false
-      // 今天还未完成的任务，跳过
       if (todayPendingTaskIds.has(item.task.id)) return false
       seen.add(item.task.id)
       return true

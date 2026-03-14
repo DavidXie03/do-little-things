@@ -68,11 +68,6 @@ const displaySlogan = computed(() => {
   return t('home.defaultSlogan')
 })
 
-const isSloganVisible = computed(() => {
-  return storageData.value.showSlogan !== false
-})
-
-// 弹窗内的临时状态（打开时初始化，保存时才写入 storageData）
 const tempShowSlogan = ref(true)
 const tempTypingEffect = ref(true)
 
@@ -180,12 +175,10 @@ async function importConfig() {
     </header>
 
     <div class="flex-1 overflow-y-auto u-section-x pb-4" style="-webkit-overflow-scrolling: touch;">
-      <!-- 外观设置分组卡片 -->
       <div
         class="rounded-2xl overflow-hidden"
         style="background: var(--item-bg); box-shadow: var(--card-shadow);"
       >
-        <!-- 深色模式 -->
         <div class="flex items-center gap-3 u-item">
           <svg v-if="isDark" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -222,10 +215,8 @@ async function importConfig() {
           </button>
         </div>
 
-        <!-- 分隔线 -->
         <div style="border-bottom: 1px solid var(--divider);"></div>
 
-        <!-- 语言 -->
         <button
           @click="openLangModal"
           class="w-full flex items-center gap-3 u-item transition-all duration-300 active:scale-[0.98]"
@@ -245,10 +236,8 @@ async function importConfig() {
           </svg>
         </button>
 
-        <!-- 分隔线 -->
         <div style="border-bottom: 1px solid var(--divider);"></div>
 
-        <!-- 主题颜色 -->
         <button
           @click="showThemeModal = true"
           class="w-full flex items-center gap-3 u-item transition-all duration-300 active:scale-[0.98]"
@@ -278,10 +267,8 @@ async function importConfig() {
           </svg>
         </button>
 
-        <!-- 分隔线 -->
         <div style="border-bottom: 1px solid var(--divider);"></div>
 
-        <!-- 个性签名 -->
         <button
           @click="openSloganModal"
           class="w-full flex items-center gap-3 u-item transition-all duration-300 active:scale-[0.98]"
@@ -306,7 +293,6 @@ async function importConfig() {
 
       <div class="h-3"></div>
 
-      <!-- 导入 / 导出 -->
       <button
         @click="showImportExportModal = true"
         class="w-full flex items-center gap-3 u-item rounded-2xl transition-all duration-300 active:scale-[0.98]"
@@ -325,7 +311,6 @@ async function importConfig() {
 
       <div class="h-3"></div>
 
-      <!-- 关于 -->
       <button
         @click="showAboutModal = true"
         class="w-full flex items-center gap-3 u-item rounded-2xl transition-all duration-300 active:scale-[0.98]"
@@ -345,7 +330,6 @@ async function importConfig() {
       <div class="h-8"></div>
     </div>
 
-    <!-- 语言选择弹窗 -->
     <BaseModal
       :visible="showLangModal"
       :title="t('settings.language')"
@@ -399,7 +383,6 @@ async function importConfig() {
       </div>
     </BaseModal>
 
-    <!-- 导入/导出弹窗 -->
     <BaseModal
       :visible="showImportExportModal"
       :title="t('settings.importExport')"
@@ -448,7 +431,6 @@ async function importConfig() {
       </div>
     </BaseModal>
 
-    <!-- 关于弹窗 -->
     <BaseModal
       :visible="showAboutModal"
       :title="t('settings.about')"
@@ -462,11 +444,8 @@ async function importConfig() {
               <stop offset="100%" stop-color="#8B83FF"/>
             </linearGradient>
           </defs>
-          <!-- 底部卡片（向右倾斜 6°） -->
           <rect x="16" y="10" width="36" height="44" rx="6" fill="#6C63FF" opacity="0.35" transform="rotate(6 34 32)"/>
-          <!-- 顶部卡片（向左倾斜 6°） -->
           <rect x="4" y="2" width="36" height="44" rx="6" fill="url(#card-grad)" transform="rotate(-6 22 24)"/>
-          <!-- 白色对勾 -->
           <polyline points="14,26 20,32 30,20" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" transform="rotate(-6 22 24)"/>
         </svg>
         <div class="text-center">
@@ -518,7 +497,6 @@ async function importConfig() {
       </div>
     </BaseModal>
 
-    <!-- 主题颜色选择弹窗 -->
     <BaseModal
       :visible="showThemeModal"
       :title="t('settings.themeColor')"
@@ -576,14 +554,12 @@ async function importConfig() {
       </div>
     </BaseModal>
 
-    <!-- 个性签名编辑弹窗 -->
     <BaseModal
       :visible="showSloganModal"
       :title="t('settings.slogan')"
       @close="showSloganModal = false"
     >
       <div class="u-gap-sm">
-        <!-- 展示签名开关 -->
         <div class="flex items-center justify-between u-item rounded-2xl"
           style="background: rgba(108,99,255,0.04);"
         >
@@ -606,7 +582,6 @@ async function importConfig() {
           </button>
         </div>
 
-        <!-- 打字效果开关 -->
         <div class="flex items-center justify-between u-item rounded-2xl transition-opacity duration-300"
           :style="{
             background: 'rgba(108,99,255,0.04)',
@@ -633,7 +608,6 @@ async function importConfig() {
           </button>
         </div>
 
-        <!-- 输入框 -->
         <input
           v-model="sloganInput"
           type="text"

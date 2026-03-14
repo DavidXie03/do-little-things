@@ -74,7 +74,6 @@ export function usePageSwipe() {
     const clamped = Math.max(0, Math.min(TAB_PATHS.length - 1, index))
     if (clamped === currentIndex.value && dragOffset.value === 0) return
 
-    // 打断正在进行的动画
     if (isAnimating.value) {
       cancelAnimation()
     }
@@ -96,7 +95,6 @@ export function usePageSwipe() {
   let velocity = 0
 
   function handleTouchStart(e: TouchEvent) {
-    // 设置面板打开时，忽略底层页面滑动
     if (settingsOpen.value) {
       isIgnored = true
       return
@@ -108,7 +106,6 @@ export function usePageSwipe() {
       return
     }
 
-    // 如果正在动画中，打断当前动画，将当前位置作为起点
     if (isAnimating.value) {
       cancelAnimation()
     }
@@ -160,7 +157,6 @@ export function usePageSwipe() {
     lastTouchX = touch.clientX
     lastTouchTime = now
 
-    // clamp：不允许滑过边界
     let clampedDx = dx
     if (currentIndex.value === 0 && dx > 0) {
       clampedDx = 0

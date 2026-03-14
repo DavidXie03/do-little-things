@@ -40,7 +40,6 @@ function startTyping(text: string) {
     isTyping.value = false
     return
   }
-  // 打字效果关闭时直接展示全文
   if (!isTypingEnabled.value) {
     typedSlogan.value = text
     isTyping.value = false
@@ -152,12 +151,9 @@ onMounted(() => {
 
 <template>
   <div class="h-full flex flex-col relative overflow-hidden" style="background-color: var(--bg-primary); transition: background-color 0.3s ease;">
-    <!-- 卡片区域 -->
     <div class="flex-1 flex flex-col items-center justify-center px-6">
       <div class="w-full max-w-xs" data-no-tab-swipe>
-        <!-- 有未完成的待办 -->
         <template v-if="topItem">
-          <!-- 标题 -->
           <h1
             class="text-2xl font-bold text-center"
             :class="displaySlogan ? 'u-mb-sm' : 'u-mb-lg'"
@@ -173,7 +169,6 @@ onMounted(() => {
             {{ typedSlogan || '\u00A0' }}<span v-if="isTyping" class="typing-cursor">|</span>
           </p>
 
-          <!-- 卡片堆叠容器 -->
           <div class="card-stack-container" style="min-height: 360px;">
             <div
               v-for="idx in backgroundCardCount"
@@ -193,12 +188,10 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- 顶部卡片区域 -->
             <div
               ref="topCardRef"
               class="card-stack-top"
             >
-              <!-- 翻转阶段：显示卡牌背面 -->
               <div v-if="animPhase === 'flipping'" class="card-back">
                 <div class="card-back-pattern">
                   <div class="card-back-border"></div>
@@ -206,7 +199,6 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- 正常 / front 阶段：显示正面 TaskCard -->
               <TaskCard
                 v-if="animPhase === 'idle' || animPhase === 'front'"
                 :key="cardKey"
@@ -220,7 +212,6 @@ onMounted(() => {
           </div>
         </template>
 
-        <!-- 今日已全部完成 -->
         <div
           v-else-if="allDone"
           class="flex flex-col items-center justify-center px-8 py-16"

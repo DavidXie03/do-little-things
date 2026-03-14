@@ -20,20 +20,18 @@ const { t, tm, locale } = useI18n()
 const { showToast } = useToast()
 const { isAnimating, dragOffset, currentIndex } = usePageSwipe()
 
-const fabVisible = ref(false)
-let fabTimer: ReturnType<typeof setTimeout> | null = null
+  const fabVisible = ref(false)
+  let fabTimer: ReturnType<typeof setTimeout> | null = null
 
-watch([isAnimating, dragOffset, currentIndex], ([animating, offset, idx]) => {
-  if (animating || offset !== 0 || idx !== 1) {
-    // 正在切换页面或不在待办列表页，立即隐藏
-    if (fabTimer) { clearTimeout(fabTimer); fabTimer = null }
-    fabVisible.value = false
-  } else {
-    // 在待办列表页且页面稳定后，延迟一小段时间再显示
-    if (fabTimer) clearTimeout(fabTimer)
-    fabTimer = setTimeout(() => {
-      fabVisible.value = true
-    }, 100)
+  watch([isAnimating, dragOffset, currentIndex], ([animating, offset, idx]) => {
+    if (animating || offset !== 0 || idx !== 1) {
+      if (fabTimer) { clearTimeout(fabTimer); fabTimer = null }
+      fabVisible.value = false
+    } else {
+      if (fabTimer) clearTimeout(fabTimer)
+      fabTimer = setTimeout(() => {
+        fabVisible.value = true
+      }, 100)
   }
 })
 
@@ -50,7 +48,6 @@ const {
 
 function handleComplete(todoId: string) {
   const fullyDone = markTodoComplete(todoId)
-  // 只在全部次数完成后才显示表扬 toast
   if (fullyDone) {
     const messages = tm('toast.completeMessages') as string[]
     const msg = messages[Math.floor(Math.random() * messages.length)]
@@ -60,7 +57,6 @@ function handleComplete(todoId: string) {
 
 const todayItems = computed(() => dailyTodos.value?.items ?? [])
 
-/** 所有已有任务名的 Set（用于重名检查） */
 const existingNames = computed((): Set<string> => {
   const names = new Set<string>()
   for (const ca of customActions.value) {
@@ -69,7 +65,6 @@ const existingNames = computed((): Set<string> => {
   return names
 })
 
-/** 编辑时排除当前编辑任务名的 Set */
 const existingNamesForModal = computed((): Set<string> => {
   if (modalMode.value === 'edit' && modalContent.value) {
     const names = new Set(existingNames.value)
@@ -79,7 +74,6 @@ const existingNamesForModal = computed((): Set<string> => {
   return existingNames.value
 })
 
-/** 按日期分组的全部待办（今天 + 未来） */
 interface DateGroup {
   dateStr: string       // YYYY-MM-DD
   label: string         // 显示标签：今天、明天、3月15日周日
@@ -91,7 +85,6 @@ interface DateGroup {
 const groupedTodos = computed((): DateGroup[] => {
   const groups: Map<string, DateGroup> = new Map()
 
-  // 1. 加入今天的所有待办（包括已完成的）
   const todayDateStr = dailyTodos.value?.date ?? getTodayStr()
   if (todayItems.value.length > 0) {
     groups.set(todayDateStr, {
@@ -103,7 +96,6 @@ const groupedTodos = computed((): DateGroup[] => {
     })
   }
 
-  // 2. 加入未来待办，按日期分组
   for (const item of futureTodos.value) {
     const dateStr = item.scheduledDate
     if (groups.has(dateStr)) {
@@ -121,7 +113,6 @@ const groupedTodos = computed((): DateGroup[] => {
     }
   }
 
-  // 3. 按日期排序
   return Array.from(groups.values()).sort((a, b) => a.dateStr.localeCompare(b.dateStr))
 })
 
@@ -226,7 +217,6 @@ onMounted(() => {
 
     <div class="flex-1 overflow-y-auto pb-4 u-section-x" :class="{ 'flex flex-col': groupedTodos.length === 0 }" style="-webkit-overflow-scrolling: touch;">
 
-      <!-- 无任务空状态 -->
       <div
         v-if="groupedTodos.length === 0"
         class="flex-1 flex flex-col items-center justify-center"
@@ -237,9 +227,7 @@ onMounted(() => {
         </p>
       </div>
 
-      <!-- 按日期分组显示 -->
       <div v-for="group in groupedTodos" :key="group.dateStr" class="u-mb-lg">
-        <!-- 分组标题 -->
         <div class="flex items-center gap-2 u-mb-sm">
           <span
             class="text-sm font-bold"
@@ -255,7 +243,6 @@ onMounted(() => {
           </span>
         </div>
 
-        <!-- 今天的待办：可操作 -->
         <div
           v-if="!group.isFuture"
           class="todo-group rounded-2xl overflow-hidden"
@@ -273,7 +260,6 @@ onMounted(() => {
           />
         </div>
 
-        <!-- 未来的待办：只读预览 -->
         <div
           v-else
           class="todo-group rounded-2xl overflow-hidden"
@@ -292,11 +278,9 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- 底部留白，避免 FAB 遮挡内容 -->
       <div class="h-20"></div>
     </div>
 
-    <!-- 右上角设置按钮 -->
     <button
       @click="emit('open-settings')"
       class="settings-btn"
@@ -304,7 +288,6 @@ onMounted(() => {
       <IconSettings :size="24" color="var(--text-muted)" />
     </button>
 
-    <!-- 右下角悬浮添加按钮 -->
     <transition name="fab-fade">
       <button
         v-show="fabVisible"
