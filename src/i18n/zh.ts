@@ -7,6 +7,7 @@ export default {
     allDoneMsg1: '太棒了，今天的小事都做完了',
     allDoneMsg2: '明天再来完成新的待办吧',
     remaining: '剩余 {remaining} 次',
+    defaultSlogan: '早做是最好的偷懒',
   },
   todos: {
     title: '待办列表',
@@ -74,6 +75,9 @@ export default {
     aboutAuthorName: 'DavidXie03',
     aboutOpenSource: '开源地址',
     aboutVersion: '版本',
+    slogan: '个性签名',
+    sloganPlaceholder: '输入你的个性签名...',
+    sloganReset: '恢复默认',
   },
   todoItem: {
     deleteConfirm: '再次点击确认删除',

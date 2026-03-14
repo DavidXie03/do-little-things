@@ -1,15 +1,22 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { SwipeDirection } from '../types'
 import { useStorage } from '../composables/useStorage'
 import { useCardAnimation } from '../composables/useCardAnimation'
 import { useToast } from '../composables/useToast'
+import { storageData } from '../composables/storageCore'
 import TaskCard from '../components/TaskCard.vue'
 import IconParty from '../components/icons/IconParty.vue'
 
 const { t, tm } = useI18n()
 const { showToast } = useToast()
+
+const displaySlogan = computed(() => {
+  const custom = storageData.value.slogan
+  if (custom && custom.trim()) return custom
+  return t('home.defaultSlogan')
+})
 
 const {
   addRecord,
@@ -91,11 +98,17 @@ onMounted(() => {
         <template v-if="topItem">
           <!-- 标题 -->
           <h1
-            class="text-2xl font-bold text-center u-mb-lg"
+            class="text-2xl font-bold text-center u-mb-sm"
             style="color: var(--primary);"
           >
             {{ t('app.title') }}
           </h1>
+          <p
+            class="text-sm text-center u-mb-lg"
+            style="color: var(--text-muted);"
+          >
+            {{ displaySlogan }}
+          </p>
 
           <!-- 卡片堆叠容器 -->
           <div class="card-stack-container" style="min-height: 360px;">

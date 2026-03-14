@@ -28,6 +28,8 @@ const showLangModal = ref(false)
 const showImportExportModal = ref(false)
 const showAboutModal = ref(false)
 const showThemeModal = ref(false)
+const showSloganModal = ref(false)
+const sloganInput = ref('')
 
 const colorThemeOptions: { key: ColorTheme; color: string; secondaryColor: string }[] = [
   { key: 'purple', color: COLOR_THEMES.purple.primary, secondaryColor: COLOR_THEMES.purple.secondary },
@@ -54,6 +56,36 @@ function switchLanguage(langCode: string) {
   document.title = langCode === 'zh' ? '做件小事' : 'Do Little Things'
   document.documentElement.lang = langCode === 'zh' ? 'zh-CN' : 'en'
   showLangModal.value = false
+}
+
+const displaySlogan = computed(() => {
+  const custom = storageData.value.slogan
+  if (custom && custom.trim()) return custom
+  return t('home.defaultSlogan')
+})
+
+const hasCustomSlogan = computed(() => {
+  const s = storageData.value.slogan
+  return !!s && s.trim().length > 0
+})
+
+function openSloganModal() {
+  sloganInput.value = storageData.value.slogan || ''
+  showSloganModal.value = true
+}
+
+function saveSlogan() {
+  const trimmed = sloganInput.value.trim()
+  storageData.value.slogan = trimmed || undefined
+  saveData(storageData.value)
+  showSloganModal.value = false
+}
+
+function resetSlogan() {
+  sloganInput.value = ''
+  storageData.value.slogan = undefined
+  saveData(storageData.value)
+  showSloganModal.value = false
 }
 
 async function exportConfig() {
@@ -228,6 +260,31 @@ async function importConfig() {
               :style="{ background: COLOR_THEMES[colorTheme].secondary, borderColor: 'var(--bg-primary)' }"
             ></div>
           </div>
+
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
+            <path d="M9 18L15 12L9 6" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <!-- 分隔线 -->
+        <div style="border-bottom: 1px solid var(--divider);"></div>
+
+        <!-- 个性签名 -->
+        <button
+          @click="openSloganModal"
+          class="w-full flex items-center gap-3 u-item transition-all duration-300 active:scale-[0.98]"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
+            <path d="M17 3a2.85 2.85 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+
+          <span class="text-sm font-medium flex-1 text-left" style="color: var(--text-primary);">
+            {{ t('settings.slogan') }}
+          </span>
+
+          <span class="text-xs max-w-[120px] truncate" style="color: var(--text-muted);">
+            {{ displaySlogan }}
+          </span>
 
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
             <path d="M9 18L15 12L9 6" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -503,6 +560,44 @@ async function importConfig() {
           style="background: var(--divider); color: var(--text-secondary);"
         >
           {{ t('modal.cancel') }}
+        </button>
+      </div>
+    </BaseModal>
+
+    <!-- 个性签名编辑弹窗 -->
+    <BaseModal
+      :visible="showSloganModal"
+      :title="t('settings.slogan')"
+      @close="showSloganModal = false"
+    >
+      <div class="u-gap-sm">
+        <input
+          v-model="sloganInput"
+          type="text"
+          maxlength="30"
+          :placeholder="t('settings.sloganPlaceholder')"
+          class="w-full u-item rounded-2xl text-sm outline-none"
+          style="background: rgba(108,99,255,0.04); color: var(--text-primary); border: 2px solid transparent;"
+          @focus="($event.target as HTMLInputElement).style.borderColor = 'var(--primary)'"
+          @blur="($event.target as HTMLInputElement).style.borderColor = 'transparent'"
+        />
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button
+          v-if="hasCustomSlogan"
+          @click="resetSlogan"
+          class="flex-1 u-item-sm rounded-xl text-sm font-semibold transition-all active:scale-95"
+          style="background: var(--divider); color: var(--text-secondary);"
+        >
+          {{ t('settings.sloganReset') }}
+        </button>
+        <button
+          @click="saveSlogan"
+          class="flex-1 u-item-sm rounded-xl text-sm font-semibold transition-all active:scale-95"
+          style="background: var(--primary); color: white;"
+        >
+          {{ t('modal.save') }}
         </button>
       </div>
     </BaseModal>

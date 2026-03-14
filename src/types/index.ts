@@ -84,4 +84,5 @@ export interface StorageData {
   dailyConfig: DailyConfig
   customActions: CustomAction[]
   dailyTodos: DailyTodoList | null
+  slogan?: string
 }

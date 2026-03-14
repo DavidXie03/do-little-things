@@ -7,6 +7,7 @@ export default {
     allDoneMsg1: 'Great job, you\'ve finished all tasks',
     allDoneMsg2: 'Come back tomorrow for new ones',
     remaining: '{remaining} remaining',
+    defaultSlogan: 'Do it early, the best kind of lazy',
   },
   todos: {
     title: 'Todo List',
@@ -74,6 +75,9 @@ export default {
     aboutAuthorName: 'DavidXie03',
     aboutOpenSource: 'Open Source',
     aboutVersion: 'Version',
+    slogan: 'Slogan',
+    sloganPlaceholder: 'Enter your slogan...',
+    sloganReset: 'Reset to default',
   },
   todoItem: {
     deleteConfirm: 'Click again to confirm',
