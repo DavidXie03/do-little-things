@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Languages } from 'lucide-vue-next'
 import { saveLanguage } from '../i18n'
 import { useTheme } from '../composables/useTheme'
 import BaseModal from '../components/BaseModal.vue'
@@ -95,11 +96,7 @@ function switchLanguage(langCode: string) {
         class="w-full flex items-center gap-3 u-item rounded-2xl transition-all duration-300 active:scale-[0.98]"
         style="background: var(--item-bg); box-shadow: var(--card-shadow);"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
-          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M2 12H22" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <Languages :size="20" color="var(--primary)" class="flex-shrink-0" />
 
         <span class="text-sm font-medium flex-1 text-left" style="color: var(--text-primary);">
           {{ t('settings.language') }}
