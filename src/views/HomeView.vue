@@ -43,11 +43,14 @@ function startTyping(text: string) {
     if (i < text.length) {
       typedSlogan.value = text.slice(0, i + 1)
       i++
-      typeTimer = setTimeout(typeNext, 60)
+      typeTimer = setTimeout(typeNext, 78)
     } else {
       isTyping.value = false
       loopTimer = setTimeout(() => {
-        startTyping(text)
+        typedSlogan.value = ''
+        loopTimer = setTimeout(() => {
+          startTyping(text)
+        }, 1000)
       }, 3000)
     }
   }
