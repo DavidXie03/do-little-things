@@ -59,14 +59,10 @@ function switchLanguage(langCode: string) {
 }
 
 const displaySlogan = computed(() => {
+  if (!isSloganVisible.value) return t('settings.sloganOff')
   const custom = storageData.value.slogan
   if (custom && custom.trim()) return custom
   return t('home.defaultSlogan')
-})
-
-const hasCustomSlogan = computed(() => {
-  const s = storageData.value.slogan
-  return !!s && s.trim().length > 0
 })
 
 const isSloganVisible = computed(() => {
@@ -86,13 +82,6 @@ function openSloganModal() {
 function saveSlogan() {
   const trimmed = sloganInput.value.trim()
   storageData.value.slogan = trimmed || undefined
-  saveData(storageData.value)
-  showSloganModal.value = false
-}
-
-function resetSlogan() {
-  sloganInput.value = ''
-  storageData.value.slogan = undefined
   saveData(storageData.value)
   showSloganModal.value = false
 }
@@ -617,14 +606,6 @@ async function importConfig() {
       </div>
 
       <div class="flex gap-2 pt-2">
-        <button
-          v-if="hasCustomSlogan"
-          @click="resetSlogan"
-          class="flex-1 u-item-sm rounded-xl text-sm font-semibold transition-all active:scale-95"
-          style="background: var(--divider); color: var(--text-secondary);"
-        >
-          {{ t('settings.sloganReset') }}
-        </button>
         <button
           @click="showSloganModal = false"
           class="flex-1 u-item-sm rounded-xl text-sm font-semibold transition-all active:scale-95"

@@ -77,8 +77,8 @@ export default {
     aboutVersion: 'Version',
     slogan: 'Slogan',
     sloganPlaceholder: 'Do it early, the best kind of lazy',
-    sloganReset: 'Reset to default',
-    sloganShow: 'Show slogan',
+    sloganShow: 'Show',
+    sloganOff: 'Off',
   },
   todoItem: {
     deleteConfirm: 'Click again to confirm',

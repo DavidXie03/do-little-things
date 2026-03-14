@@ -22,9 +22,20 @@ const displaySlogan = computed(() => {
 const typedSlogan = ref('')
 const isTyping = ref(false)
 let typeTimer: ReturnType<typeof setTimeout> | null = null
+let loopTimer: ReturnType<typeof setTimeout> | null = null
+
+function clearAllTimers() {
+  if (typeTimer) { clearTimeout(typeTimer); typeTimer = null }
+  if (loopTimer) { clearTimeout(loopTimer); loopTimer = null }
+}
 
 function startTyping(text: string) {
-  if (typeTimer) { clearTimeout(typeTimer); typeTimer = null }
+  clearAllTimers()
+  if (!text) {
+    typedSlogan.value = ''
+    isTyping.value = false
+    return
+  }
   typedSlogan.value = ''
   isTyping.value = true
   let i = 0
@@ -35,6 +46,9 @@ function startTyping(text: string) {
       typeTimer = setTimeout(typeNext, 60)
     } else {
       isTyping.value = false
+      loopTimer = setTimeout(() => {
+        startTyping(text)
+      }, 3000)
     }
   }
   typeNext()
@@ -45,7 +59,7 @@ watch(displaySlogan, (val) => {
 }, { immediate: true })
 
 onUnmounted(() => {
-  if (typeTimer) clearTimeout(typeTimer)
+  clearAllTimers()
 })
 
 const {
