@@ -45,22 +45,16 @@ const {
         v-if="(isDragging || isAnimatingOut) && leftZoneProgress > 0"
         class="fixed left-0 top-1/2 z-[9999] flex items-center pointer-events-none"
         :style="{
-          width: `${60 + leftZoneProgress * 240}px`,
-          height: '400px',
-          marginTop: '-200px',
+          width: `${8 + leftZoneProgress * 35}vw`,
+          height: '420px',
+          marginTop: '-210px',
           transition: 'width 0.15s ease-out',
         }"
       >
-        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="leftGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" :stop-color="leftZoneProgress >= 1 ? 'var(--warning-zone)' : `rgba(253,203,110,${0.3 + leftZoneProgress * 0.5})`" stop-opacity="1" />
-              <stop offset="100%" :stop-color="leftZoneProgress >= 1 ? 'var(--warning-zone)' : `rgba(253,203,110,${0.3 + leftZoneProgress * 0.5})`" stop-opacity="0" />
-            </linearGradient>
-          </defs>
+        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 200" preserveAspectRatio="none">
           <path
-            :d="`M0,0 L0,100 L${15 + leftZoneProgress * 25},100 C${35 + leftZoneProgress * 25},78 ${50 + leftZoneProgress * 35},65 ${60 + leftZoneProgress * 30},50 C${50 + leftZoneProgress * 35},35 ${35 + leftZoneProgress * 25},22 ${15 + leftZoneProgress * 25},0 Z`"
-            fill="url(#leftGrad)"
+            :d="`M0,10 C0,4 2,0 5,0 L${10 + leftZoneProgress * 20},8 C${25 + leftZoneProgress * 25},18 ${40 + leftZoneProgress * 30},35 ${50 + leftZoneProgress * 30},60 L${55 + leftZoneProgress * 30},100 L${50 + leftZoneProgress * 30},140 C${40 + leftZoneProgress * 30},165 ${25 + leftZoneProgress * 25},182 ${10 + leftZoneProgress * 20},192 L5,200 C2,200 0,196 0,190 Z`"
+            :fill="leftZoneProgress >= 1 ? 'var(--warning-zone)' : `rgba(253,203,110,${0.3 + leftZoneProgress * 0.5})`"
             :style="{ transition: 'fill 0.15s ease-out' }"
           />
         </svg>
@@ -83,22 +77,16 @@ const {
         v-if="(isDragging || isAnimatingOut) && rightZoneProgress > 0"
         class="fixed right-0 top-1/2 z-[9999] flex items-center justify-end pointer-events-none"
         :style="{
-          width: `${60 + rightZoneProgress * 240}px`,
-          height: '400px',
-          marginTop: '-200px',
+          width: `${8 + rightZoneProgress * 35}vw`,
+          height: '420px',
+          marginTop: '-210px',
           transition: 'width 0.15s ease-out',
         }"
       >
-        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="rightGrad" x1="1" y1="0" x2="0" y2="0">
-              <stop offset="0%" :stop-color="rightZoneProgress >= 1 ? 'var(--success)' : `rgba(0,184,148,${0.3 + rightZoneProgress * 0.5})`" stop-opacity="1" />
-              <stop offset="100%" :stop-color="rightZoneProgress >= 1 ? 'var(--success)' : `rgba(0,184,148,${0.3 + rightZoneProgress * 0.5})`" stop-opacity="0" />
-            </linearGradient>
-          </defs>
+        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 200" preserveAspectRatio="none">
           <path
-            :d="`M100,0 L100,100 L${85 - rightZoneProgress * 25},100 C${65 - rightZoneProgress * 25},78 ${50 - rightZoneProgress * 35},65 ${40 - rightZoneProgress * 30},50 C${50 - rightZoneProgress * 35},35 ${65 - rightZoneProgress * 25},22 ${85 - rightZoneProgress * 25},0 Z`"
-            fill="url(#rightGrad)"
+            :d="`M100,10 C100,4 98,0 95,0 L${90 - rightZoneProgress * 20},8 C${75 - rightZoneProgress * 25},18 ${60 - rightZoneProgress * 30},35 ${50 - rightZoneProgress * 30},60 L${45 - rightZoneProgress * 30},100 L${50 - rightZoneProgress * 30},140 C${60 - rightZoneProgress * 30},165 ${75 - rightZoneProgress * 25},182 ${90 - rightZoneProgress * 20},192 L95,200 C98,200 100,196 100,190 Z`"
+            :fill="rightZoneProgress >= 1 ? 'var(--success)' : `rgba(0,184,148,${0.3 + rightZoneProgress * 0.5})`"
             :style="{ transition: 'fill 0.15s ease-out' }"
           />
         </svg>
