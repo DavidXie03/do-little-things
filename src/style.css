@@ -62,11 +62,11 @@ body.dark,
   --divider: rgba(255, 255, 255, 0.08);
 
   /* Toast 深色模式 */
-  --toast-success-bg: var(--secondary-toast-bg-dark, rgba(78, 205, 196, 0.2));
+  --toast-success-bg: var(--secondary-toast-bg-dark, #1C3735);
   --toast-success-text: var(--secondary-light, #6FE4DC);
-  --toast-info-bg: rgba(108, 99, 255, 0.2);
+  --toast-info-bg: #2A2850;
   --toast-info-text: #8B83FF;
-  --toast-error-bg: rgba(225, 112, 85, 0.2);
+  --toast-error-bg: #3D2420;
   --toast-error-text: #E17055;
 }
 
