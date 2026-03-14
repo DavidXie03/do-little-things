@@ -78,24 +78,16 @@ export function useCardAnimation(
       const topEl = topCardRef.value
       if (topEl) { topEl.style.transform = ''; topEl.style.transition = '' }
       const sEl = secondBgCardRef.value
-      if (sEl) { sEl.style.opacity = '' }
+      if (sEl) { sEl.style.display = '' }
     }, 2000)
-
-    el.style.transition = 'none'
-    el.getBoundingClientRect()
 
     const secondEl = secondBgCardRef.value
     if (secondEl) {
-      const fadeAnim = secondEl.animate([
-        { opacity: 1 },
-        { opacity: 0 },
-      ], {
-        duration: 120,
-        easing: 'ease-out',
-        fill: 'forwards',
-      })
-      activeAnimations.push(fadeAnim)
+      secondEl.style.display = 'none'
     }
+
+    el.style.transition = 'none'
+    el.getBoundingClientRect()
 
     const riseAnim = el.animate([
       { transform: 'translateY(24px) scale(0.96)', zIndex: '2' },
@@ -164,7 +156,7 @@ export function useCardAnimation(
           const rEl = risingCardRef.value
           if (rEl) rEl.style.visibility = ''
           const sEl = secondBgCardRef.value
-          if (sEl) sEl.style.opacity = ''
+          if (sEl) sEl.style.display = ''
           lockedBackgroundCount.value = null
           cancelAllAnimations()
         }
