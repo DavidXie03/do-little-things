@@ -39,8 +39,7 @@ function getIconColor(tab: typeof tabs[0]): string {
         v-for="tab in tabs"
         :key="tab.name"
         @click="navigate(tab)"
-        class="relative flex items-center justify-center flex-1 h-full active:scale-90"
-        style="transition: transform 0.3s ease;"
+        class="relative flex items-center justify-center flex-1 h-full"
       >
         <div
           v-if="isActive(tab)"
@@ -48,10 +47,7 @@ function getIconColor(tab: typeof tabs[0]): string {
           style="background: var(--primary);"
         ></div>
 
-        <div
-          style="transition: transform 0.3s ease, opacity 0.3s ease;"
-          :class="isActive(tab) ? 'scale-110 -translate-y-0.5' : 'opacity-60'"
-        >
+        <div :class="isActive(tab) ? '' : 'opacity-60'">
           <component :is="tab.icon" :size="28" :color="getIconColor(tab)" />
         </div>
       </button>
