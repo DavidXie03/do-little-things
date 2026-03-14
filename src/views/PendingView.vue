@@ -6,7 +6,7 @@ import { RecurrenceType as RT } from '../types'
 import { useStorage } from '../composables/useStorage'
 import TodoItem from '../components/TodoItem.vue'
 import TodoModal from '../components/TodoModal.vue'
-import IconParty from '../components/icons/IconParty.vue'
+import { ClipboardList } from 'lucide-vue-next'
 import IconPlus from '../components/icons/IconPlus.vue'
 
 const { t, tm, locale } = useI18n()
@@ -188,14 +188,14 @@ onMounted(() => {
       </h1>
     </header>
 
-    <div class="flex-1 overflow-y-auto pb-4 u-section-x" style="-webkit-overflow-scrolling: touch;">
+    <div class="flex-1 overflow-y-auto pb-4 u-section-x" :class="{ 'flex flex-col': groupedTodos.length === 0 }" style="-webkit-overflow-scrolling: touch;">
 
       <!-- 无任务空状态 -->
       <div
         v-if="groupedTodos.length === 0"
-        class="flex flex-col items-center justify-center py-12"
+        class="flex-1 flex flex-col items-center justify-center"
       >
-        <IconParty :size="48" color="var(--text-muted)" />
+        <ClipboardList :size="48" color="var(--text-muted)" :stroke-width="1.5" />
         <p class="text-sm mt-3" style="color: var(--text-muted);">
           {{ t('todos.empty') }}
         </p>

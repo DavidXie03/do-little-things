@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Languages, ArrowDownUp, Info } from 'lucide-vue-next'
+import { Languages, Archive, Info } from 'lucide-vue-next'
 import { saveLanguage } from '../i18n'
 import { useTheme } from '../composables/useTheme'
 import { storageData, saveData } from '../composables/storageCore'
@@ -190,7 +190,7 @@ function importConfig() {
         class="w-full flex items-center gap-3 u-item rounded-2xl transition-all duration-300 active:scale-[0.98]"
         style="background: var(--item-bg); box-shadow: var(--card-shadow);"
       >
-        <ArrowDownUp :size="20" color="var(--primary)" class="flex-shrink-0" />
+        <Archive :size="20" color="var(--primary)" class="flex-shrink-0" />
 
         <span class="text-sm font-medium flex-1 text-left" style="color: var(--text-primary);">
           {{ t('settings.importExport') }}
@@ -333,12 +333,20 @@ function importConfig() {
       @close="showAboutModal = false"
     >
       <div class="flex flex-col items-center gap-3 pb-2">
-        <div
-          class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl"
-          style="background: linear-gradient(135deg, var(--primary), #8b7aff); box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3);"
-        >
-          ✨
-        </div>
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="card-grad" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#6C63FF"/>
+              <stop offset="100%" stop-color="#8B83FF"/>
+            </linearGradient>
+          </defs>
+          <!-- 底部卡片（偏移露出边缘） -->
+          <rect x="10" y="6" width="36" height="44" rx="6" fill="#6C63FF" opacity="0.35"/>
+          <!-- 顶部卡片 -->
+          <rect x="6" y="10" width="36" height="44" rx="6" fill="url(#card-grad)"/>
+          <!-- 白色对勾 -->
+          <polyline points="16,34 22,40 32,28" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         <div class="text-center">
           <h3 class="text-base font-bold" style="color: var(--text-primary);">
             {{ t('settings.aboutAppName') }}
