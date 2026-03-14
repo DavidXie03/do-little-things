@@ -10,6 +10,11 @@ import TodoItem from '../components/TodoItem.vue'
 import TodoModal from '../components/TodoModal.vue'
 import { ClipboardList } from 'lucide-vue-next'
 import IconPlus from '../components/icons/IconPlus.vue'
+import IconSettings from '../components/icons/IconSettings.vue'
+
+const emit = defineEmits<{
+  (e: 'open-settings'): void
+}>()
 
 const { t, tm, locale } = useI18n()
 const { showToast } = useToast()
@@ -291,16 +296,30 @@ onMounted(() => {
       <div class="h-20"></div>
     </div>
 
-    <!-- 右下角悬浮添加按钮 -->
-    <transition name="fab-fade">
-      <button
-        v-show="fabVisible"
-        @click="openAddModal"
-        class="fab-add"
-      >
-        <IconPlus :size="24" color="white" />
-      </button>
-    </transition>
+    <!-- 右下角悬浮按钮组 -->
+    <div class="fab-group">
+      <!-- 设置按钮 -->
+      <transition name="fab-fade">
+        <button
+          v-show="fabVisible"
+          @click="emit('open-settings')"
+          class="fab-settings"
+        >
+          <IconSettings :size="24" color="var(--text-muted)" />
+        </button>
+      </transition>
+
+      <!-- 添加按钮 -->
+      <transition name="fab-fade">
+        <button
+          v-show="fabVisible"
+          @click="openAddModal"
+          class="fab-add"
+        >
+          <IconPlus :size="24" color="white" />
+        </button>
+      </transition>
+    </div>
 
     <TodoModal
       :visible="showModal"
@@ -321,10 +340,35 @@ onMounted(() => {
   border-bottom: 1px solid var(--divider);
 }
 
-.fab-add {
+.fab-group {
   position: absolute;
   right: 20px;
   bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 100;
+}
+
+.fab-settings {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--item-bg);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+.fab-settings:active {
+  transform: scale(0.92);
+}
+
+.fab-add {
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -334,7 +378,6 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  z-index: 100;
   border: none;
   cursor: pointer;
 }

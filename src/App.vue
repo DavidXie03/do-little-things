@@ -10,8 +10,59 @@ import { usePageSwipe } from './composables/usePageSwipe'
 const { translateX, containerWidth } = usePageSwipe()
 
 const showSettings = ref(false)
-function openSettings() { showSettings.value = true }
-function closeSettings() { showSettings.value = false }
+const settingsPanelOffset = ref(0)
+const settingsIsDragging = ref(false)
+let settingsStartX = 0
+let settingsStartY = 0
+let settingsDirectionLocked: 'horizontal' | 'vertical' | null = null
+
+function openSettings() { showSettings.value = true; settingsPanelOffset.value = 0 }
+function closeSettings() { showSettings.value = false; settingsPanelOffset.value = 0 }
+
+function onSettingsTouchStart(e: TouchEvent) {
+  const touch = e.touches[0]
+  if (!touch) return
+  settingsStartX = touch.clientX
+  settingsStartY = touch.clientY
+  settingsIsDragging.value = false
+  settingsDirectionLocked = null
+}
+
+function onSettingsTouchMove(e: TouchEvent) {
+  const touch = e.touches[0]
+  if (!touch) return
+  const dx = touch.clientX - settingsStartX
+  const dy = touch.clientY - settingsStartY
+
+  if (!settingsDirectionLocked) {
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return
+    settingsDirectionLocked = Math.abs(dx) >= Math.abs(dy) ? 'horizontal' : 'vertical'
+  }
+
+  if (settingsDirectionLocked !== 'horizontal') return
+
+  // 只允许向右滑（关闭方向）
+  if (dx > 0) {
+    settingsIsDragging.value = true
+    settingsPanelOffset.value = dx
+  }
+}
+
+function onSettingsTouchEnd() {
+  if (!settingsIsDragging.value) {
+    settingsDirectionLocked = null
+    return
+  }
+  settingsIsDragging.value = false
+  settingsDirectionLocked = null
+
+  const width = window.innerWidth
+  if (settingsPanelOffset.value > width * 0.25) {
+    closeSettings()
+  } else {
+    settingsPanelOffset.value = 0
+  }
+}
 </script>
 
 <template>
@@ -26,10 +77,10 @@ function closeSettings() { showSettings.value = false }
         }"
       >
         <div :style="{ width: containerWidth + 'px', flexShrink: 0 }" class="h-full">
-          <HomeView @open-settings="openSettings" />
+          <HomeView />
         </div>
         <div :style="{ width: containerWidth + 'px', flexShrink: 0 }" class="h-full">
-          <PendingView />
+          <PendingView @open-settings="openSettings" />
         </div>
       </div>
     </main>
@@ -37,11 +88,14 @@ function closeSettings() { showSettings.value = false }
     <TabBar />
     <AppToast />
 
-    <!-- 设置面板（从右侧滑入） -->
+    <!-- 设置面板（从右侧滑入，支持左滑退出） -->
     <Transition name="settings-panel">
       <div
         v-if="showSettings"
         class="fixed inset-0 z-[200]"
+        @touchstart.passive="onSettingsTouchStart"
+        @touchmove="onSettingsTouchMove"
+        @touchend.passive="onSettingsTouchEnd"
       >
         <!-- 遮罩 -->
         <div
@@ -49,7 +103,13 @@ function closeSettings() { showSettings.value = false }
           @click="closeSettings"
         ></div>
         <!-- 面板 -->
-        <div class="settings-slide-panel">
+        <div
+          class="settings-slide-panel"
+          :style="{
+            transform: `translateX(${settingsPanelOffset}px)`,
+            transition: settingsIsDragging ? 'none' : undefined,
+          }"
+        >
           <SettingsView @close="closeSettings" />
         </div>
       </div>
@@ -66,6 +126,7 @@ function closeSettings() { showSettings.value = false }
   width: 100%;
   max-width: 100%;
   z-index: 1;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .settings-panel-enter-active .settings-slide-panel,

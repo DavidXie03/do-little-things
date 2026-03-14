@@ -153,7 +153,15 @@ export function usePageSwipe() {
     lastTouchX = touch.clientX
     lastTouchTime = now
 
-    dragOffset.value = dx
+    // clamp：不允许滑过边界
+    let clampedDx = dx
+    if (currentIndex.value === 0 && dx > 0) {
+      clampedDx = 0
+    } else if (currentIndex.value === TAB_PATHS.length - 1 && dx < 0) {
+      clampedDx = 0
+    }
+
+    dragOffset.value = clampedDx
   }
 
   function handleTouchEnd() {
