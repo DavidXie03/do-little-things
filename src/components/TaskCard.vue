@@ -46,8 +46,8 @@ const {
         class="fixed left-0 top-1/2 z-[9999] flex items-center pointer-events-none"
         :style="{
           width: `${40 + leftZoneProgress * 80}px`,
-          height: '100vh',
-          marginTop: '-50vh',
+          height: '420px',
+          marginTop: '-210px',
           transition: 'width 0.15s ease-out',
         }"
       >
@@ -78,8 +78,8 @@ const {
         class="fixed right-0 top-1/2 z-[9999] flex items-center justify-end pointer-events-none"
         :style="{
           width: `${40 + rightZoneProgress * 80}px`,
-          height: '100vh',
-          marginTop: '-50vh',
+          height: '420px',
+          marginTop: '-210px',
           transition: 'width 0.15s ease-out',
         }"
       >
