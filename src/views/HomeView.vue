@@ -24,6 +24,7 @@ const {
   backgroundCardCount,
   isLastRemaining,
   risingCardRef,
+  secondBgCardRef,
   topCardRef,
   topItem,
   loadStack,
@@ -99,7 +100,7 @@ onMounted(() => {
             <div
               v-for="idx in backgroundCardCount"
               :key="'bg-' + idx"
-              :ref="(el) => { if (idx === 1) risingCardRef = el as HTMLElement }"
+              :ref="(el) => { if (idx === 1) risingCardRef = el as HTMLElement; if (idx === 2) secondBgCardRef = el as HTMLElement }"
               class="card-stack-layer"
               :style="{
                 transform: `translateY(24px) scale(0.96)`,

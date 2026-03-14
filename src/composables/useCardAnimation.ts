@@ -15,6 +15,7 @@ export function useCardAnimation(
   const lockedBackgroundCount = ref<number | null>(null)
 
   const risingCardRef = ref<HTMLElement | null>(null)
+  const secondBgCardRef = ref<HTMLElement | null>(null)
   const topCardRef = ref<HTMLElement | null>(null)
 
   let activeAnimations: Animation[] = []
@@ -76,10 +77,25 @@ export function useCardAnimation(
       if (el) { el.style.transform = ''; el.style.transition = ''; el.style.visibility = '' }
       const topEl = topCardRef.value
       if (topEl) { topEl.style.transform = ''; topEl.style.transition = '' }
+      const sEl = secondBgCardRef.value
+      if (sEl) { sEl.style.opacity = '' }
     }, 2000)
 
     el.style.transition = 'none'
     el.getBoundingClientRect()
+
+    const secondEl = secondBgCardRef.value
+    if (secondEl) {
+      const fadeAnim = secondEl.animate([
+        { opacity: 1 },
+        { opacity: 0 },
+      ], {
+        duration: 120,
+        easing: 'ease-out',
+        fill: 'forwards',
+      })
+      activeAnimations.push(fadeAnim)
+    }
 
     const riseAnim = el.animate([
       { transform: 'translateY(24px) scale(0.96)', zIndex: '2' },
@@ -147,6 +163,8 @@ export function useCardAnimation(
           el.style.transition = ''
           const rEl = risingCardRef.value
           if (rEl) rEl.style.visibility = ''
+          const sEl = secondBgCardRef.value
+          if (sEl) sEl.style.opacity = ''
           lockedBackgroundCount.value = null
           cancelAllAnimations()
         }
@@ -201,6 +219,7 @@ export function useCardAnimation(
     backgroundCardCount,
     isLastRemaining,
     risingCardRef,
+    secondBgCardRef,
     topCardRef,
     topItem,
     loadStack,
