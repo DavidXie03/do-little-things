@@ -1,5 +1,6 @@
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import type { DailyTodoItem } from '../types'
+import { storageData } from './storageCore'
 
 export type AnimPhase = 'idle' | 'rising' | 'flipping' | 'front'
 
@@ -49,6 +50,15 @@ export function useCardAnimation(
       allDone.value = true
     }
   }
+
+  watch(
+    () => storageData.value.dailyTodos?.items.map(i => `${i.id}:${i.completed}:${i.completedCount}:${i.totalCount}`).join(','),
+    () => {
+      if (animPhase.value === 'idle') {
+        loadStack()
+      }
+    },
+  )
 
   function cancelAllAnimations() {
     activeAnimations.forEach(a => { try { a.cancel() } catch {} })
