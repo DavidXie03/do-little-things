@@ -20,18 +20,29 @@ const { t, tm, locale } = useI18n()
 const { showToast } = useToast()
 const { isAnimating, dragOffset, currentIndex } = usePageSwipe()
 
-  const fabVisible = ref(false)
-  let fabTimer: ReturnType<typeof setTimeout> | null = null
+const fabVisible = ref(false)
+const isScrolling = ref(false)
+let fabTimer: ReturnType<typeof setTimeout> | null = null
+let scrollTimer: ReturnType<typeof setTimeout> | null = null
+const scrollContainerRef = ref<HTMLElement | null>(null)
 
-  watch([isAnimating, dragOffset, currentIndex], ([animating, offset, idx]) => {
-    if (animating || offset !== 0 || idx !== 1) {
-      if (fabTimer) { clearTimeout(fabTimer); fabTimer = null }
-      fabVisible.value = false
-    } else {
-      if (fabTimer) clearTimeout(fabTimer)
-      fabTimer = setTimeout(() => {
-        fabVisible.value = true
-      }, 100)
+function onListScroll() {
+  isScrolling.value = true
+  if (scrollTimer) clearTimeout(scrollTimer)
+  scrollTimer = setTimeout(() => {
+    isScrolling.value = false
+  }, 150)
+}
+
+watch([isAnimating, dragOffset, currentIndex, isScrolling], ([animating, offset, idx, scrolling]) => {
+  if (animating || offset !== 0 || idx !== 1 || scrolling) {
+    if (fabTimer) { clearTimeout(fabTimer); fabTimer = null }
+    fabVisible.value = false
+  } else {
+    if (fabTimer) clearTimeout(fabTimer)
+    fabTimer = setTimeout(() => {
+      fabVisible.value = true
+    }, 100)
   }
 })
 
@@ -215,7 +226,7 @@ onMounted(() => {
       </h1>
     </header>
 
-    <div class="flex-1 overflow-y-auto pb-4 u-section-x" :class="{ 'flex flex-col': groupedTodos.length === 0 }" style="-webkit-overflow-scrolling: touch;">
+    <div ref="scrollContainerRef" class="flex-1 overflow-y-auto pb-4 u-section-x" :class="{ 'flex flex-col': groupedTodos.length === 0 }" style="-webkit-overflow-scrolling: touch;" @scroll="onListScroll">
 
       <div
         v-if="groupedTodos.length === 0"
@@ -285,18 +296,16 @@ onMounted(() => {
       @click="emit('open-settings')"
       class="settings-btn"
     >
-      <IconSettings :size="24" color="var(--text-muted)" />
+      <IconSettings :size="20" color="var(--text-muted)" />
     </button>
 
-    <transition name="fab-fade">
-      <button
-        v-show="fabVisible"
-        @click="openAddModal"
-        class="fab-add"
-      >
-        <IconPlus :size="24" color="white" />
-      </button>
-    </transition>
+    <button
+      v-show="fabVisible"
+      @click="openAddModal"
+      class="fab-add"
+    >
+      <IconPlus :size="24" color="white" />
+    </button>
 
     <TodoModal
       :visible="showModal"
@@ -319,11 +328,11 @@ onMounted(() => {
 
 .settings-btn {
   position: absolute;
-  top: 20px;
+  top: calc(var(--safe-area-top, 0px) + 24px);
   right: 20px;
   z-index: 20;
-  width: 52px;
-  height: 52px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--item-bg);
   box-shadow: var(--card-shadow);
@@ -360,17 +369,4 @@ onMounted(() => {
   box-shadow: 0 2px 8px -2px rgba(108, 99, 255, 0.5);
 }
 
-.fab-fade-enter-active {
-  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
-}
-.fab-fade-leave-active {
-  transition: none;
-}
-.fab-fade-enter-from {
-  opacity: 0;
-  transform: scale(0.8);
-}
-.fab-fade-leave-to {
-  opacity: 0;
-}
 </style>
