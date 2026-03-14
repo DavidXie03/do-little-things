@@ -220,5 +220,7 @@ export function usePageSwipe() {
     containerWidth,
     goToPage,
     TAB_PATHS,
+    isAnimating,
+    dragOffset,
   }
 }

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DailyTodoItem, RecurrenceType } from '../types'
 import { RecurrenceType as RT } from '../types'
 import { useStorage } from '../composables/useStorage'
 import { useToast } from '../composables/useToast'
+import { usePageSwipe } from '../composables/usePageSwipe'
 import TodoItem from '../components/TodoItem.vue'
 import TodoModal from '../components/TodoModal.vue'
 import { ClipboardList } from 'lucide-vue-next'
@@ -12,6 +13,24 @@ import IconPlus from '../components/icons/IconPlus.vue'
 
 const { t, tm, locale } = useI18n()
 const { showToast } = useToast()
+const { isAnimating, dragOffset } = usePageSwipe()
+
+const fabVisible = ref(true)
+let fabTimer: ReturnType<typeof setTimeout> | null = null
+
+watch([isAnimating, dragOffset], ([animating, offset]) => {
+  if (animating || offset !== 0) {
+    // 正在切换页面，立即隐藏
+    if (fabTimer) { clearTimeout(fabTimer); fabTimer = null }
+    fabVisible.value = false
+  } else {
+    // 页面稳定后，延迟一小段时间再显示（等过渡完成）
+    if (fabTimer) clearTimeout(fabTimer)
+    fabTimer = setTimeout(() => {
+      fabVisible.value = true
+    }, 100)
+  }
+})
 
 const {
   ensureDailyTodos,
@@ -273,12 +292,15 @@ onMounted(() => {
     </div>
 
     <!-- 右下角悬浮添加按钮 -->
-    <button
-      @click="openAddModal"
-      class="fab-add"
-    >
-      <IconPlus :size="24" color="white" />
-    </button>
+    <transition name="fab-fade">
+      <button
+        v-show="fabVisible"
+        @click="openAddModal"
+        class="fab-add"
+      >
+        <IconPlus :size="24" color="white" />
+      </button>
+    </transition>
 
     <TodoModal
       :visible="showModal"
@@ -319,5 +341,20 @@ onMounted(() => {
 .fab-add:active {
   transform: scale(0.92);
   box-shadow: 0 2px 8px -2px rgba(108, 99, 255, 0.5);
+}
+
+.fab-fade-enter-active {
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+}
+.fab-fade-leave-active {
+  transition: opacity 0.15s ease-in, transform 0.15s ease-in;
+}
+.fab-fade-enter-from {
+  opacity: 0;
+  transform: scale(0.8);
+}
+.fab-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.8);
 }
 </style>
