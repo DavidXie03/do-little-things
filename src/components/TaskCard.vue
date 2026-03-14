@@ -45,15 +45,15 @@ const {
         v-if="(isDragging || isAnimatingOut) && leftZoneProgress > 0"
         class="fixed left-0 top-1/2 z-[9999] flex items-center pointer-events-none"
         :style="{
-          width: `${8 + leftZoneProgress * 35}vw`,
-          height: '420px',
-          marginTop: '-210px',
+          width: `${40 + leftZoneProgress * 80}px`,
+          height: '100vh',
+          marginTop: '-50vh',
           transition: 'width 0.15s ease-out',
         }"
       >
-        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 200" preserveAspectRatio="none">
+        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
           <path
-            :d="`M0,10 C0,4 2,0 5,0 L${10 + leftZoneProgress * 20},8 C${25 + leftZoneProgress * 25},18 ${40 + leftZoneProgress * 30},35 ${50 + leftZoneProgress * 30},60 L${55 + leftZoneProgress * 30},100 L${50 + leftZoneProgress * 30},140 C${40 + leftZoneProgress * 30},165 ${25 + leftZoneProgress * 25},182 ${10 + leftZoneProgress * 20},192 L5,200 C2,200 0,196 0,190 Z`"
+            :d="`M0,0 L0,100 C${20 + leftZoneProgress * 30},100 ${40 + leftZoneProgress * 40},85 ${50 + leftZoneProgress * 35},50 C${40 + leftZoneProgress * 40},15 ${20 + leftZoneProgress * 30},0 0,0 Z`"
             :fill="leftZoneProgress >= 1 ? 'var(--warning-zone)' : `rgba(253,203,110,${0.3 + leftZoneProgress * 0.5})`"
             :style="{ transition: 'fill 0.15s ease-out' }"
           />
@@ -77,15 +77,15 @@ const {
         v-if="(isDragging || isAnimatingOut) && rightZoneProgress > 0"
         class="fixed right-0 top-1/2 z-[9999] flex items-center justify-end pointer-events-none"
         :style="{
-          width: `${8 + rightZoneProgress * 35}vw`,
-          height: '420px',
-          marginTop: '-210px',
+          width: `${40 + rightZoneProgress * 80}px`,
+          height: '100vh',
+          marginTop: '-50vh',
           transition: 'width 0.15s ease-out',
         }"
       >
-        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 200" preserveAspectRatio="none">
+        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
           <path
-            :d="`M100,10 C100,4 98,0 95,0 L${90 - rightZoneProgress * 20},8 C${75 - rightZoneProgress * 25},18 ${60 - rightZoneProgress * 30},35 ${50 - rightZoneProgress * 30},60 L${45 - rightZoneProgress * 30},100 L${50 - rightZoneProgress * 30},140 C${60 - rightZoneProgress * 30},165 ${75 - rightZoneProgress * 25},182 ${90 - rightZoneProgress * 20},192 L95,200 C98,200 100,196 100,190 Z`"
+            :d="`M100,0 L100,100 C${80 - rightZoneProgress * 30},100 ${60 - rightZoneProgress * 40},85 ${50 - rightZoneProgress * 35},50 C${60 - rightZoneProgress * 40},15 ${80 - rightZoneProgress * 30},0 100,0 Z`"
             :fill="rightZoneProgress >= 1 ? 'var(--success)' : `rgba(0,184,148,${0.3 + rightZoneProgress * 0.5})`"
             :style="{ transition: 'fill 0.15s ease-out' }"
           />

@@ -29,16 +29,11 @@ const showImportExportModal = ref(false)
 const showAboutModal = ref(false)
 const showThemeModal = ref(false)
 
-const colorThemeOptions: { key: ColorTheme; labelKey: string; color: string; secondaryColor: string }[] = [
-  { key: 'purple', labelKey: 'settings.themeColorPurple', color: COLOR_THEMES.purple.primary, secondaryColor: COLOR_THEMES.purple.secondary },
-  { key: 'blue', labelKey: 'settings.themeColorBlue', color: COLOR_THEMES.blue.primary, secondaryColor: COLOR_THEMES.blue.secondary },
-  { key: 'green', labelKey: 'settings.themeColorGreen', color: COLOR_THEMES.green.primary, secondaryColor: COLOR_THEMES.green.secondary },
+const colorThemeOptions: { key: ColorTheme; color: string; secondaryColor: string }[] = [
+  { key: 'purple', color: COLOR_THEMES.purple.primary, secondaryColor: COLOR_THEMES.purple.secondary },
+  { key: 'blue', color: COLOR_THEMES.blue.primary, secondaryColor: COLOR_THEMES.blue.secondary },
+  { key: 'green', color: COLOR_THEMES.green.primary, secondaryColor: COLOR_THEMES.green.secondary },
 ]
-
-const currentThemeLabel = computed(() => {
-  const opt = colorThemeOptions.find(o => o.key === colorTheme.value)
-  return opt ? t(opt.labelKey) : ''
-})
 
 const currentLangLabel = computed(() => {
   const lang = languages.find(l => l.code === locale.value)
@@ -223,20 +218,15 @@ async function importConfig() {
             {{ t('settings.themeColor') }}
           </span>
 
-          <div class="flex items-center gap-1.5">
-            <div class="flex items-center -space-x-1">
-              <div
-                class="w-5 h-5 rounded-full border-2"
-                :style="{ background: COLOR_THEMES[colorTheme].primary, borderColor: 'var(--bg-primary)' }"
-              ></div>
-              <div
-                class="w-5 h-5 rounded-full border-2"
-                :style="{ background: COLOR_THEMES[colorTheme].secondary, borderColor: 'var(--bg-primary)' }"
-              ></div>
-            </div>
-            <span class="text-sm" style="color: var(--text-muted);">
-              {{ currentThemeLabel }}
-            </span>
+          <div class="flex items-center -space-x-1">
+            <div
+              class="w-5 h-5 rounded-full border-2"
+              :style="{ background: COLOR_THEMES[colorTheme].primary, borderColor: 'var(--bg-primary)' }"
+            ></div>
+            <div
+              class="w-5 h-5 rounded-full border-2"
+              :style="{ background: COLOR_THEMES[colorTheme].secondary, borderColor: 'var(--bg-primary)' }"
+            ></div>
           </div>
 
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
@@ -487,14 +477,7 @@ async function importConfig() {
             ></div>
           </div>
 
-          <span
-            class="text-sm font-medium flex-1 text-left"
-            :style="{
-              color: colorTheme === opt.key ? opt.color : 'var(--text-primary)',
-            }"
-          >
-            {{ t(opt.labelKey) }}
-          </span>
+          <div class="flex-1"></div>
 
           <div
             v-if="colorTheme === opt.key"
