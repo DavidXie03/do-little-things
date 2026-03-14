@@ -447,16 +447,16 @@ async function importConfig() {
         <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="card-grad" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="var(--primary)"/>
-              <stop offset="100%" stop-color="var(--primary-light)"/>
+              <stop offset="0%" stop-color="#6C63FF"/>
+              <stop offset="100%" stop-color="#8B83FF"/>
             </linearGradient>
           </defs>
-          <!-- 底部卡片（右下偏移露出边缘） -->
-          <rect x="16" y="10" width="36" height="44" rx="6" fill="var(--primary)" opacity="0.35"/>
-          <!-- 顶部卡片（左上） -->
-          <rect x="4" y="2" width="36" height="44" rx="6" fill="url(#card-grad)"/>
+          <!-- 底部卡片（向右倾斜 6°） -->
+          <rect x="16" y="10" width="36" height="44" rx="6" fill="#6C63FF" opacity="0.35" transform="rotate(6 34 32)"/>
+          <!-- 顶部卡片（向左倾斜 6°） -->
+          <rect x="4" y="2" width="36" height="44" rx="6" fill="url(#card-grad)" transform="rotate(-6 22 24)"/>
           <!-- 白色对勾 -->
-          <polyline points="14,26 20,32 30,20" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="14,26 20,32 30,20" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" transform="rotate(-6 22 24)"/>
         </svg>
         <div class="text-center">
           <h3 class="text-base font-bold" style="color: var(--text-primary);">
