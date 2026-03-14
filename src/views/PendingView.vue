@@ -25,11 +25,9 @@ const {
 } = useStorage()
 
 function handleComplete(todoId: string) {
-  const item = dailyTodos.value?.items.find(i => i.id === todoId)
-  const wasCompleted = item?.completed ?? false
-  markTodoComplete(todoId)
-  // 只在从未完成变为完成时（非取消完成）显示表扬
-  if (!wasCompleted) {
+  const fullyDone = markTodoComplete(todoId)
+  // 只在全部次数完成后才显示表扬 toast
+  if (fullyDone) {
     const messages = tm('toast.completeMessages') as string[]
     const msg = messages[Math.floor(Math.random() * messages.length)]
     showToast(msg, 'success')

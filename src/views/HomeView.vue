@@ -22,7 +22,6 @@ const {
 const {
   allDone,
   cardKey,
-  animPhase,
   backgroundCardCount,
   isLastRemaining,
   risingCardRef,
@@ -119,7 +118,6 @@ onMounted(() => {
             >
               <div class="card-back">
                 <div class="card-back-pattern">
-                  <div class="card-back-diamond"></div>
                   <div class="card-back-border"></div>
                   <div class="card-back-center-icon">✦</div>
                 </div>
@@ -131,18 +129,8 @@ onMounted(() => {
               ref="topCardRef"
               class="card-stack-top"
             >
-              <!-- 翻转阶段：顶部显示卡牌背面 -->
-              <div v-if="animPhase === 'flipping'" class="card-back">
-                <div class="card-back-pattern">
-                  <div class="card-back-diamond"></div>
-                  <div class="card-back-border"></div>
-                  <div class="card-back-center-icon">✦</div>
-                </div>
-              </div>
-
-              <!-- 正常/front 阶段：显示正面 TaskCard -->
+              <!-- 直接显示正面 TaskCard -->
               <TaskCard
-                v-if="animPhase === 'idle' || animPhase === 'front'"
                 :key="cardKey"
                 :task="topItem.task"
                 :remaining-count="topItem.totalCount - topItem.completedCount"
@@ -150,8 +138,6 @@ onMounted(() => {
                 :disable-left="isLastRemaining"
                 @swipe="handleSwipe"
               />
-
-              <!-- rising 阶段：顶部区域什么也不显示，卡背正从堆叠位置升起 -->
             </div>
           </div>
         </template>
@@ -220,18 +206,6 @@ onMounted(() => {
   inset: 12px;
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 1.2rem;
-}
-
-.card-back-diamond {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(45deg, rgba(255,255,255,0.06) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(255,255,255,0.06) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.06) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.06) 75%);
-  background-size: 30px 30px;
-  background-position: 0 0, 0 15px, 15px -15px, -15px 0px;
 }
 
 .card-back-center-icon {

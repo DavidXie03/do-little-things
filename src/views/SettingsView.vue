@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Languages, Archive, Info } from 'lucide-vue-next'
 import { saveLanguage } from '../i18n'
-import { useTheme } from '../composables/useTheme'
+import { useTheme, COLOR_THEMES, type ColorTheme } from '../composables/useTheme'
 import { storageData, saveData } from '../composables/storageCore'
 import { useToast } from '../composables/useToast'
 import { useDailyTodos } from '../composables/useDailyTodos'
@@ -12,7 +12,7 @@ import type { CustomAction } from '../types'
 import BaseModal from '../components/BaseModal.vue'
 
 const { t, locale } = useI18n()
-const { isDark, toggleDark } = useTheme()
+const { isDark, toggleDark, colorTheme, setColorTheme } = useTheme()
 const { showToast } = useToast()
 const { ensureDailyTodos } = useDailyTodos()
 
@@ -27,6 +27,11 @@ const languages = [
 const showLangModal = ref(false)
 const showImportExportModal = ref(false)
 const showAboutModal = ref(false)
+
+const colorThemeOptions: { key: ColorTheme; labelKey: string; color: string }[] = [
+  { key: 'purple', labelKey: 'settings.themeColorPurple', color: COLOR_THEMES.purple.primary },
+  { key: 'teal', labelKey: 'settings.themeColorTeal', color: COLOR_THEMES.teal.primary },
+]
 
 const currentLangLabel = computed(() => {
   const lang = languages.find(l => l.code === locale.value)
@@ -129,66 +134,103 @@ async function importConfig() {
     </header>
 
     <div class="flex-1 overflow-y-auto u-section-x pb-4" style="-webkit-overflow-scrolling: touch;">
+      <!-- 外观设置分组卡片 -->
       <div
-        class="w-full flex items-center gap-3 u-item rounded-2xl transition-all duration-300"
+        class="rounded-2xl overflow-hidden"
         style="background: var(--item-bg); box-shadow: var(--card-shadow);"
       >
-        <svg v-if="isDark" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
-          <circle cx="12" cy="12" r="5" stroke="var(--primary)" stroke-width="2"/>
-          <line x1="12" y1="1" x2="12" y2="3" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
-          <line x1="12" y1="21" x2="12" y2="23" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
-          <line x1="1" y1="12" x2="3" y2="12" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
-          <line x1="21" y1="12" x2="23" y2="12" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+        <!-- 深色模式 -->
+        <div class="flex items-center gap-3 u-item">
+          <svg v-if="isDark" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
+            <circle cx="12" cy="12" r="5" stroke="var(--primary)" stroke-width="2"/>
+            <line x1="12" y1="1" x2="12" y2="3" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="12" y1="21" x2="12" y2="23" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="1" y1="12" x2="3" y2="12" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="21" y1="12" x2="23" y2="12" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
 
-        <span class="text-sm font-medium flex-1 text-left" style="color: var(--text-primary);">
-          {{ t('settings.darkMode') }}
-        </span>
+          <span class="text-sm font-medium flex-1 text-left" style="color: var(--text-primary);">
+            {{ t('settings.darkMode') }}
+          </span>
 
-        <button
-          @click="toggleDark()"
-          class="relative w-11 h-6 rounded-full transition-all duration-300 flex-shrink-0"
-          :style="{
-            background: isDark ? 'var(--primary)' : 'var(--text-muted)',
-          }"
-        >
-          <div
-            class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300"
+          <button
+            @click="toggleDark()"
+            class="relative w-11 h-6 rounded-full transition-all duration-300 flex-shrink-0"
             :style="{
-              left: isDark ? '22px' : '2px',
+              background: isDark ? 'var(--primary)' : 'var(--text-muted)',
             }"
-          ></div>
+          >
+            <div
+              class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300"
+              :style="{
+                left: isDark ? '22px' : '2px',
+              }"
+            ></div>
+          </button>
+        </div>
+
+        <!-- 分隔线 -->
+        <div style="border-bottom: 1px solid var(--divider);"></div>
+
+        <!-- 语言 -->
+        <button
+          @click="openLangModal"
+          class="w-full flex items-center gap-3 u-item transition-all duration-300 active:scale-[0.98]"
+        >
+          <Languages :size="20" color="var(--primary)" class="flex-shrink-0" />
+
+          <span class="text-sm font-medium flex-1 text-left" style="color: var(--text-primary);">
+            {{ t('settings.language') }}
+          </span>
+
+          <span class="text-sm" style="color: var(--text-muted);">
+            {{ currentLangLabel }}
+          </span>
+
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
+            <path d="M9 18L15 12L9 6" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
+
+        <!-- 分隔线 -->
+        <div style="border-bottom: 1px solid var(--divider);"></div>
+
+        <!-- 主题颜色 -->
+        <div class="flex items-center gap-3 u-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
+            <circle cx="12" cy="12" r="10" stroke="var(--primary)" stroke-width="2"/>
+            <circle cx="12" cy="12" r="4" fill="var(--primary)"/>
+          </svg>
+
+          <span class="text-sm font-medium flex-1 text-left" style="color: var(--text-primary);">
+            {{ t('settings.themeColor') }}
+          </span>
+
+          <div class="flex items-center gap-2">
+            <button
+              v-for="opt in colorThemeOptions"
+              :key="opt.key"
+              @click="setColorTheme(opt.key)"
+              class="w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90"
+              :style="{
+                background: opt.color,
+                boxShadow: colorTheme === opt.key ? `0 0 0 2.5px var(--bg-primary), 0 0 0 4.5px ${opt.color}` : 'none',
+              }"
+            >
+              <svg v-if="colorTheme === opt.key" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M20 6L9 17L4 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
-
-      <div class="h-3"></div>
-
-      <button
-        @click="openLangModal"
-        class="w-full flex items-center gap-3 u-item rounded-2xl transition-all duration-300 active:scale-[0.98]"
-        style="background: var(--item-bg); box-shadow: var(--card-shadow);"
-      >
-        <Languages :size="20" color="var(--primary)" class="flex-shrink-0" />
-
-        <span class="text-sm font-medium flex-1 text-left" style="color: var(--text-primary);">
-          {{ t('settings.language') }}
-        </span>
-
-        <span class="text-sm" style="color: var(--text-muted);">
-          {{ currentLangLabel }}
-        </span>
-
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
-          <path d="M9 18L15 12L9 6" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
 
       <div class="h-3"></div>
 

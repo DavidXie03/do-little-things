@@ -154,14 +154,16 @@ export function useSwipeGesture(
           opacity: 0,
         },
       ], {
-        duration: 350,
+        duration: 200,
         easing: 'cubic-bezier(0.45, 0, 0.55, 1)',
         fill: 'forwards',
       })
 
+      // 提前触发回调，使新卡片更快出现
+      setTimeout(doSwipe, 120)
       animation.onfinish = doSwipe
       animation.oncancel = doSwipe
-      setTimeout(doSwipe, 450)
+      setTimeout(doSwipe, 300)
     } catch {
       doSwipe()
     }
