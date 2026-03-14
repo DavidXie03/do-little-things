@@ -4,11 +4,6 @@ import type { SwipeDirection } from '../types'
 const SWIPE_THRESHOLD_X = 100
 const LEFT_DAMPED_MAX = 30
 
-export interface SwipeInfo {
-  direction: SwipeDirection
-  releaseOffsetX: number
-}
-
 function dampedOffset(rawOffset: number): number {
   const abs = Math.abs(rawOffset)
   return -LEFT_DAMPED_MAX * (1 - Math.exp(-abs / 120))
@@ -16,7 +11,7 @@ function dampedOffset(rawOffset: number): number {
 
 export function useSwipeGesture(
   cardRef: Ref<HTMLElement | null>,
-  onSwipe: (direction: SwipeDirection, info?: SwipeInfo) => void,
+  onSwipe: (direction: SwipeDirection) => void,
   options?: { canSwipeLeft?: () => boolean },
 ) {
   const offsetX = ref(0)
@@ -172,25 +167,6 @@ export function useSwipeGesture(
     } catch {
       doSwipe()
     }
-  }
-
-  /** 左滑：记录松手偏移，直接通知 HomeView 接管动画 */
-  function animateLeftSwipe() {
-    const releaseX = offsetX.value
-    isAnimatingOut.value = true
-    animatingDirection.value = 'left'
-
-    let swiped = false
-    const doSwipe = () => {
-      if (swiped) return
-      swiped = true
-      isAnimatingOut.value = false
-      animatingDirection.value = null
-      offsetX.value = 0
-      onSwipe('left', { direction: 'left', releaseOffsetX: releaseX })
-    }
-
-    doSwipe()
   }
 
   onUnmounted(() => {

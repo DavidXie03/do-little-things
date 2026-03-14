@@ -31,10 +31,8 @@ const showThemeModal = ref(false)
 
 const colorThemeOptions: { key: ColorTheme; labelKey: string; color: string; secondaryColor: string }[] = [
   { key: 'purple', labelKey: 'settings.themeColorPurple', color: COLOR_THEMES.purple.primary, secondaryColor: COLOR_THEMES.purple.secondary },
-  { key: 'ocean', labelKey: 'settings.themeColorOcean', color: COLOR_THEMES.ocean.primary, secondaryColor: COLOR_THEMES.ocean.secondary },
-  { key: 'sunset', labelKey: 'settings.themeColorSunset', color: COLOR_THEMES.sunset.primary, secondaryColor: COLOR_THEMES.sunset.secondary },
-  { key: 'forest', labelKey: 'settings.themeColorForest', color: COLOR_THEMES.forest.primary, secondaryColor: COLOR_THEMES.forest.secondary },
-  { key: 'rose', labelKey: 'settings.themeColorRose', color: COLOR_THEMES.rose.primary, secondaryColor: COLOR_THEMES.rose.secondary },
+  { key: 'blue', labelKey: 'settings.themeColorBlue', color: COLOR_THEMES.blue.primary, secondaryColor: COLOR_THEMES.blue.secondary },
+  { key: 'green', labelKey: 'settings.themeColorGreen', color: COLOR_THEMES.green.primary, secondaryColor: COLOR_THEMES.green.secondary },
 ]
 
 const currentThemeLabel = computed(() => {

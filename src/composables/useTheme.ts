@@ -3,7 +3,7 @@ import { ref } from 'vue'
 const DARK_STORAGE_KEY = 'do-little-things-dark-mode'
 const COLOR_STORAGE_KEY = 'do-little-things-color-theme'
 
-export type ColorTheme = 'purple' | 'ocean' | 'sunset' | 'forest' | 'rose'
+export type ColorTheme = 'purple' | 'blue' | 'green'
 
 export interface ThemeColorSet {
   primary: string
@@ -35,61 +35,33 @@ export const COLOR_THEMES: Record<ColorTheme, ThemeColorSet> = {
     toastSuccessBgDark: 'rgba(78, 205, 196, 0.2)',
     toastSuccessTextDark: '#6FE4DC',
   },
-  ocean: {
+  blue: {
     primary: '#0EA5E9',
     primaryLight: '#38BDF8',
-    secondary: '#06B6D4',
-    secondaryLight: '#22D3EE',
+    secondary: '#F97316',
+    secondaryLight: '#FB923C',
     toastInfoBg: 'rgba(14, 165, 233, 0.12)',
     toastInfoText: '#0EA5E9',
     toastInfoBgDark: 'rgba(14, 165, 233, 0.2)',
     toastInfoTextDark: '#38BDF8',
-    toastSuccessBg: 'rgba(6, 182, 212, 0.15)',
-    toastSuccessText: '#06B6D4',
-    toastSuccessBgDark: 'rgba(6, 182, 212, 0.2)',
-    toastSuccessTextDark: '#22D3EE',
+    toastSuccessBg: 'rgba(249, 115, 22, 0.15)',
+    toastSuccessText: '#F97316',
+    toastSuccessBgDark: 'rgba(249, 115, 22, 0.2)',
+    toastSuccessTextDark: '#FB923C',
   },
-  sunset: {
-    primary: '#F97316',
-    primaryLight: '#FB923C',
-    secondary: '#EAB308',
-    secondaryLight: '#FACC15',
-    toastInfoBg: 'rgba(249, 115, 22, 0.12)',
-    toastInfoText: '#F97316',
-    toastInfoBgDark: 'rgba(249, 115, 22, 0.2)',
-    toastInfoTextDark: '#FB923C',
-    toastSuccessBg: 'rgba(234, 179, 8, 0.15)',
-    toastSuccessText: '#EAB308',
-    toastSuccessBgDark: 'rgba(234, 179, 8, 0.2)',
-    toastSuccessTextDark: '#FACC15',
-  },
-  forest: {
+  green: {
     primary: '#059669',
     primaryLight: '#34D399',
-    secondary: '#0D9488',
-    secondaryLight: '#2DD4BF',
+    secondary: '#E11D48',
+    secondaryLight: '#FB7185',
     toastInfoBg: 'rgba(5, 150, 105, 0.12)',
     toastInfoText: '#059669',
     toastInfoBgDark: 'rgba(5, 150, 105, 0.2)',
     toastInfoTextDark: '#34D399',
-    toastSuccessBg: 'rgba(13, 148, 136, 0.15)',
-    toastSuccessText: '#0D9488',
-    toastSuccessBgDark: 'rgba(13, 148, 136, 0.2)',
-    toastSuccessTextDark: '#2DD4BF',
-  },
-  rose: {
-    primary: '#E11D48',
-    primaryLight: '#FB7185',
-    secondary: '#DB2777',
-    secondaryLight: '#F472B6',
-    toastInfoBg: 'rgba(225, 29, 72, 0.12)',
-    toastInfoText: '#E11D48',
-    toastInfoBgDark: 'rgba(225, 29, 72, 0.2)',
-    toastInfoTextDark: '#FB7185',
-    toastSuccessBg: 'rgba(219, 39, 119, 0.15)',
-    toastSuccessText: '#DB2777',
-    toastSuccessBgDark: 'rgba(219, 39, 119, 0.2)',
-    toastSuccessTextDark: '#F472B6',
+    toastSuccessBg: 'rgba(225, 29, 72, 0.15)',
+    toastSuccessText: '#E11D48',
+    toastSuccessBgDark: 'rgba(225, 29, 72, 0.2)',
+    toastSuccessTextDark: '#FB7185',
   },
 }
 
@@ -104,9 +76,11 @@ function loadTheme() {
     isDark.value = false
   }
 
-  const savedColor = localStorage.getItem(COLOR_STORAGE_KEY) as ColorTheme | null
-  if (savedColor && COLOR_THEMES[savedColor]) {
-    colorTheme.value = savedColor
+  const savedColor = localStorage.getItem(COLOR_STORAGE_KEY) as string | null
+  const MIGRATION: Record<string, ColorTheme> = { ocean: 'blue', forest: 'green' }
+  const migrated = savedColor && MIGRATION[savedColor] ? MIGRATION[savedColor] : savedColor
+  if (migrated && COLOR_THEMES[migrated as ColorTheme]) {
+    colorTheme.value = migrated as ColorTheme
   } else {
     colorTheme.value = 'purple'
   }

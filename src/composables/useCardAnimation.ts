@@ -2,7 +2,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import type { DailyTodoItem } from '../types'
 import { storageData } from './storageCore'
 
-export type AnimPhase = 'idle' | 'rising' | 'flipping' | 'front' | 'left-flip' | 'left-back' | 'left-sink'
+export type AnimPhase = 'idle' | 'rising' | 'flipping' | 'front'
 
 const MAX_STACK = 3
 
@@ -89,116 +89,6 @@ export function useCardAnimation(
 
   function lockBackground() {
     lockedBackgroundCount.value = Math.max(1, backgroundCardCount.value || 1)
-  }
-
-  function playLeftSwipeAnimation(releaseX: number) {
-    const el = topCardRef.value
-    if (!el) {
-      resetAnimState()
-      return
-    }
-
-    const releaseRot = releaseX * 0.06
-
-    const safetyTimeout = setTimeout(() => {
-      resetAnimState()
-      cancelAllAnimations()
-      if (el) { el.style.transform = ''; el.style.transition = ''; el.style.zIndex = '' }
-    }, 2500)
-
-    el.style.transition = 'none'
-    el.getBoundingClientRect()
-
-    animPhase.value = 'left-flip'
-    const flipOut = el.animate([
-      {
-        transform: `translateX(${releaseX}px) rotate(${releaseRot}deg) perspective(800px) rotateY(0deg)`,
-        opacity: 1,
-      },
-      {
-        transform: 'translateX(0px) rotate(0deg) perspective(800px) rotateY(90deg)',
-        opacity: 0.9,
-      },
-    ], {
-      duration: 300,
-      easing: 'ease-in-out',
-      fill: 'forwards',
-    })
-    activeAnimations.push(flipOut)
-
-    flipOut.onfinish = () => {
-      animPhase.value = 'left-back'
-
-      nextTick(() => {
-        el.style.transition = 'none'
-        el.getBoundingClientRect()
-
-        const flipIn = el.animate([
-          { transform: 'perspective(800px) rotateY(-90deg) scale(1)', opacity: 0.9 },
-          { transform: 'perspective(800px) rotateY(0deg) scale(1)', opacity: 1 },
-        ], {
-          duration: 250,
-          easing: 'ease-out',
-          fill: 'forwards',
-        })
-        activeAnimations.push(flipIn)
-
-        flipIn.onfinish = () => {
-          animPhase.value = 'left-sink'
-          el.style.zIndex = '0'
-
-          nextTick(() => {
-            el.style.transition = 'none'
-            el.getBoundingClientRect()
-
-            const sinkAnim = el.animate([
-              { transform: 'scale(1) translateY(0px)', opacity: 1 },
-              { transform: 'scale(0.96) translateY(16px)', opacity: 0.3 },
-            ], {
-              duration: 300,
-              easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-              fill: 'forwards',
-            })
-            activeAnimations.push(sinkAnim)
-
-            sinkAnim.onfinish = () => {
-              clearTimeout(safetyTimeout)
-              el.style.transform = ''
-              el.style.transition = ''
-              el.style.zIndex = ''
-              cancelAllAnimations()
-
-              loadStack()
-              cardKey.value++
-
-              if (getUncompletedTodos().length > 0) {
-                animPhase.value = 'rising'
-                nextTick(() => {
-                  requestAnimationFrame(() => { playRisingAnimation() })
-                })
-              } else {
-                resetAnimState()
-              }
-            }
-            sinkAnim.oncancel = () => {
-              clearTimeout(safetyTimeout)
-              el.style.transform = ''
-              el.style.transition = ''
-              el.style.zIndex = ''
-              resetAnimState()
-            }
-          })
-        }
-        flipIn.oncancel = () => {
-          clearTimeout(safetyTimeout)
-          resetAnimState()
-        }
-      })
-    }
-    flipOut.oncancel = () => {
-      clearTimeout(safetyTimeout)
-      resetAnimState()
-    }
   }
 
   function playRisingAnimation() {
@@ -292,13 +182,7 @@ export function useCardAnimation(
     }
   }
 
-  function triggerLeftSwipe(releaseOffsetX: number) {
-    cancelAllAnimations()
-    lockBackground()
-    playLeftSwipeAnimation(releaseOffsetX)
-  }
-
-  function triggerRightSwipe() {
+  function triggerSwipeOut() {
     lockBackground()
     animPhase.value = 'rising'
     cancelAllAnimations()
@@ -334,8 +218,7 @@ export function useCardAnimation(
     topCardRef,
     topItem,
     loadStack,
-    triggerLeftSwipe,
-    triggerRightSwipe,
+    triggerSwipeOut,
     triggerAllDone,
     MAX_STACK,
   }

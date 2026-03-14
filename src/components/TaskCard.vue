@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { SwipeDirection, Task } from '../types'
-import { useSwipeGesture, type SwipeInfo } from '../composables/useSwipeGesture'
+import { useSwipeGesture } from '../composables/useSwipeGesture'
 import IconCheck from './icons/IconCheck.vue'
 import IconClock from './icons/IconClock.vue'
 
@@ -16,7 +16,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'swipe', direction: SwipeDirection, info?: SwipeInfo): void
+  (e: 'swipe', direction: SwipeDirection): void
 }>()
 
 const cardRef = ref<HTMLElement | null>(null)
@@ -33,7 +33,7 @@ const {
   onMouseDown,
 } = useSwipeGesture(
   cardRef,
-  (direction, info) => emit('swipe', direction, info),
+  (direction) => emit('swipe', direction),
   { canSwipeLeft: () => !props.disableLeft },
 )
 </script>
@@ -43,15 +43,17 @@ const {
     <transition name="zone-fade">
       <div
         v-if="(isDragging || isAnimatingOut) && leftZoneProgress > 0"
-        class="fixed left-0 top-0 bottom-0 z-[9999] flex items-center pointer-events-none"
+        class="fixed left-0 top-1/2 z-[9999] flex items-center pointer-events-none"
         :style="{
-          width: `${40 + leftZoneProgress * 30}px`,
+          width: `${50 + leftZoneProgress * 40}px`,
+          height: '400px',
+          marginTop: '-200px',
           transition: 'width 0.15s ease-out',
         }"
       >
         <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
           <path
-            :d="`M0,0 L0,100 L${20 + leftZoneProgress * 30},100 C${40 + leftZoneProgress * 20},75 ${60 + leftZoneProgress * 30},60 ${70 + leftZoneProgress * 25},50 C${60 + leftZoneProgress * 30},40 ${40 + leftZoneProgress * 20},25 ${20 + leftZoneProgress * 30},0 Z`"
+            :d="`M0,0 L0,100 L${15 + leftZoneProgress * 25},100 C${35 + leftZoneProgress * 25},78 ${50 + leftZoneProgress * 35},65 ${60 + leftZoneProgress * 30},50 C${50 + leftZoneProgress * 35},35 ${35 + leftZoneProgress * 25},22 ${15 + leftZoneProgress * 25},0 Z`"
             :fill="leftZoneProgress >= 1 ? 'var(--warning-zone)' : `rgba(253,203,110,${0.3 + leftZoneProgress * 0.5})`"
             :style="{ transition: 'fill 0.15s ease-out' }"
           />
@@ -72,15 +74,17 @@ const {
     <transition name="zone-fade">
       <div
         v-if="(isDragging || isAnimatingOut) && rightZoneProgress > 0"
-        class="fixed right-0 top-0 bottom-0 z-[9999] flex items-center pointer-events-none"
+        class="fixed right-0 top-1/2 z-[9999] flex items-center pointer-events-none"
         :style="{
-          width: `${40 + rightZoneProgress * 30}px`,
+          width: `${50 + rightZoneProgress * 40}px`,
+          height: '400px',
+          marginTop: '-200px',
           transition: 'width 0.15s ease-out',
         }"
       >
         <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
           <path
-            :d="`M100,0 L100,100 L${80 - rightZoneProgress * 30},100 C${60 - rightZoneProgress * 20},75 ${40 - rightZoneProgress * 30},60 ${30 - rightZoneProgress * 25},50 C${40 - rightZoneProgress * 30},40 ${60 - rightZoneProgress * 20},25 ${80 - rightZoneProgress * 30},0 Z`"
+            :d="`M100,0 L100,100 L${85 - rightZoneProgress * 25},100 C${65 - rightZoneProgress * 25},78 ${50 - rightZoneProgress * 35},65 ${40 - rightZoneProgress * 30},50 C${50 - rightZoneProgress * 35},35 ${65 - rightZoneProgress * 25},22 ${85 - rightZoneProgress * 25},0 Z`"
             :fill="rightZoneProgress >= 1 ? 'var(--success)' : `rgba(0,184,148,${0.3 + rightZoneProgress * 0.5})`"
             :style="{ transition: 'fill 0.15s ease-out' }"
           />
