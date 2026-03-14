@@ -77,7 +77,8 @@ export default {
     aboutVersion: '版本',
     slogan: '个性签名',
     sloganPlaceholder: '早做是最好的偷懒',
-    sloganShow: '展示',
+    sloganShow: '展示签名',
+    sloganTyping: '打字效果',
     sloganOff: '关闭',
   },
   todoItem: {

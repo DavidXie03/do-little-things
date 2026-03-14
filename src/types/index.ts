@@ -86,4 +86,5 @@ export interface StorageData {
   dailyTodos: DailyTodoList | null
   slogan?: string
   showSlogan?: boolean
+  typingEffect?: boolean
 }

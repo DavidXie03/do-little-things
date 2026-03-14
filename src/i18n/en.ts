@@ -77,7 +77,8 @@ export default {
     aboutVersion: 'Version',
     slogan: 'Slogan',
     sloganPlaceholder: 'Do it early, the best kind of lazy',
-    sloganShow: 'Show',
+    sloganShow: 'Show Slogan',
+    sloganTyping: 'Typing Effect',
     sloganOff: 'Off',
   },
   todoItem: {

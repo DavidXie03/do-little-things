@@ -24,6 +24,10 @@ const isTyping = ref(false)
 let typeTimer: ReturnType<typeof setTimeout> | null = null
 let loopTimer: ReturnType<typeof setTimeout> | null = null
 
+const isTypingEnabled = computed(() => {
+  return storageData.value.typingEffect !== false
+})
+
 function clearAllTimers() {
   if (typeTimer) { clearTimeout(typeTimer); typeTimer = null }
   if (loopTimer) { clearTimeout(loopTimer); loopTimer = null }
@@ -33,6 +37,12 @@ function startTyping(text: string) {
   clearAllTimers()
   if (!text) {
     typedSlogan.value = ''
+    isTyping.value = false
+    return
+  }
+  // 打字效果关闭时直接展示全文
+  if (!isTypingEnabled.value) {
+    typedSlogan.value = text
     isTyping.value = false
     return
   }
@@ -60,6 +70,10 @@ function startTyping(text: string) {
 watch(displaySlogan, (val) => {
   startTyping(val)
 }, { immediate: true })
+
+watch(isTypingEnabled, () => {
+  startTyping(displaySlogan.value)
+})
 
 onUnmounted(() => {
   clearAllTimers()

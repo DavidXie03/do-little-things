@@ -59,7 +59,7 @@ function switchLanguage(langCode: string) {
 }
 
 const displaySlogan = computed(() => {
-  if (!isSloganVisible.value) return t('settings.sloganOff')
+  if (storageData.value.showSlogan === false) return t('settings.sloganOff')
   const custom = storageData.value.slogan
   if (custom && custom.trim()) return custom
   return t('home.defaultSlogan')
@@ -69,19 +69,22 @@ const isSloganVisible = computed(() => {
   return storageData.value.showSlogan !== false
 })
 
-function toggleSloganVisible() {
-  storageData.value.showSlogan = !isSloganVisible.value
-  saveData(storageData.value)
-}
+// 弹窗内的临时状态（打开时初始化，保存时才写入 storageData）
+const tempShowSlogan = ref(true)
+const tempTypingEffect = ref(true)
 
 function openSloganModal() {
   sloganInput.value = storageData.value.slogan || ''
+  tempShowSlogan.value = storageData.value.showSlogan !== false
+  tempTypingEffect.value = storageData.value.typingEffect !== false
   showSloganModal.value = true
 }
 
 function saveSlogan() {
   const trimmed = sloganInput.value.trim()
   storageData.value.slogan = trimmed || undefined
+  storageData.value.showSlogan = tempShowSlogan.value
+  storageData.value.typingEffect = tempTypingEffect.value
   saveData(storageData.value)
   showSloganModal.value = false
 }
@@ -569,7 +572,7 @@ async function importConfig() {
       @close="showSloganModal = false"
     >
       <div class="u-gap-sm">
-        <!-- 显示开关 -->
+        <!-- 展示签名开关 -->
         <div class="flex items-center justify-between u-item rounded-2xl"
           style="background: rgba(108,99,255,0.04);"
         >
@@ -577,16 +580,39 @@ async function importConfig() {
             {{ t('settings.sloganShow') }}
           </span>
           <button
-            @click="toggleSloganVisible"
+            @click="tempShowSlogan = !tempShowSlogan"
             class="relative w-11 h-6 rounded-full transition-all duration-300 flex-shrink-0"
             :style="{
-              background: isSloganVisible ? 'var(--primary)' : 'var(--text-muted)',
+              background: tempShowSlogan ? 'var(--primary)' : 'var(--text-muted)',
             }"
           >
             <div
               class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300"
               :style="{
-                left: isSloganVisible ? '22px' : '2px',
+                left: tempShowSlogan ? '22px' : '2px',
+              }"
+            ></div>
+          </button>
+        </div>
+
+        <!-- 打字效果开关 -->
+        <div class="flex items-center justify-between u-item rounded-2xl"
+          style="background: rgba(108,99,255,0.04);"
+        >
+          <span class="text-sm font-medium" style="color: var(--text-primary);">
+            {{ t('settings.sloganTyping') }}
+          </span>
+          <button
+            @click="tempTypingEffect = !tempTypingEffect"
+            class="relative w-11 h-6 rounded-full transition-all duration-300 flex-shrink-0"
+            :style="{
+              background: tempTypingEffect ? 'var(--primary)' : 'var(--text-muted)',
+            }"
+          >
+            <div
+              class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300"
+              :style="{
+                left: tempTypingEffect ? '22px' : '2px',
               }"
             ></div>
           </button>
