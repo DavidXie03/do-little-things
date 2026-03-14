@@ -71,7 +71,7 @@ watch(displaySlogan, (val) => {
   startTyping(val)
 }, { immediate: true })
 
-watch(isTypingEnabled, () => {
+watch(() => storageData.value.typingEffect, () => {
   startTyping(displaySlogan.value)
 })
 

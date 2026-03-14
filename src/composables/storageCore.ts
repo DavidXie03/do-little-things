@@ -17,6 +17,8 @@ function getDefaultData(): StorageData {
     dailyConfig: getDefaultDailyConfig(),
     customActions: [],
     dailyTodos: null,
+    showSlogan: false,
+    typingEffect: true,
   }
 }
 
@@ -40,6 +42,10 @@ function migrateData(data: any): StorageData {
     // v5 迁移：添加 recurrence 字段，默认为 daily
     if (!ca.recurrence) ca.recurrence = 'daily'
   }
+
+  // 确保签名和打字效果字段有显式值（老用户可能为 undefined）
+  if (data.showSlogan === undefined) data.showSlogan = false
+  if (data.typingEffect === undefined) data.typingEffect = true
 
   if (data.dailyTodos && data.dailyTodos.items) {
     const today = toLocalDateStr(new Date())
