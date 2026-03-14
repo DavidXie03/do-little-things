@@ -54,7 +54,7 @@ const {
         <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
           <path
             :d="`M0,0 L0,100 C${20 + leftZoneProgress * 30},100 ${40 + leftZoneProgress * 40},85 ${50 + leftZoneProgress * 35},50 C${40 + leftZoneProgress * 40},15 ${20 + leftZoneProgress * 30},0 0,0 Z`"
-            :fill="leftZoneProgress >= 1 ? 'var(--warning-zone)' : `rgba(253,213,107,${0.3 + leftZoneProgress * 0.5})`"
+            :fill="`rgba(253,213,107,${0.3 + leftZoneProgress * 0.5})`"
             :style="{ transition: 'fill 0.15s ease-out' }"
           />
         </svg>
@@ -86,7 +86,7 @@ const {
         <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
           <path
             :d="`M100,0 L100,100 C${80 - rightZoneProgress * 30},100 ${60 - rightZoneProgress * 40},85 ${50 - rightZoneProgress * 35},50 C${60 - rightZoneProgress * 40},15 ${80 - rightZoneProgress * 30},0 100,0 Z`"
-            :fill="rightZoneProgress >= 1 ? 'var(--success)' : `rgba(94,207,176,${0.3 + rightZoneProgress * 0.5})`"
+            :fill="`rgba(94,207,176,${0.3 + rightZoneProgress * 0.5})`"
             :style="{ transition: 'fill 0.15s ease-out' }"
           />
         </svg>
