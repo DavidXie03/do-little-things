@@ -13,6 +13,7 @@ const { t, tm } = useI18n()
 const { showToast } = useToast()
 
 const displaySlogan = computed(() => {
+  if (storageData.value.showSlogan === false) return ''
   const custom = storageData.value.slogan
   if (custom && custom.trim()) return custom
   return t('home.defaultSlogan')
@@ -127,12 +128,14 @@ onMounted(() => {
         <template v-if="topItem">
           <!-- 标题 -->
           <h1
-            class="text-2xl font-bold text-center u-mb-sm"
+            class="text-2xl font-bold text-center"
+            :class="displaySlogan ? 'u-mb-sm' : 'u-mb-lg'"
             style="color: var(--primary);"
           >
             {{ t('app.title') }}
           </h1>
           <p
+            v-if="displaySlogan"
             class="text-sm text-center u-mb-lg slogan-text"
             style="color: var(--text-muted);"
           >

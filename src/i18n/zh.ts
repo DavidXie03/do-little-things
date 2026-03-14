@@ -76,8 +76,9 @@ export default {
     aboutOpenSource: '开源地址',
     aboutVersion: '版本',
     slogan: '个性签名',
-    sloganPlaceholder: '输入你的个性签名...',
+    sloganPlaceholder: '早做是最好的偷懒',
     sloganReset: '恢复默认',
+    sloganShow: '显示个性签名',
   },
   todoItem: {
     deleteConfirm: '再次点击确认删除',

@@ -85,4 +85,5 @@ export interface StorageData {
   customActions: CustomAction[]
   dailyTodos: DailyTodoList | null
   slogan?: string
+  showSlogan?: boolean
 }

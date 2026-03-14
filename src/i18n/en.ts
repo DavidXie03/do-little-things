@@ -76,8 +76,9 @@ export default {
     aboutOpenSource: 'Open Source',
     aboutVersion: 'Version',
     slogan: 'Slogan',
-    sloganPlaceholder: 'Enter your slogan...',
+    sloganPlaceholder: 'Do it early, the best kind of lazy',
     sloganReset: 'Reset to default',
+    sloganShow: 'Show slogan',
   },
   todoItem: {
     deleteConfirm: 'Click again to confirm',

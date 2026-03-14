@@ -69,6 +69,15 @@ const hasCustomSlogan = computed(() => {
   return !!s && s.trim().length > 0
 })
 
+const isSloganVisible = computed(() => {
+  return storageData.value.showSlogan !== false
+})
+
+function toggleSloganVisible() {
+  storageData.value.showSlogan = !isSloganVisible.value
+  saveData(storageData.value)
+}
+
 function openSloganModal() {
   sloganInput.value = storageData.value.slogan || ''
   showSloganModal.value = true
@@ -571,6 +580,30 @@ async function importConfig() {
       @close="showSloganModal = false"
     >
       <div class="u-gap-sm">
+        <!-- 显示开关 -->
+        <div class="flex items-center justify-between u-item rounded-2xl"
+          style="background: rgba(108,99,255,0.04);"
+        >
+          <span class="text-sm font-medium" style="color: var(--text-primary);">
+            {{ t('settings.sloganShow') }}
+          </span>
+          <button
+            @click="toggleSloganVisible"
+            class="relative w-11 h-6 rounded-full transition-all duration-300 flex-shrink-0"
+            :style="{
+              background: isSloganVisible ? 'var(--primary)' : 'var(--text-muted)',
+            }"
+          >
+            <div
+              class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300"
+              :style="{
+                left: isSloganVisible ? '22px' : '2px',
+              }"
+            ></div>
+          </button>
+        </div>
+
+        <!-- 输入框 -->
         <input
           v-model="sloganInput"
           type="text"
@@ -591,6 +624,13 @@ async function importConfig() {
           style="background: var(--divider); color: var(--text-secondary);"
         >
           {{ t('settings.sloganReset') }}
+        </button>
+        <button
+          @click="showSloganModal = false"
+          class="flex-1 u-item-sm rounded-xl text-sm font-semibold transition-all active:scale-95"
+          style="background: var(--divider); color: var(--text-secondary);"
+        >
+          {{ t('modal.cancel') }}
         </button>
         <button
           @click="saveSlogan"
