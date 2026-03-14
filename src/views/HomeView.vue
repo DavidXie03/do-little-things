@@ -154,9 +154,9 @@ onMounted(() => {
           <p
             v-if="displaySlogan"
             class="text-sm text-center u-mb-lg slogan-text"
-            style="color: var(--text-muted);"
+            style="color: var(--text-muted); min-height: 1.25em;"
           >
-            {{ typedSlogan }}<span v-if="isTyping" class="typing-cursor">|</span>
+            {{ typedSlogan || '\u00A0' }}<span v-if="isTyping" class="typing-cursor">|</span>
           </p>
 
           <!-- 卡片堆叠容器 -->
