@@ -13,18 +13,18 @@ import IconPlus from '../components/icons/IconPlus.vue'
 
 const { t, tm, locale } = useI18n()
 const { showToast } = useToast()
-const { isAnimating, dragOffset } = usePageSwipe()
+const { isAnimating, dragOffset, currentIndex } = usePageSwipe()
 
 const fabVisible = ref(true)
 let fabTimer: ReturnType<typeof setTimeout> | null = null
 
-watch([isAnimating, dragOffset], ([animating, offset]) => {
-  if (animating || offset !== 0) {
-    // 正在切换页面，立即隐藏
+watch([isAnimating, dragOffset, currentIndex], ([animating, offset, idx]) => {
+  if (animating || offset !== 0 || idx !== 0) {
+    // 正在切换页面或不在待办列表页，立即隐藏
     if (fabTimer) { clearTimeout(fabTimer); fabTimer = null }
     fabVisible.value = false
   } else {
-    // 页面稳定后，延迟一小段时间再显示（等过渡完成）
+    // 在待办列表页且页面稳定后，延迟一小段时间再显示
     if (fabTimer) clearTimeout(fabTimer)
     fabTimer = setTimeout(() => {
       fabVisible.value = true
@@ -347,7 +347,7 @@ onMounted(() => {
   transition: opacity 0.25s ease-out, transform 0.25s ease-out;
 }
 .fab-fade-leave-active {
-  transition: opacity 0.15s ease-in, transform 0.15s ease-in;
+  transition: none;
 }
 .fab-fade-enter-from {
   opacity: 0;
@@ -355,6 +355,5 @@ onMounted(() => {
 }
 .fab-fade-leave-to {
   opacity: 0;
-  transform: scale(0.8);
 }
 </style>
