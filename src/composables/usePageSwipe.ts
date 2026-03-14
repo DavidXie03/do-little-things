@@ -107,6 +107,14 @@ export function usePageSwipe() {
 
     if (!directionLocked) {
       if (Math.abs(dx) < LOCK_THRESHOLD && Math.abs(dy) < LOCK_THRESHOLD) return
+
+      const atLeftEdge = currentIndex.value === 0 && dx > 0
+      const atRightEdge = currentIndex.value === TAB_PATHS.length - 1 && dx < 0
+      if (atLeftEdge || atRightEdge) {
+        directionLocked = 'vertical'
+        return
+      }
+
       directionLocked = Math.abs(dx) >= Math.abs(dy) ? 'horizontal' : 'vertical'
     }
 
@@ -122,14 +130,7 @@ export function usePageSwipe() {
     lastTouchX = touch.clientX
     lastTouchTime = now
 
-    let offset = dx
-    const atLeftEdge = currentIndex.value === 0 && offset > 0
-    const atRightEdge = currentIndex.value === TAB_PATHS.length - 1 && offset < 0
-    if (atLeftEdge || atRightEdge) {
-      offset = offset * 0.3
-    }
-
-    dragOffset.value = offset
+    dragOffset.value = dx
   }
 
   function handleTouchEnd() {
