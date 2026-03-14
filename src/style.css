@@ -13,10 +13,10 @@
   --text-primary: #2D3436;
   --text-secondary: #636E72;
   --text-muted: #B2BEC3;
-  --success: #00B894;
-  --success-light: rgba(0, 184, 148, 0.3);
-  --warning-zone: #FDCB6E;
-  --warning-zone-light: rgba(253, 203, 110, 0.3);
+  --success: #5ECFB0;
+  --success-light: rgba(94, 207, 176, 0.3);
+  --warning-zone: #F5D890;
+  --warning-zone-light: rgba(245, 216, 144, 0.3);
   --danger: #E17055;
   --info: #74B9FF;
   --card-bg: #FFFFFF;
