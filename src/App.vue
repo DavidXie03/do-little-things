@@ -7,7 +7,7 @@ import PendingView from './views/PendingView.vue'
 import SettingsView from './views/SettingsView.vue'
 import { usePageSwipe } from './composables/usePageSwipe'
 
-const { translateX, containerWidth } = usePageSwipe()
+const { translateX, containerWidth, settingsOpen } = usePageSwipe()
 
 const showSettings = ref(false)
 const settingsPanelOffset = ref(0)
@@ -16,8 +16,16 @@ let settingsStartX = 0
 let settingsStartY = 0
 let settingsDirectionLocked: 'horizontal' | 'vertical' | null = null
 
-function openSettings() { showSettings.value = true; settingsPanelOffset.value = 0 }
-function closeSettings() { showSettings.value = false; settingsPanelOffset.value = 0 }
+function openSettings() {
+  showSettings.value = true
+  settingsPanelOffset.value = 0
+  settingsOpen.value = true
+}
+function closeSettings() {
+  showSettings.value = false
+  settingsPanelOffset.value = 0
+  settingsOpen.value = false
+}
 
 function onSettingsTouchStart(e: TouchEvent) {
   const touch = e.touches[0]

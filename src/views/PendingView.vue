@@ -296,30 +296,24 @@ onMounted(() => {
       <div class="h-20"></div>
     </div>
 
-    <!-- 右下角悬浮按钮组 -->
-    <div class="fab-group">
-      <!-- 设置按钮 -->
-      <transition name="fab-fade">
-        <button
-          v-show="fabVisible"
-          @click="emit('open-settings')"
-          class="fab-settings"
-        >
-          <IconSettings :size="24" color="var(--text-muted)" />
-        </button>
-      </transition>
+    <!-- 右上角设置按钮 -->
+    <button
+      @click="emit('open-settings')"
+      class="settings-btn"
+    >
+      <IconSettings :size="18" color="var(--text-muted)" />
+    </button>
 
-      <!-- 添加按钮 -->
-      <transition name="fab-fade">
-        <button
-          v-show="fabVisible"
-          @click="openAddModal"
-          class="fab-add"
-        >
-          <IconPlus :size="24" color="white" />
-        </button>
-      </transition>
-    </div>
+    <!-- 右下角悬浮添加按钮 -->
+    <transition name="fab-fade">
+      <button
+        v-show="fabVisible"
+        @click="openAddModal"
+        class="fab-add"
+      >
+        <IconPlus :size="24" color="white" />
+      </button>
+    </transition>
 
     <TodoModal
       :visible="showModal"
@@ -340,20 +334,13 @@ onMounted(() => {
   border-bottom: 1px solid var(--divider);
 }
 
-.fab-group {
+.settings-btn {
   position: absolute;
-  right: 20px;
-  bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  z-index: 100;
-}
-
-.fab-settings {
-  width: 52px;
-  height: 52px;
+  top: 14px;
+  right: 16px;
+  z-index: 20;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--item-bg);
   box-shadow: var(--card-shadow);
@@ -364,11 +351,14 @@ onMounted(() => {
   border: none;
   cursor: pointer;
 }
-.fab-settings:active {
-  transform: scale(0.92);
+.settings-btn:active {
+  transform: scale(0.90);
 }
 
 .fab-add {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -378,6 +368,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  z-index: 100;
   border: none;
   cursor: pointer;
 }

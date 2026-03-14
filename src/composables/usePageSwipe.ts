@@ -7,6 +7,7 @@ const currentIndex = ref(0)
 const dragOffset = ref(0)
 const isAnimating = ref(false)
 const containerWidth = ref(window.innerWidth)
+const settingsOpen = ref(false)
 
 let startX = 0
 let startY = 0
@@ -95,6 +96,12 @@ export function usePageSwipe() {
   let velocity = 0
 
   function handleTouchStart(e: TouchEvent) {
+    // 设置面板打开时，忽略底层页面滑动
+    if (settingsOpen.value) {
+      isIgnored = true
+      return
+    }
+
     const target = e.target as HTMLElement
     if (target.closest('.touch-none') || target.closest('[data-no-tab-swipe]')) {
       isIgnored = true
@@ -230,5 +237,6 @@ export function usePageSwipe() {
     TAB_PATHS,
     isAnimating,
     dragOffset,
+    settingsOpen,
   }
 }
