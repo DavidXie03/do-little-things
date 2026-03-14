@@ -301,7 +301,7 @@ onMounted(() => {
       @click="emit('open-settings')"
       class="settings-btn"
     >
-      <IconSettings :size="18" color="var(--text-muted)" />
+      <IconSettings :size="24" color="var(--text-muted)" />
     </button>
 
     <!-- 右下角悬浮添加按钮 -->
@@ -336,11 +336,11 @@ onMounted(() => {
 
 .settings-btn {
   position: absolute;
-  top: 14px;
-  right: 16px;
+  top: 20px;
+  right: 20px;
   z-index: 20;
-  width: 36px;
-  height: 36px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: var(--item-bg);
   box-shadow: var(--card-shadow);
@@ -352,7 +352,7 @@ onMounted(() => {
   cursor: pointer;
 }
 .settings-btn:active {
-  transform: scale(0.90);
+  transform: scale(0.92);
 }
 
 .fab-add {

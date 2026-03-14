@@ -15,16 +15,41 @@ const settingsIsDragging = ref(false)
 let settingsStartX = 0
 let settingsStartY = 0
 let settingsDirectionLocked: 'horizontal' | 'vertical' | null = null
+let settingsClosing = false
 
 function openSettings() {
   showSettings.value = true
   settingsPanelOffset.value = 0
   settingsOpen.value = true
+  settingsClosing = false
 }
+
 function closeSettings() {
-  showSettings.value = false
-  settingsPanelOffset.value = 0
-  settingsOpen.value = false
+  if (settingsClosing) return
+  settingsClosing = true
+  // 用 JS 动画滑出到右侧
+  settingsIsDragging.value = false
+  const start = settingsPanelOffset.value
+  const target = window.innerWidth
+  const duration = 250
+  const startTime = performance.now()
+
+  function tick(now: number) {
+    const elapsed = now - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    const eased = 1 - Math.pow(1 - progress, 3)
+    settingsPanelOffset.value = start + (target - start) * eased
+
+    if (progress < 1) {
+      requestAnimationFrame(tick)
+    } else {
+      showSettings.value = false
+      settingsPanelOffset.value = 0
+      settingsOpen.value = false
+      settingsClosing = false
+    }
+  }
+  requestAnimationFrame(tick)
 }
 
 function onSettingsTouchStart(e: TouchEvent) {
@@ -66,9 +91,24 @@ function onSettingsTouchEnd() {
 
   const width = window.innerWidth
   if (settingsPanelOffset.value > width * 0.25) {
+    // 滑动超过阈值，动画关闭
     closeSettings()
   } else {
-    settingsPanelOffset.value = 0
+    // 未达到阈值，动画弹回
+    const start = settingsPanelOffset.value
+    const duration = 200
+    const startTime = performance.now()
+
+    function tick(now: number) {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      settingsPanelOffset.value = start * (1 - eased)
+      if (progress < 1) {
+        requestAnimationFrame(tick)
+      }
+    }
+    requestAnimationFrame(tick)
   }
 }
 </script>
@@ -97,7 +137,7 @@ function onSettingsTouchEnd() {
     <AppToast />
 
     <!-- 设置面板（从右侧滑入，支持左滑退出） -->
-    <Transition name="settings-panel">
+    <Transition name="settings-panel" :css="true">
       <div
         v-if="showSettings"
         class="fixed inset-0 z-[200]"
@@ -107,7 +147,8 @@ function onSettingsTouchEnd() {
       >
         <!-- 遮罩 -->
         <div
-          class="absolute inset-0 bg-black/30"
+          class="settings-mask"
+          :style="{ opacity: Math.max(0, 1 - settingsPanelOffset / (containerWidth || 1)) }"
           @click="closeSettings"
         ></div>
         <!-- 面板 -->
@@ -115,7 +156,6 @@ function onSettingsTouchEnd() {
           class="settings-slide-panel"
           :style="{
             transform: `translateX(${settingsPanelOffset}px)`,
-            transition: settingsIsDragging ? 'none' : undefined,
           }"
         >
           <SettingsView @close="closeSettings" />
@@ -134,28 +174,25 @@ function onSettingsTouchEnd() {
   width: 100%;
   max-width: 100%;
   z-index: 1;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.settings-panel-enter-active .settings-slide-panel,
-.settings-panel-leave-active .settings-slide-panel {
+.settings-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* 进入动画 */
+.settings-panel-enter-active .settings-slide-panel {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.settings-panel-enter-active .bg-black\/30,
-.settings-panel-leave-active .bg-black\/30 {
+.settings-panel-enter-active .settings-mask {
   transition: opacity 0.3s ease;
 }
-
 .settings-panel-enter-from .settings-slide-panel {
   transform: translateX(100%);
 }
-.settings-panel-leave-to .settings-slide-panel {
-  transform: translateX(100%);
-}
-.settings-panel-enter-from .bg-black\/30 {
-  opacity: 0;
-}
-.settings-panel-leave-to .bg-black\/30 {
+.settings-panel-enter-from .settings-mask {
   opacity: 0;
 }
 </style>
