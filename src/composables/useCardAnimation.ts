@@ -34,7 +34,6 @@ export function useCardAnimation(
   const backgroundCardCount = computed(() => {
     if (lockedBackgroundCount.value !== null) return lockedBackgroundCount.value
     if (totalRemainingCount.value <= 1) return 0
-    if (totalRemainingCount.value === 2) return 1
     return 2
   })
 
