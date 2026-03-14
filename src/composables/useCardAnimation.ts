@@ -34,6 +34,7 @@ export function useCardAnimation(
   const backgroundCardCount = computed(() => {
     if (lockedBackgroundCount.value !== null) return lockedBackgroundCount.value
     if (totalRemainingCount.value <= 1) return 0
+    if (totalRemainingCount.value === 2) return 1
     return 2
   })
 
@@ -61,7 +62,7 @@ export function useCardAnimation(
   }
 
   function lockBackground() {
-    lockedBackgroundCount.value = Math.max(2, backgroundCardCount.value || 2)
+    lockedBackgroundCount.value = Math.max(1, backgroundCardCount.value || 1)
   }
 
   function playRisingAnimation() {
@@ -80,11 +81,6 @@ export function useCardAnimation(
       const sEl = secondBgCardRef.value
       if (sEl) { sEl.style.display = '' }
     }, 2000)
-
-    const secondEl = secondBgCardRef.value
-    if (secondEl) {
-      secondEl.style.display = 'none'
-    }
 
     el.style.transition = 'none'
     el.getBoundingClientRect()
