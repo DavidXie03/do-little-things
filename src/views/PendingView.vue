@@ -4,12 +4,14 @@ import { useI18n } from 'vue-i18n'
 import type { DailyTodoItem, RecurrenceType } from '../types'
 import { RecurrenceType as RT } from '../types'
 import { useStorage } from '../composables/useStorage'
+import { useToast } from '../composables/useToast'
 import TodoItem from '../components/TodoItem.vue'
 import TodoModal from '../components/TodoModal.vue'
 import { ClipboardList } from 'lucide-vue-next'
 import IconPlus from '../components/icons/IconPlus.vue'
 
 const { t, tm, locale } = useI18n()
+const { showToast } = useToast()
 
 const {
   ensureDailyTodos,
@@ -21,6 +23,18 @@ const {
   updateCustomAction,
   futureTodos,
 } = useStorage()
+
+function handleComplete(todoId: string) {
+  const item = dailyTodos.value?.items.find(i => i.id === todoId)
+  const wasCompleted = item?.completed ?? false
+  markTodoComplete(todoId)
+  // 只在从未完成变为完成时（非取消完成）显示表扬
+  if (!wasCompleted) {
+    const messages = tm('toast.completeMessages') as string[]
+    const msg = messages[Math.floor(Math.random() * messages.length)]
+    showToast(msg, 'success')
+  }
+}
 
 const todayItems = computed(() => dailyTodos.value?.items ?? [])
 
@@ -220,30 +234,40 @@ onMounted(() => {
         </div>
 
         <!-- 今天的待办：可操作 -->
-        <template v-if="!group.isFuture">
+        <div
+          v-if="!group.isFuture"
+          class="todo-group rounded-2xl overflow-hidden"
+          style="background: var(--item-bg); box-shadow: var(--card-shadow);"
+        >
           <TodoItem
-            v-for="item in group.items"
+            v-for="(item, idx) in group.items"
             :key="item.id"
             :item="item"
             :show-recurrence="true"
             :show-date-label="false"
-            @complete="markTodoComplete"
+            :grouped="true"
+            @complete="handleComplete"
             @edit="openEditModal"
           />
-        </template>
+        </div>
 
         <!-- 未来的待办：只读预览 -->
-        <template v-else>
+        <div
+          v-else
+          class="todo-group rounded-2xl overflow-hidden"
+          style="background: var(--item-bg); box-shadow: var(--card-shadow);"
+        >
           <TodoItem
-            v-for="item in group.items"
+            v-for="(item, idx) in group.items"
             :key="item.id"
             :item="item"
             :show-recurrence="true"
             :show-date-label="false"
             :is-future="true"
+            :grouped="true"
             @edit="openEditModal"
           />
-        </template>
+        </div>
       </div>
 
       <!-- 底部留白，避免 FAB 遮挡内容 -->
@@ -273,6 +297,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.todo-group > :not(:last-child) {
+  border-bottom: 1px solid var(--divider);
+}
+
 .fab-add {
   position: absolute;
   right: 20px;

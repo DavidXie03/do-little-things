@@ -4,10 +4,12 @@ import { useI18n } from 'vue-i18n'
 import type { SwipeDirection } from '../types'
 import { useStorage } from '../composables/useStorage'
 import { useCardAnimation } from '../composables/useCardAnimation'
+import { useToast } from '../composables/useToast'
 import TaskCard from '../components/TaskCard.vue'
 import IconParty from '../components/icons/IconParty.vue'
 
-const { t } = useI18n()
+const { t, tm } = useI18n()
+const { showToast } = useToast()
 
 const {
   addRecord,
@@ -34,6 +36,12 @@ const {
   MAX_STACK,
 } = useCardAnimation(getUncompletedTodos)
 
+function showCompleteToast() {
+  const messages = tm('toast.completeMessages') as string[]
+  const msg = messages[Math.floor(Math.random() * messages.length)]
+  showToast(msg, 'success')
+}
+
 function handleSwipe(direction: SwipeDirection) {
   const item = topItem.value
   if (!item) return
@@ -45,6 +53,7 @@ function handleSwipe(direction: SwipeDirection) {
 
   if (direction === 'right') {
     markTodoComplete(item.id)
+    showCompleteToast()
   } else if (direction === 'left') {
     addPendingTask(task)
     addRecord({

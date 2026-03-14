@@ -68,7 +68,7 @@ export default {
     exportSuccess: 'Backup exported',
     about: 'About',
     aboutAppName: 'Do Little Things',
-    aboutDescription: 'Flip a card, do something small. Every card you complete is a little win. Turn your daily todos into a fun experience and become a better you without even noticing.',
+    aboutDescription: 'Flip a card, do something small. Every card you complete is a little win.',
     aboutAuthor: 'Author',
     aboutAuthorName: 'DavidXie03',
     aboutOpenSource: 'Open Source',
@@ -77,6 +77,11 @@ export default {
   todoItem: {
     deleteConfirm: 'Click again to confirm',
     delete: 'Delete',
+  },
+  toast: {
+    completeMessages: ['Well done!', 'Another little thing done!', 'Step by step, keep going!', 'Nice job!', 'Little win, big progress!'],
+    permissionDenied: 'File permission denied. Please grant access in system settings.',
+    exportSaved: 'Backup saved to Documents folder',
   },
   defaultActions: {
     drinkWater: 'Drink a glass of water',

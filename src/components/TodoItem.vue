@@ -10,6 +10,7 @@ const props = defineProps<{
   showRecurrence?: boolean
   showDateLabel?: boolean
   isFuture?: boolean
+  grouped?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -28,14 +29,15 @@ function getSubInfo(): string {
 
 <template>
   <div
-    class="relative rounded-2xl u-item u-mb-md overflow-hidden transition-all duration-300"
+    class="relative overflow-hidden transition-all duration-300"
     :class="[
       item.completed ? 'opacity-60' : '',
       isFuture ? 'opacity-70' : '',
+      grouped ? '' : 'rounded-2xl u-mb-md',
     ]"
-    style="background: var(--item-bg); box-shadow: var(--card-shadow);"
+    :style="grouped ? {} : { background: 'var(--item-bg)', boxShadow: 'var(--card-shadow)' }"
   >
-    <div class="flex items-center gap-3" @click="emit('edit', item)">
+    <div class="flex items-center gap-3 u-item" @click="emit('edit', item)">
       <button
         v-if="!isFuture"
         @click.stop="emit('complete', item.id)"

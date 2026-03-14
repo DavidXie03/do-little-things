@@ -68,7 +68,7 @@ export default {
     importFail: '恢复失败：文件格式不正确',
     exportSuccess: '备份已导出',
     aboutAppName: '做件小事',
-    aboutDescription: '翻转卡片，随机做一件小事。每完成一张，都是一份小小的成就感。让日常待办变得有趣，不知不觉中收获更好的自己。',
+    aboutDescription: '翻转卡片，随机做一件小事。每完成一张，都是一份小小的成就感。',
     aboutAuthor: '作者',
     aboutAuthorName: 'DavidXie03',
     aboutOpenSource: '开源地址',
@@ -77,6 +77,11 @@ export default {
   todoItem: {
     deleteConfirm: '再次点击确认删除',
     delete: '删除',
+  },
+  toast: {
+    completeMessages: ['干得漂亮！', '又完成了一件小事！', '一步一个脚印，继续加油！', '做得好！', '小事做完，成就感满满！'],
+    permissionDenied: '无法获取文件权限，请在系统设置中授权',
+    exportSaved: '备份已保存到 Documents 目录',
   },
   defaultActions: {
     drinkWater: '喝一杯水',

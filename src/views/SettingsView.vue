@@ -5,11 +5,16 @@ import { Languages, Archive, Info } from 'lucide-vue-next'
 import { saveLanguage } from '../i18n'
 import { useTheme } from '../composables/useTheme'
 import { storageData, saveData } from '../composables/storageCore'
+import { useToast } from '../composables/useToast'
+import { useDailyTodos } from '../composables/useDailyTodos'
+import { isNativePlatform, ensureFilePermission, nativeExportJson, webExportJson, pickAndReadJsonFile } from '../utils/fileHelper'
 import type { CustomAction } from '../types'
 import BaseModal from '../components/BaseModal.vue'
 
 const { t, locale } = useI18n()
 const { isDark, toggleDark } = useTheme()
+const { showToast } = useToast()
+const { ensureDailyTodos } = useDailyTodos()
 
 const APP_VERSION = '1.0.0'
 const GITHUB_URL = 'https://github.com/DavidXie03/do-little-things'
@@ -22,8 +27,6 @@ const languages = [
 const showLangModal = ref(false)
 const showImportExportModal = ref(false)
 const showAboutModal = ref(false)
-const toastMsg = ref('')
-const showToast = ref(false)
 
 const currentLangLabel = computed(() => {
   const lang = languages.find(l => l.code === locale.value)
@@ -46,66 +49,71 @@ function switchLanguage(langCode: string) {
   showLangModal.value = false
 }
 
-function showToastMessage(msg: string) {
-  toastMsg.value = msg
-  showToast.value = true
-  setTimeout(() => { showToast.value = false }, 2000)
-}
-
-function exportConfig() {
+async function exportConfig() {
   const actions = storageData.value.customActions
-  const blob = new Blob([JSON.stringify({ version: 1, customActions: actions }, null, 2)], {
-    type: 'application/json',
-  })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `do-little-things-config-${new Date().toISOString().slice(0, 10)}.json`
-  a.click()
-  URL.revokeObjectURL(url)
-  showImportExportModal.value = false
-  showToastMessage(t('settings.exportSuccess'))
+  const filename = `do-little-things-config-${new Date().toISOString().slice(0, 10)}.json`
+  const exportData = { version: 1, customActions: actions }
+
+  try {
+    if (isNativePlatform()) {
+      await ensureFilePermission()
+      await nativeExportJson(filename, exportData)
+      showImportExportModal.value = false
+      showToast(t('toast.exportSaved'), 'success')
+    } else {
+      webExportJson(filename, exportData)
+      showImportExportModal.value = false
+      showToast(t('settings.exportSuccess'), 'success')
+    }
+  } catch (err: any) {
+    if (err?.message === 'PERMISSION_DENIED') {
+      showToast(t('toast.permissionDenied'), 'error')
+    } else {
+      showToast(t('settings.exportSuccess'), 'success')
+    }
+  }
 }
 
-function importConfig() {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.json'
-  input.onchange = (e: Event) => {
-    const file = (e.target as HTMLInputElement).files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target?.result as string)
-        if (!data.customActions || !Array.isArray(data.customActions)) {
-          showToastMessage(t('settings.importFail'))
-          return
-        }
-        const actions = data.customActions as CustomAction[]
-        const existingIds = new Set(storageData.value.customActions.map(a => a.content))
-        let count = 0
-        for (const action of actions) {
-          if (!existingIds.has(action.content)) {
-            storageData.value.customActions.push({
-              ...action,
-              id: `ca_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-              createdAt: Date.now(),
-            })
-            existingIds.add(action.content)
-            count++
-          }
-        }
-        saveData(storageData.value)
-        showImportExportModal.value = false
-        showToastMessage(t('settings.importSuccess', { count }))
-      } catch {
-        showToastMessage(t('settings.importFail'))
+async function importConfig() {
+  try {
+    if (isNativePlatform()) {
+      await ensureFilePermission()
+    }
+
+    const content = await pickAndReadJsonFile()
+    const data = JSON.parse(content)
+
+    if (!data.customActions || !Array.isArray(data.customActions)) {
+      showToast(t('settings.importFail'), 'error')
+      return
+    }
+
+    const actions = data.customActions as CustomAction[]
+    const existingIds = new Set(storageData.value.customActions.map((a: CustomAction) => a.content))
+    let count = 0
+    for (const action of actions) {
+      if (!existingIds.has(action.content)) {
+        storageData.value.customActions.push({
+          ...action,
+          id: `ca_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          createdAt: Date.now(),
+        })
+        existingIds.add(action.content)
+        count++
       }
     }
-    reader.readAsText(file)
+    saveData(storageData.value)
+    storageData.value.dailyTodos = null
+    ensureDailyTodos()
+    showImportExportModal.value = false
+    showToast(t('settings.importSuccess', { count }), 'success')
+  } catch (err: any) {
+    if (err?.message === 'PERMISSION_DENIED') {
+      showToast(t('toast.permissionDenied'), 'error')
+    } else if (err?.message !== 'NO_FILE_SELECTED') {
+      showToast(t('settings.importFail'), 'error')
+    }
   }
-  input.click()
 }
 </script>
 
@@ -340,12 +348,12 @@ function importConfig() {
               <stop offset="100%" stop-color="#8B83FF"/>
             </linearGradient>
           </defs>
-          <!-- 底部卡片（偏移露出边缘） -->
-          <rect x="10" y="6" width="36" height="44" rx="6" fill="#6C63FF" opacity="0.35"/>
-          <!-- 顶部卡片 -->
-          <rect x="6" y="10" width="36" height="44" rx="6" fill="url(#card-grad)"/>
+          <!-- 底部卡片（右下偏移露出边缘） -->
+          <rect x="16" y="10" width="36" height="44" rx="6" fill="#6C63FF" opacity="0.35"/>
+          <!-- 顶部卡片（左上） -->
+          <rect x="4" y="2" width="36" height="44" rx="6" fill="url(#card-grad)"/>
           <!-- 白色对勾 -->
-          <polyline points="16,34 22,40 32,28" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="14,26 20,32 30,20" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <div class="text-center">
           <h3 class="text-base font-bold" style="color: var(--text-primary);">
@@ -396,29 +404,5 @@ function importConfig() {
       </div>
     </BaseModal>
 
-    <!-- Toast -->
-    <Teleport to="body">
-      <transition name="toast-fade">
-        <div
-          v-if="showToast"
-          class="fixed top-16 left-1/2 -translate-x-1/2 z-[10001] px-4 py-2 rounded-xl text-sm font-medium shadow-lg"
-          style="background: var(--text-primary); color: var(--bg-primary);"
-        >
-          {{ toastMsg }}
-        </div>
-      </transition>
-    </Teleport>
   </div>
 </template>
-
-<style scoped>
-.toast-fade-enter-active,
-.toast-fade-leave-active {
-  transition: all 0.3s ease;
-}
-.toast-fade-enter-from,
-.toast-fade-leave-to {
-  opacity: 0;
-  transform: translateX(-50%) translateY(-10px);
-}
-</style>

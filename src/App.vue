@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import TabBar from './components/TabBar.vue'
+import AppToast from './components/AppToast.vue'
 import HomeView from './views/HomeView.vue'
 import PendingView from './views/PendingView.vue'
 import SettingsView from './views/SettingsView.vue'
@@ -32,5 +33,6 @@ const { translateX, containerWidth } = usePageSwipe()
     </main>
 
     <TabBar />
+    <AppToast />
   </div>
 </template>
