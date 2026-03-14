@@ -1,24 +1,23 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router'
+import { usePageSwipe } from '../composables/usePageSwipe'
 import IconCards from './icons/IconCards.vue'
 import IconList from './icons/IconList.vue'
 import IconSettings from './icons/IconSettings.vue'
 
-const route = useRoute()
-const router = useRouter()
+const { currentIndex, goToPage } = usePageSwipe()
 
 const tabs = [
-  { name: 'home', icon: IconCards, path: '/' },
-  { name: 'todos', icon: IconList, path: '/todos' },
-  { name: 'settings', icon: IconSettings, path: '/settings' },
+  { name: 'home', icon: IconCards, index: 0 },
+  { name: 'todos', icon: IconList, index: 1 },
+  { name: 'settings', icon: IconSettings, index: 2 },
 ]
 
 function isActive(tab: typeof tabs[0]): boolean {
-  return route.path === tab.path
+  return currentIndex.value === tab.index
 }
 
 function navigate(tab: typeof tabs[0]): void {
-  router.push(tab.path)
+  goToPage(tab.index)
 }
 
 function getIconColor(tab: typeof tabs[0]): string {
