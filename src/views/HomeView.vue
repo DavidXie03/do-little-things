@@ -78,7 +78,7 @@ onMounted(() => {
   <div class="h-full flex flex-col relative overflow-hidden" style="background-color: var(--bg-primary); transition: background-color 0.3s ease;">
     <!-- 卡片区域 -->
     <div class="flex-1 flex flex-col items-center justify-center px-6">
-      <div class="w-full max-w-xs">
+      <div class="w-full max-w-xs" data-no-tab-swipe>
         <!-- 有未完成的待办 -->
         <template v-if="topItem">
           <!-- 标题 -->
@@ -90,7 +90,7 @@ onMounted(() => {
           </h1>
 
           <!-- 卡片堆叠容器 -->
-          <div class="card-stack-container" data-no-tab-swipe style="min-height: 360px;">
+          <div class="card-stack-container" style="min-height: 360px;">
             <!--
               背景堆叠卡片：显示为卡牌背面
               数量基于总的未完成次数，而不仅是未完成任务数
