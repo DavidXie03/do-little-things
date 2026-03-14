@@ -2,14 +2,12 @@
 import { usePageSwipe } from '../composables/usePageSwipe'
 import IconCards from './icons/IconCards.vue'
 import IconList from './icons/IconList.vue'
-import IconSettings from './icons/IconSettings.vue'
 
 const { currentIndex, goToPage } = usePageSwipe()
 
 const tabs = [
-  { name: 'todos', icon: IconList, index: 0 },
-  { name: 'home', icon: IconCards, index: 1 },
-  { name: 'settings', icon: IconSettings, index: 2 },
+  { name: 'home', icon: IconCards, index: 0 },
+  { name: 'todos', icon: IconList, index: 1 },
 ]
 
 function isActive(tab: typeof tabs[0]): boolean {

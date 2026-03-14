@@ -13,11 +13,6 @@ const router = createRouter({
       name: 'todos',
       component: () => import('../views/PendingView.vue'),
     },
-    {
-      path: '/settings',
-      name: 'settings',
-      component: () => import('../views/SettingsView.vue'),
-    },
   ],
 })
 

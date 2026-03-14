@@ -15,11 +15,11 @@ const { t, tm, locale } = useI18n()
 const { showToast } = useToast()
 const { isAnimating, dragOffset, currentIndex } = usePageSwipe()
 
-const fabVisible = ref(true)
+const fabVisible = ref(false)
 let fabTimer: ReturnType<typeof setTimeout> | null = null
 
 watch([isAnimating, dragOffset, currentIndex], ([animating, offset, idx]) => {
-  if (animating || offset !== 0 || idx !== 0) {
+  if (animating || offset !== 0 || idx !== 1) {
     // 正在切换页面或不在待办列表页，立即隐藏
     if (fabTimer) { clearTimeout(fabTimer); fabTimer = null }
     fabVisible.value = false

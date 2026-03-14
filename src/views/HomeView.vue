@@ -8,6 +8,11 @@ import { useToast } from '../composables/useToast'
 import { storageData } from '../composables/storageCore'
 import TaskCard from '../components/TaskCard.vue'
 import IconParty from '../components/icons/IconParty.vue'
+import IconSettings from '../components/icons/IconSettings.vue'
+
+const emit = defineEmits<{
+  (e: 'open-settings'): void
+}>()
 
 const { t, tm } = useI18n()
 const { showToast } = useToast()
@@ -152,6 +157,15 @@ onMounted(() => {
 
 <template>
   <div class="h-full flex flex-col relative overflow-hidden" style="background-color: var(--bg-primary); transition: background-color 0.3s ease;">
+    <!-- 右上角设置按钮 -->
+    <button
+      @click="emit('open-settings')"
+      class="absolute top-3 right-4 z-20 w-9 h-9 flex items-center justify-center rounded-full transition-all duration-200 active:scale-90"
+      style="background: var(--item-bg); box-shadow: var(--card-shadow);"
+    >
+      <IconSettings :size="18" color="var(--text-muted)" />
+    </button>
+
     <!-- 卡片区域 -->
     <div class="flex-1 flex flex-col items-center justify-center px-6">
       <div class="w-full max-w-xs" data-no-tab-swipe>

@@ -16,6 +16,10 @@ const { isDark, toggleDark, colorTheme, setColorTheme } = useTheme()
 const { showToast } = useToast()
 const { ensureDailyTodos } = useDailyTodos()
 
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
+
 const APP_VERSION = '1.0.0'
 const GITHUB_URL = 'https://github.com/DavidXie03/do-little-things'
 
@@ -158,7 +162,15 @@ async function importConfig() {
 
 <template>
   <div class="h-full flex flex-col overflow-hidden" style="background-color: var(--bg-primary); transition: background-color 0.3s ease;">
-    <header class="u-page-header">
+    <header class="u-page-header flex items-center gap-3">
+      <button
+        @click="emit('close')"
+        class="w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200 active:scale-90 -ml-1"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 18L9 12L15 6" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
       <h1
         class="text-2xl font-bold"
         style="color: var(--text-primary);"
