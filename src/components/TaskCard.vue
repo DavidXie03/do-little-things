@@ -45,25 +45,32 @@ const {
         v-if="(isDragging || isAnimatingOut) && leftZoneProgress > 0"
         class="fixed left-0 top-1/2 z-[9999] flex items-center pointer-events-none"
         :style="{
-          width: `${50 + leftZoneProgress * 40}px`,
+          width: `${60 + leftZoneProgress * 240}px`,
           height: '400px',
           marginTop: '-200px',
           transition: 'width 0.15s ease-out',
         }"
       >
         <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="leftGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" :stop-color="leftZoneProgress >= 1 ? 'var(--warning-zone)' : `rgba(253,203,110,${0.3 + leftZoneProgress * 0.5})`" stop-opacity="1" />
+              <stop offset="100%" :stop-color="leftZoneProgress >= 1 ? 'var(--warning-zone)' : `rgba(253,203,110,${0.3 + leftZoneProgress * 0.5})`" stop-opacity="0" />
+            </linearGradient>
+          </defs>
           <path
             :d="`M0,0 L0,100 L${15 + leftZoneProgress * 25},100 C${35 + leftZoneProgress * 25},78 ${50 + leftZoneProgress * 35},65 ${60 + leftZoneProgress * 30},50 C${50 + leftZoneProgress * 35},35 ${35 + leftZoneProgress * 25},22 ${15 + leftZoneProgress * 25},0 Z`"
-            :fill="leftZoneProgress >= 1 ? 'var(--warning-zone)' : `rgba(253,203,110,${0.3 + leftZoneProgress * 0.5})`"
+            fill="url(#leftGrad)"
             :style="{ transition: 'fill 0.15s ease-out' }"
           />
         </svg>
         <div
-          class="relative flex items-center justify-center w-full"
+          class="relative flex items-center justify-center"
           :style="{
             opacity: 0.5 + leftZoneProgress * 0.5,
             transform: `scale(${0.7 + leftZoneProgress * 0.3}) translateX(-${4 + (1 - leftZoneProgress) * 6}px)`,
             transition: 'all 0.15s ease-out',
+            width: '60px',
           }"
         >
           <IconClock :size="leftZoneProgress >= 1 ? 28 : 22" :color="leftZoneProgress >= 1 ? '#2D3436' : '#8B7028'" />
@@ -74,27 +81,34 @@ const {
     <transition name="zone-fade">
       <div
         v-if="(isDragging || isAnimatingOut) && rightZoneProgress > 0"
-        class="fixed right-0 top-1/2 z-[9999] flex items-center pointer-events-none"
+        class="fixed right-0 top-1/2 z-[9999] flex items-center justify-end pointer-events-none"
         :style="{
-          width: `${50 + rightZoneProgress * 40}px`,
+          width: `${60 + rightZoneProgress * 240}px`,
           height: '400px',
           marginTop: '-200px',
           transition: 'width 0.15s ease-out',
         }"
       >
         <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="rightGrad" x1="1" y1="0" x2="0" y2="0">
+              <stop offset="0%" :stop-color="rightZoneProgress >= 1 ? 'var(--success)' : `rgba(0,184,148,${0.3 + rightZoneProgress * 0.5})`" stop-opacity="1" />
+              <stop offset="100%" :stop-color="rightZoneProgress >= 1 ? 'var(--success)' : `rgba(0,184,148,${0.3 + rightZoneProgress * 0.5})`" stop-opacity="0" />
+            </linearGradient>
+          </defs>
           <path
             :d="`M100,0 L100,100 L${85 - rightZoneProgress * 25},100 C${65 - rightZoneProgress * 25},78 ${50 - rightZoneProgress * 35},65 ${40 - rightZoneProgress * 30},50 C${50 - rightZoneProgress * 35},35 ${65 - rightZoneProgress * 25},22 ${85 - rightZoneProgress * 25},0 Z`"
-            :fill="rightZoneProgress >= 1 ? 'var(--success)' : `rgba(0,184,148,${0.3 + rightZoneProgress * 0.5})`"
+            fill="url(#rightGrad)"
             :style="{ transition: 'fill 0.15s ease-out' }"
           />
         </svg>
         <div
-          class="relative flex items-center justify-center w-full"
+          class="relative flex items-center justify-center"
           :style="{
             opacity: 0.5 + rightZoneProgress * 0.5,
             transform: `scale(${0.7 + rightZoneProgress * 0.3}) translateX(${4 + (1 - rightZoneProgress) * 6}px)`,
             transition: 'all 0.15s ease-out',
+            width: '60px',
           }"
         >
           <IconCheck :size="rightZoneProgress >= 1 ? 28 : 22" :color="rightZoneProgress >= 1 ? 'white' : 'rgba(255,255,255,0.8)'" />

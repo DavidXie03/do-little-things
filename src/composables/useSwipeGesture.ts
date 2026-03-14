@@ -80,11 +80,7 @@ export function useSwipeGesture(
     const absX = Math.abs(offsetX.value)
     if (absX > SWIPE_THRESHOLD_X) {
       const direction: SwipeDirection = offsetX.value > 0 ? 'right' : 'left'
-      if (direction === 'left') {
-        animateLeftSwipe()
-      } else {
-        animateOut(direction)
-      }
+      animateOut(direction)
     } else {
       offsetX.value = 0
     }
