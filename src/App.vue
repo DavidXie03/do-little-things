@@ -19,9 +19,24 @@ let settingsClosing = false
 
 function openSettings() {
   showSettings.value = true
-  settingsPanelOffset.value = 0
   settingsOpen.value = true
   settingsClosing = false
+  // 用 JS 动画从右侧滑入
+  settingsPanelOffset.value = window.innerWidth
+  const start = window.innerWidth
+  const duration = 300
+  const startTime = performance.now()
+
+  function tick(now: number) {
+    const elapsed = now - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    const eased = 1 - Math.pow(1 - progress, 3) // ease-out cubic
+    settingsPanelOffset.value = start * (1 - eased)
+    if (progress < 1) {
+      requestAnimationFrame(tick)
+    }
+  }
+  requestAnimationFrame(tick)
 }
 
 function closeSettings() {
@@ -137,31 +152,29 @@ function onSettingsTouchEnd() {
     <AppToast />
 
     <!-- 设置面板（从右侧滑入，支持左滑退出） -->
-    <Transition name="settings-panel" :css="true">
+    <div
+      v-if="showSettings"
+      class="fixed inset-0 z-[200]"
+      @touchstart.passive="onSettingsTouchStart"
+      @touchmove="onSettingsTouchMove"
+      @touchend.passive="onSettingsTouchEnd"
+    >
+      <!-- 遮罩 -->
       <div
-        v-if="showSettings"
-        class="fixed inset-0 z-[200]"
-        @touchstart.passive="onSettingsTouchStart"
-        @touchmove="onSettingsTouchMove"
-        @touchend.passive="onSettingsTouchEnd"
+        class="settings-mask"
+        :style="{ opacity: Math.max(0, 1 - settingsPanelOffset / (containerWidth || 1)) }"
+        @click="closeSettings"
+      ></div>
+      <!-- 面板 -->
+      <div
+        class="settings-slide-panel"
+        :style="{
+          transform: `translateX(${settingsPanelOffset}px)`,
+        }"
       >
-        <!-- 遮罩 -->
-        <div
-          class="settings-mask"
-          :style="{ opacity: Math.max(0, 1 - settingsPanelOffset / (containerWidth || 1)) }"
-          @click="closeSettings"
-        ></div>
-        <!-- 面板 -->
-        <div
-          class="settings-slide-panel"
-          :style="{
-            transform: `translateX(${settingsPanelOffset}px)`,
-          }"
-        >
-          <SettingsView @close="closeSettings" />
-        </div>
+        <SettingsView @close="closeSettings" />
       </div>
-    </Transition>
+    </div>
   </div>
 </template>
 
@@ -180,19 +193,5 @@ function onSettingsTouchEnd() {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.3);
-}
-
-/* 进入动画 */
-.settings-panel-enter-active .settings-slide-panel {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.settings-panel-enter-active .settings-mask {
-  transition: opacity 0.3s ease;
-}
-.settings-panel-enter-from .settings-slide-panel {
-  transform: translateX(100%);
-}
-.settings-panel-enter-from .settings-mask {
-  opacity: 0;
 }
 </style>
