@@ -4,17 +4,17 @@ import { useI18n } from 'vue-i18n'
 import { Languages, Archive, Info } from 'lucide-vue-next'
 import { saveLanguage } from '../i18n'
 import { useTheme, COLOR_THEMES, type ColorTheme } from '../composables/useTheme'
-import { storageData, saveData } from '../composables/storageCore'
-import { useToast } from '../composables/useToast'
-import { useDailyTodos } from '../composables/useDailyTodos'
-import { isNativePlatform, ensureFilePermission, nativeExportJson, webExportJson, pickAndReadJsonFile } from '../utils/fileHelper'
-import type { CustomAction } from '../types'
+import { useImportExport } from '../composables/useImportExport'
+import { useSlogan } from '../composables/useSlogan'
 import BaseModal from '../components/BaseModal.vue'
 
 const { t, locale } = useI18n()
 const { isDark, toggleDark, colorTheme, setColorTheme } = useTheme()
-const { showToast } = useToast()
-const { ensureDailyTodos } = useDailyTodos()
+const { showImportExportModal, exportConfig, importConfig } = useImportExport()
+const {
+  showSloganModal, sloganInput, tempShowSlogan, tempTypingEffect,
+  displaySlogan, openSloganModal, saveSlogan,
+} = useSlogan()
 
 const emit = defineEmits<{
   (e: 'close'): void
@@ -29,11 +29,8 @@ const languages = [
 ]
 
 const showLangModal = ref(false)
-const showImportExportModal = ref(false)
 const showAboutModal = ref(false)
 const showThemeModal = ref(false)
-const showSloganModal = ref(false)
-const sloganInput = ref('')
 
 const colorThemeOptions: { key: ColorTheme; color: string; secondaryColor: string }[] = [
   { key: 'purple', color: COLOR_THEMES.purple.primary, secondaryColor: COLOR_THEMES.purple.secondary },
@@ -59,99 +56,6 @@ function switchLanguage(langCode: string) {
   document.title = langCode === 'zh' ? '做件小事' : 'Do Little Things'
   document.documentElement.lang = langCode === 'zh' ? 'zh-CN' : 'en'
   showLangModal.value = false
-}
-
-const displaySlogan = computed(() => {
-  if (storageData.value.showSlogan === false) return t('settings.sloganOff')
-  const custom = storageData.value.slogan
-  if (custom && custom.trim()) return custom
-  return t('home.defaultSlogan')
-})
-
-const tempShowSlogan = ref(true)
-const tempTypingEffect = ref(true)
-
-function openSloganModal() {
-  sloganInput.value = storageData.value.slogan || ''
-  tempShowSlogan.value = storageData.value.showSlogan !== false
-  tempTypingEffect.value = storageData.value.typingEffect !== false
-  showSloganModal.value = true
-}
-
-function saveSlogan() {
-  const trimmed = sloganInput.value.trim()
-  storageData.value.slogan = trimmed || undefined
-  storageData.value.showSlogan = tempShowSlogan.value
-  storageData.value.typingEffect = tempTypingEffect.value
-  saveData(storageData.value)
-  showSloganModal.value = false
-}
-
-async function exportConfig() {
-  const actions = storageData.value.customActions
-  const filename = `do-little-things-config-${new Date().toISOString().slice(0, 10)}.json`
-  const exportData = { version: 1, customActions: actions }
-
-  try {
-    if (isNativePlatform()) {
-      await ensureFilePermission()
-      await nativeExportJson(filename, exportData)
-      showImportExportModal.value = false
-      showToast(t('toast.exportSaved'), 'success')
-    } else {
-      webExportJson(filename, exportData)
-      showImportExportModal.value = false
-      showToast(t('settings.exportSuccess'), 'success')
-    }
-  } catch (err: any) {
-    if (err?.message === 'PERMISSION_DENIED') {
-      showToast(t('toast.permissionDenied'), 'error')
-    } else {
-      showToast(t('settings.exportSuccess'), 'success')
-    }
-  }
-}
-
-async function importConfig() {
-  try {
-    if (isNativePlatform()) {
-      await ensureFilePermission()
-    }
-
-    const content = await pickAndReadJsonFile()
-    const data = JSON.parse(content)
-
-    if (!data.customActions || !Array.isArray(data.customActions)) {
-      showToast(t('settings.importFail'), 'error')
-      return
-    }
-
-    const actions = data.customActions as CustomAction[]
-    const existingIds = new Set(storageData.value.customActions.map((a: CustomAction) => a.content))
-    let count = 0
-    for (const action of actions) {
-      if (!existingIds.has(action.content)) {
-        storageData.value.customActions.push({
-          ...action,
-          id: `ca_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-          createdAt: Date.now(),
-        })
-        existingIds.add(action.content)
-        count++
-      }
-    }
-    saveData(storageData.value)
-    storageData.value.dailyTodos = null
-    ensureDailyTodos()
-    showImportExportModal.value = false
-    showToast(t('settings.importSuccess', { count }), 'success')
-  } catch (err: any) {
-    if (err?.message === 'PERMISSION_DENIED') {
-      showToast(t('toast.permissionDenied'), 'error')
-    } else if (err?.message !== 'NO_FILE_SELECTED') {
-      showToast(t('settings.importFail'), 'error')
-    }
-  }
 }
 </script>
 
