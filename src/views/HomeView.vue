@@ -102,7 +102,7 @@ onMounted(() => {
               :ref="(el) => { if (idx === 1) risingCardRef = el as HTMLElement }"
               class="card-stack-layer"
               :style="{
-                transform: `translateY(${idx * 12}px) scale(${1 - idx * 0.02})`,
+                transform: `translateY(24px) scale(0.96)`,
                 zIndex: MAX_STACK - idx,
               }"
             >

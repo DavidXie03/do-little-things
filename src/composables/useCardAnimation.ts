@@ -82,7 +82,7 @@ export function useCardAnimation(
     el.getBoundingClientRect()
 
     const riseAnim = el.animate([
-      { transform: 'translateY(12px) scale(0.98)', zIndex: '2' },
+      { transform: 'translateY(24px) scale(0.96)', zIndex: '2' },
       { transform: 'translateY(0px) scale(1)', zIndex: '10' },
     ], {
       duration: 180,
