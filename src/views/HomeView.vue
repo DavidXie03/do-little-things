@@ -2,6 +2,7 @@
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { SwipeDirection } from '../types'
+import type { SwipeInfo } from '../composables/useSwipeGesture'
 import { useStorage } from '../composables/useStorage'
 import { useCardAnimation } from '../composables/useCardAnimation'
 import { useToast } from '../composables/useToast'
@@ -22,6 +23,7 @@ const {
 const {
   allDone,
   cardKey,
+  animPhase,
   backgroundCardCount,
   isLastRemaining,
   risingCardRef,
@@ -41,9 +43,11 @@ function showCompleteToast() {
   showToast(msg, 'success')
 }
 
-function handleSwipe(direction: SwipeDirection) {
+function handleSwipe(direction: SwipeDirection, info?: SwipeInfo) {
   const item = topItem.value
   if (!item) return
+
+  if (animPhase.value !== 'idle') return
 
   const now = new Date()
   const task = item.task
@@ -69,7 +73,7 @@ function handleSwipe(direction: SwipeDirection) {
 
   if (remaining.length > 0) {
     if (direction === 'left') {
-      triggerLeftSwipe()
+      triggerLeftSwipe(info?.releaseOffsetX ?? -120)
     } else {
       triggerRightSwipe()
     }
@@ -101,11 +105,6 @@ onMounted(() => {
 
           <!-- 卡片堆叠容器 -->
           <div class="card-stack-container" style="min-height: 360px;">
-            <!--
-              背景堆叠卡片：显示为卡牌背面
-              数量基于总的未完成次数，而不仅是未完成任务数
-              rising 阶段时，第一张卡背会被 animate() 直接驱动升起
-            -->
             <div
               v-for="idx in backgroundCardCount"
               :key="'bg-' + idx"
@@ -129,8 +128,18 @@ onMounted(() => {
               ref="topCardRef"
               class="card-stack-top"
             >
-              <!-- 直接显示正面 TaskCard -->
+              <!-- 翻转阶段 / 左滑背面阶段：顶部显示卡牌背面 -->
+              <div v-if="animPhase === 'flipping' || animPhase === 'left-back' || animPhase === 'left-sink'" class="card-back">
+                <div class="card-back-pattern">
+                  <div class="card-back-diamond"></div>
+                  <div class="card-back-border"></div>
+                  <div class="card-back-center-icon">✦</div>
+                </div>
+              </div>
+
+              <!-- 正常/front/left-flip 阶段：显示正面 TaskCard -->
               <TaskCard
+                v-if="animPhase === 'idle' || animPhase === 'front' || animPhase === 'left-flip'"
                 :key="cardKey"
                 :task="topItem.task"
                 :remaining-count="topItem.totalCount - topItem.completedCount"
@@ -206,6 +215,18 @@ onMounted(() => {
   inset: 12px;
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 1.2rem;
+}
+
+.card-back-diamond {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(45deg, rgba(255,255,255,0.06) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255,255,255,0.06) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.06) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.06) 75%);
+  background-size: 30px 30px;
+  background-position: 0 0, 0 15px, 15px -15px, -15px 0px;
 }
 
 .card-back-center-icon {

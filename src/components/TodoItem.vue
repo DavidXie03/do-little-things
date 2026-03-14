@@ -43,7 +43,7 @@ function getSubInfo(): string {
         @click.stop="emit('complete', item.id)"
         class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 active:scale-90"
         :style="{
-          background: item.completed ? 'var(--success)' : 'transparent',
+          background: item.completed ? 'var(--secondary)' : 'transparent',
           border: item.completed ? 'none' : '2px solid var(--text-muted)',
         }"
       >
@@ -72,8 +72,8 @@ function getSubInfo(): string {
         v-if="item.totalCount > 1"
         class="flex-shrink-0 text-xs u-badge rounded-full"
         :style="{
-          background: item.completed ? 'rgba(0,184,148,0.1)' : 'rgba(108,99,255,0.08)',
-          color: item.completed ? 'var(--success)' : 'var(--primary)',
+          background: item.completed ? 'var(--toast-success-bg)' : 'rgba(108,99,255,0.08)',
+          color: item.completed ? 'var(--secondary)' : 'var(--primary)',
         }"
       >
         {{ item.completedCount }}/{{ item.totalCount }}

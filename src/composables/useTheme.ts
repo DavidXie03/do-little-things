@@ -14,6 +14,10 @@ export interface ThemeColorSet {
   toastInfoText: string
   toastInfoBgDark: string
   toastInfoTextDark: string
+  toastSuccessBg: string
+  toastSuccessText: string
+  toastSuccessBgDark: string
+  toastSuccessTextDark: string
 }
 
 export const COLOR_THEMES: Record<ColorTheme, ThemeColorSet> = {
@@ -26,6 +30,10 @@ export const COLOR_THEMES: Record<ColorTheme, ThemeColorSet> = {
     toastInfoText: '#6C63FF',
     toastInfoBgDark: 'rgba(108, 99, 255, 0.2)',
     toastInfoTextDark: '#8B83FF',
+    toastSuccessBg: 'rgba(78, 205, 196, 0.15)',
+    toastSuccessText: '#4ECDC4',
+    toastSuccessBgDark: 'rgba(78, 205, 196, 0.2)',
+    toastSuccessTextDark: '#6FE4DC',
   },
   ocean: {
     primary: '#0EA5E9',
@@ -36,6 +44,10 @@ export const COLOR_THEMES: Record<ColorTheme, ThemeColorSet> = {
     toastInfoText: '#0EA5E9',
     toastInfoBgDark: 'rgba(14, 165, 233, 0.2)',
     toastInfoTextDark: '#38BDF8',
+    toastSuccessBg: 'rgba(6, 182, 212, 0.15)',
+    toastSuccessText: '#06B6D4',
+    toastSuccessBgDark: 'rgba(6, 182, 212, 0.2)',
+    toastSuccessTextDark: '#22D3EE',
   },
   sunset: {
     primary: '#F97316',
@@ -46,6 +58,10 @@ export const COLOR_THEMES: Record<ColorTheme, ThemeColorSet> = {
     toastInfoText: '#F97316',
     toastInfoBgDark: 'rgba(249, 115, 22, 0.2)',
     toastInfoTextDark: '#FB923C',
+    toastSuccessBg: 'rgba(234, 179, 8, 0.15)',
+    toastSuccessText: '#EAB308',
+    toastSuccessBgDark: 'rgba(234, 179, 8, 0.2)',
+    toastSuccessTextDark: '#FACC15',
   },
   forest: {
     primary: '#059669',
@@ -56,6 +72,10 @@ export const COLOR_THEMES: Record<ColorTheme, ThemeColorSet> = {
     toastInfoText: '#059669',
     toastInfoBgDark: 'rgba(5, 150, 105, 0.2)',
     toastInfoTextDark: '#34D399',
+    toastSuccessBg: 'rgba(13, 148, 136, 0.15)',
+    toastSuccessText: '#0D9488',
+    toastSuccessBgDark: 'rgba(13, 148, 136, 0.2)',
+    toastSuccessTextDark: '#2DD4BF',
   },
   rose: {
     primary: '#E11D48',
@@ -66,6 +86,10 @@ export const COLOR_THEMES: Record<ColorTheme, ThemeColorSet> = {
     toastInfoText: '#E11D48',
     toastInfoBgDark: 'rgba(225, 29, 72, 0.2)',
     toastInfoTextDark: '#FB7185',
+    toastSuccessBg: 'rgba(219, 39, 119, 0.15)',
+    toastSuccessText: '#DB2777',
+    toastSuccessBgDark: 'rgba(219, 39, 119, 0.2)',
+    toastSuccessTextDark: '#F472B6',
   },
 }
 
@@ -113,6 +137,8 @@ function applyTheme() {
   root.style.setProperty('--secondary-light', colors.secondaryLight)
   root.style.setProperty('--toast-info-bg', isDark.value ? colors.toastInfoBgDark : colors.toastInfoBg)
   root.style.setProperty('--toast-info-text', isDark.value ? colors.toastInfoTextDark : colors.toastInfoText)
+  root.style.setProperty('--toast-success-bg', isDark.value ? colors.toastSuccessBgDark : colors.toastSuccessBg)
+  root.style.setProperty('--toast-success-text', isDark.value ? colors.toastSuccessTextDark : colors.toastSuccessText)
 }
 
 function toggleDark(value?: boolean) {

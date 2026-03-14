@@ -28,8 +28,8 @@
   --divider: rgba(0, 0, 0, 0.06);
 
   /* Toast 配色 — 基于主题色衍生 */
-  --toast-success-bg: rgba(0, 184, 148, 0.15);
-  --toast-success-text: #00B894;
+  --toast-success-bg: var(--secondary-toast-bg, rgba(78, 205, 196, 0.15));
+  --toast-success-text: var(--secondary, #4ECDC4);
   --toast-info-bg: rgba(108, 99, 255, 0.12);
   --toast-info-text: #6C63FF;
   --toast-error-bg: #fef2f2;
@@ -62,8 +62,8 @@ body.dark,
   --divider: rgba(255, 255, 255, 0.08);
 
   /* Toast 深色模式 */
-  --toast-success-bg: rgba(0, 184, 148, 0.2);
-  --toast-success-text: #00D2A4;
+  --toast-success-bg: var(--secondary-toast-bg-dark, rgba(78, 205, 196, 0.2));
+  --toast-success-text: var(--secondary-light, #6FE4DC);
   --toast-info-bg: rgba(108, 99, 255, 0.2);
   --toast-info-text: #8B83FF;
   --toast-error-bg: rgba(225, 112, 85, 0.2);
