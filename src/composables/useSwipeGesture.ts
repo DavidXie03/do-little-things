@@ -23,10 +23,7 @@ export function useSwipeGesture(
 
   const rotation = computed(() => offsetX.value * 0.06)
 
-  const opacity = computed(() => {
-    const absX = Math.abs(offsetX.value)
-    return Math.max(0.3, 1 - absX / 800)
-  })
+  const opacity = computed(() => 1)
 
   const leftZoneProgress = computed(() => {
     if (options?.canSwipeLeft && !options.canSwipeLeft()) return 0
@@ -45,7 +42,6 @@ export function useSwipeGesture(
     if (isAnimatingOut.value) return {}
     return {
       transform: `translateX(${offsetX.value}px) rotate(${rotation.value}deg)`,
-      opacity: opacity.value,
       transition: isDragging.value ? 'none' : 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
     }
   })
