@@ -3,12 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStorage } from '../composables/useStorage'
 import TodoItem from '../components/TodoItem.vue'
-import { ChevronDown } from 'lucide-vue-next'
 import IconCheck from '../components/icons/IconCheck.vue'
-
-const emit = defineEmits<{
-  (e: 'back'): void
-}>()
 
 const { t, tm, locale } = useI18n()
 const { completedTodos, restoreCompletedTodo } = useStorage()
@@ -91,42 +86,6 @@ function formatCompletedDate(dateStr: string): string {
 function handleRestore(todoId: string) {
   restoreCompletedTodo(todoId)
 }
-
-// 下滑返回手势
-let touchStartY = 0
-let touchStartX = 0
-let isDragging = false
-let pullOffset = 0
-const BACK_THRESHOLD = 80
-
-function onTouchStart(e: TouchEvent) {
-  const touch = e.touches[0]
-  if (!touch) return
-  touchStartY = touch.clientY
-  touchStartX = touch.clientX
-  isDragging = false
-  pullOffset = 0
-}
-
-function onTouchMove(e: TouchEvent) {
-  const touch = e.touches[0]
-  if (!touch) return
-  const dy = touch.clientY - touchStartY
-  const dx = Math.abs(touch.clientX - touchStartX)
-  // 只在垂直方向拉动、且向下拉时触发
-  if (dy > 10 && dy > dx * 2) {
-    isDragging = true
-    pullOffset = dy
-  }
-}
-
-function onTouchEnd() {
-  if (isDragging && pullOffset > BACK_THRESHOLD) {
-    emit('back')
-  }
-  isDragging = false
-  pullOffset = 0
-}
 </script>
 
 <template>
@@ -135,27 +94,18 @@ function onTouchEnd() {
     style="background-color: var(--bg-primary); transition: background-color 0.3s ease;"
   >
     <!-- Header -->
-    <header class="u-page-header flex items-center gap-3">
-      <button
-        @click="emit('back')"
-        class="w-8 h-8 flex items-center justify-center rounded-full transition-all active:scale-90"
-        style="background: var(--bg-secondary); border: none; cursor: pointer;"
-      >
-        <ChevronDown
-          :size="20"
-          :style="{ color: 'var(--text-secondary)', transform: 'rotate(180deg)' }"
-        />
-      </button>
-      <h1
-        class="text-2xl font-bold"
-        style="color: var(--text-primary);"
+    <header class="completed-header u-section-x">
+      <h2
+        class="text-lg font-bold"
+        style="color: var(--secondary);"
       >
         {{ t('completed.title') }}
-      </h1>
+      </h2>
     </header>
 
     <!-- Content -->
     <div
+      data-vertical-scroll="completed"
       class="flex-1 overflow-y-auto pb-4 u-section-x"
       :class="{ 'flex flex-col': pastCompletedTodos.length === 0 }"
       style="-webkit-overflow-scrolling: touch;"
@@ -218,5 +168,10 @@ function onTouchEnd() {
 <style scoped>
 .todo-group > :not(:last-child) {
   border-bottom: 1px solid var(--divider);
+}
+
+.completed-header {
+  padding-top: var(--gap-md);
+  padding-bottom: var(--gap-md);
 }
 </style>

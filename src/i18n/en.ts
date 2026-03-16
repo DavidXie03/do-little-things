@@ -26,9 +26,6 @@ export default {
   completed: {
     title: 'Completed',
     empty: 'No completed tasks yet',
-    pullDown: 'Pull down for completed',
-    release: 'Release to view completed',
-    viewHistory: 'View completed history',
   },
   modal: {
     addTitle: 'Add Todo',

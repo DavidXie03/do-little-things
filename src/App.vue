@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Capacitor } from '@capacitor/core'
 import { App as CapApp } from '@capacitor/app'
 import TabBar from './components/TabBar.vue'
@@ -8,9 +9,22 @@ import HomeView from './views/HomeView.vue'
 import PendingView from './views/PendingView.vue'
 import SettingsView from './views/SettingsView.vue'
 import CompletedView from './views/CompletedView.vue'
+import IconSettings from './components/icons/IconSettings.vue'
 import { usePageSwipe } from './composables/usePageSwipe'
 
-const { translateX, containerWidth, settingsOpen } = usePageSwipe()
+const { t } = useI18n()
+const {
+  translateX,
+  containerWidth,
+  settingsOpen,
+  verticalIndex,
+  verticalTranslateY,
+  scrollAreaHeight,
+  headerHeight,
+  goToVerticalPage,
+} = usePageSwipe()
+
+const pendingHeaderRef = ref<HTMLElement | null>(null)
 
 const showSettings = ref(false)
 const settingsPanelOffset = ref(0)
@@ -19,13 +33,6 @@ let settingsStartX = 0
 let settingsStartY = 0
 let settingsDirectionLocked: 'horizontal' | 'vertical' | null = null
 let settingsClosing = false
-
-const containerHeight = ref(window.innerHeight)
-
-// 已完成页面状态
-const showCompleted = ref(false)
-const completedPanelOffset = ref(0)
-let completedClosing = false
 
 function openSettings() {
   showSettings.value = true
@@ -75,58 +82,18 @@ function closeSettings() {
   requestAnimationFrame(tick)
 }
 
-function openCompleted() {
-  showCompleted.value = true
-  completedClosing = false
-  completedPanelOffset.value = containerHeight.value
-  const start = containerHeight.value
-  const duration = 300
-  const startTime = performance.now()
-
-  function tick(now: number) {
-    const elapsed = now - startTime
-    const progress = Math.min(elapsed / duration, 1)
-    const eased = 1 - Math.pow(1 - progress, 3)
-    completedPanelOffset.value = start * (1 - eased)
-    if (progress < 1) {
-      requestAnimationFrame(tick)
-    }
+onMounted(async () => {
+  await nextTick()
+  if (pendingHeaderRef.value) {
+    headerHeight.value = pendingHeaderRef.value.offsetHeight
   }
-  requestAnimationFrame(tick)
-}
 
-function closeCompleted() {
-  if (completedClosing) return
-  completedClosing = true
-  const start = completedPanelOffset.value
-  const target = containerHeight.value
-  const duration = 250
-  const startTime = performance.now()
-
-  function tick(now: number) {
-    const elapsed = now - startTime
-    const progress = Math.min(elapsed / duration, 1)
-    const eased = 1 - Math.pow(1 - progress, 3)
-    completedPanelOffset.value = start + (target - start) * eased
-
-    if (progress < 1) {
-      requestAnimationFrame(tick)
-    } else {
-      showCompleted.value = false
-      completedPanelOffset.value = 0
-      completedClosing = false
-    }
-  }
-  requestAnimationFrame(tick)
-}
-
-onMounted(() => {
   if (Capacitor.isNativePlatform()) {
     CapApp.addListener('backButton', () => {
-      if (showCompleted.value) {
-        closeCompleted()
-      } else if (showSettings.value) {
+      if (showSettings.value) {
         closeSettings()
+      } else if (verticalIndex.value === 0) {
+        goToVerticalPage(1)
       } else {
         CapApp.exitApp()
       }
@@ -203,11 +170,49 @@ function onSettingsTouchEnd() {
           willChange: 'transform',
         }"
       >
+        <!-- Horizontal page 0: HomeView -->
         <div :style="{ width: containerWidth + 'px', flexShrink: 0 }" class="h-full">
           <HomeView />
         </div>
-        <div :style="{ width: containerWidth + 'px', flexShrink: 0 }" class="h-full">
-          <PendingView @open-settings="openSettings" @open-completed="openCompleted" />
+
+        <!-- Horizontal page 1: Fixed header + Vertical swipe container -->
+        <div :style="{ width: containerWidth + 'px', flexShrink: 0 }" class="h-full flex flex-col overflow-hidden">
+          <!-- Fixed header (does not scroll with vertical swipe) -->
+          <header ref="pendingHeaderRef" class="u-page-header flex items-center justify-between" style="flex-shrink: 0;">
+            <h1
+              class="text-2xl font-bold"
+              style="color: var(--text-primary);"
+            >
+              {{ t('todos.title') }}
+            </h1>
+            <button
+              @click="openSettings"
+              class="settings-btn"
+            >
+              <IconSettings :size="26" color="var(--text-muted)" />
+            </button>
+          </header>
+
+          <!-- Vertical swipe area -->
+          <div class="flex-1 overflow-hidden relative">
+            <div
+              class="flex flex-col"
+              :style="{
+                height: scrollAreaHeight * 2 + 'px',
+                transform: `translateY(${verticalTranslateY}px)`,
+                willChange: 'transform',
+              }"
+            >
+              <!-- Vertical page 0: CompletedView (top) -->
+              <div :style="{ height: scrollAreaHeight + 'px', flexShrink: 0 }" class="overflow-hidden">
+                <CompletedView />
+              </div>
+              <!-- Vertical page 1: PendingView content (bottom, default) -->
+              <div :style="{ height: scrollAreaHeight + 'px', flexShrink: 0 }" class="overflow-hidden">
+                <PendingView />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -215,26 +220,7 @@ function onSettingsTouchEnd() {
     <TabBar />
     <AppToast />
 
-    <!-- 已完成任务面板（从底部滑入） -->
-    <div
-      v-show="showCompleted"
-      class="fixed inset-0 z-[200]"
-    >
-      <div
-        class="completed-mask"
-        :style="{ opacity: Math.max(0, 1 - completedPanelOffset / (containerHeight || 1)) }"
-        @click="closeCompleted"
-      ></div>
-      <div
-        class="completed-slide-panel"
-        :style="{
-          transform: `translateY(${completedPanelOffset}px)`,
-        }"
-      >
-        <CompletedView @back="closeCompleted" />
-      </div>
-    </div>
-
+    <!-- Settings panel (slide from right) -->
     <div
       v-show="showSettings"
       class="fixed inset-0 z-[200]"
@@ -260,6 +246,22 @@ function onSettingsTouchEnd() {
 </template>
 
 <style scoped>
+.settings-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.settings-btn:active {
+  transform: scale(0.92);
+}
+
 .settings-slide-panel {
   position: absolute;
   top: 0;
@@ -271,22 +273,6 @@ function onSettingsTouchEnd() {
 }
 
 .settings-mask {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.completed-slide-panel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
-  background-color: var(--bg-primary);
-}
-
-.completed-mask {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.3);

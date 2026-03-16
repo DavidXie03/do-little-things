@@ -8,88 +8,17 @@ import { useToast } from '../composables/useToast'
 import { usePageSwipe } from '../composables/usePageSwipe'
 import TodoItem from '../components/TodoItem.vue'
 import TodoModal from '../components/TodoModal.vue'
-import { ClipboardList, ChevronDown } from 'lucide-vue-next'
+import { ClipboardList } from 'lucide-vue-next'
 import IconPlus from '../components/icons/IconPlus.vue'
-import IconSettings from '../components/icons/IconSettings.vue'
-import IconCheck from '../components/icons/IconCheck.vue'
-
-const emit = defineEmits<{
-  (e: 'open-settings'): void
-  (e: 'open-completed'): void
-}>()
 
 const { t, tm, locale } = useI18n()
 const { showToast } = useToast()
-const { isAnimating, dragOffset, currentIndex } = usePageSwipe()
+const { isAnimating, dragOffset, currentIndex, verticalIndex } = usePageSwipe()
 
 const fabVisible = ref(false)
 const isScrolling = ref(false)
 let fabTimer: ReturnType<typeof setTimeout> | null = null
 let scrollTimer: ReturnType<typeof setTimeout> | null = null
-const scrollContainerRef = ref<HTMLElement | null>(null)
-
-// 下拉进入已完成页面相关状态
-const pullDownOffset = ref(0)
-const isPullingDown = ref(false)
-const pullTriggered = ref(false)
-let pullStartY = 0
-let pullStartX = 0
-let pullDirectionLocked: 'vertical' | 'horizontal' | null = null
-const PULL_TRIGGER_THRESHOLD = 80
-
-function onPullTouchStart(e: TouchEvent) {
-  const touch = e.touches[0]
-  if (!touch) return
-  pullStartY = touch.clientY
-  pullStartX = touch.clientX
-  pullDirectionLocked = null
-  pullTriggered.value = false
-}
-
-function onPullTouchMove(e: TouchEvent) {
-  const touch = e.touches[0]
-  if (!touch) return
-
-  // 只有滚动容器在顶部时才允许下拉
-  const container = scrollContainerRef.value
-  if (!container || container.scrollTop > 0) return
-
-  const dy = touch.clientY - pullStartY
-  const dx = touch.clientX - pullStartX
-
-  if (!pullDirectionLocked) {
-    if (Math.abs(dy) < 8 && Math.abs(dx) < 8) return
-    pullDirectionLocked = Math.abs(dy) >= Math.abs(dx) ? 'vertical' : 'horizontal'
-  }
-
-  if (pullDirectionLocked !== 'vertical' || dy <= 0) return
-
-  isPullingDown.value = true
-  // 阻尼效果：拉越远阻力越大
-  pullDownOffset.value = Math.min(dy * 0.5, 120)
-  pullTriggered.value = pullDownOffset.value >= PULL_TRIGGER_THRESHOLD * 0.5
-}
-
-function onPullTouchEnd() {
-  if (isPullingDown.value && pullTriggered.value) {
-    emit('open-completed')
-  }
-  pullDownOffset.value = 0
-  isPullingDown.value = false
-  pullTriggered.value = false
-  pullDirectionLocked = null
-}
-
-// 判断是否有昨天及之前的已完成任务
-const { completedTodos: allCompletedTodos } = useStorage()
-const hasPastCompleted = computed(() => {
-  const now = new Date()
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
-  return allCompletedTodos.value.some(item => {
-    if (!item.completedAt) return true
-    return item.completedAt < todayStart
-  })
-})
 
 function onListScroll() {
   isScrolling.value = true
@@ -99,8 +28,8 @@ function onListScroll() {
   }, 150)
 }
 
-watch([isAnimating, dragOffset, currentIndex, isScrolling], ([animating, offset, idx, scrolling]) => {
-  if (animating || offset !== 0 || idx !== 1 || scrolling) {
+watch([isAnimating, dragOffset, currentIndex, isScrolling, verticalIndex], ([animating, offset, idx, scrolling, vIdx]) => {
+  if (animating || offset !== 0 || idx !== 1 || scrolling || vIdx !== 1) {
     if (fabTimer) { clearTimeout(fabTimer); fabTimer = null }
     fabVisible.value = false
   } else {
@@ -342,51 +271,12 @@ onMounted(() => {
 
 <template>
   <div class="h-full flex flex-col overflow-hidden relative" style="background-color: var(--bg-primary); transition: background-color 0.3s ease;">
-    <!-- 下拉提示区域 -->
     <div
-      v-if="hasPastCompleted"
-      class="pull-down-indicator"
-      :style="{
-        height: pullDownOffset + 'px',
-        opacity: Math.min(pullDownOffset / (PULL_TRIGGER_THRESHOLD * 0.5), 1),
-      }"
-    >
-      <div class="pull-down-content">
-        <ChevronDown
-          :size="18"
-          :style="{
-            color: pullTriggered ? 'var(--secondary)' : 'var(--text-muted)',
-            transform: pullTriggered ? 'rotate(180deg)' : 'rotate(0)',
-            transition: 'transform 0.2s ease, color 0.2s ease',
-          }"
-        />
-        <span
-          class="text-xs"
-          :style="{ color: pullTriggered ? 'var(--secondary)' : 'var(--text-muted)' }"
-        >
-          {{ pullTriggered ? t('completed.release') : t('completed.pullDown') }}
-        </span>
-      </div>
-    </div>
-
-    <header class="u-page-header">
-      <h1
-        class="text-2xl font-bold"
-        style="color: var(--text-primary);"
-      >
-        {{ t('todos.title') }}
-      </h1>
-    </header>
-
-    <div
-      ref="scrollContainerRef"
+      data-vertical-scroll="pending"
       class="flex-1 overflow-y-auto pb-4 u-section-x"
       :class="{ 'flex flex-col': groupedTodos.length === 0 && overdueGroups.length === 0 }"
       style="-webkit-overflow-scrolling: touch;"
       @scroll="onListScroll"
-      @touchstart.passive="onPullTouchStart"
-      @touchmove="onPullTouchMove"
-      @touchend.passive="onPullTouchEnd"
     >
 
       <div
@@ -516,30 +406,8 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- 查看已完成历史入口 -->
-      <div v-if="hasPastCompleted" class="u-mb-lg">
-        <button
-          @click="emit('open-completed')"
-          class="completed-history-btn"
-        >
-          <IconCheck :size="16" color="var(--secondary)" />
-          <span>{{ t('completed.viewHistory') }}</span>
-          <ChevronDown
-            :size="14"
-            :style="{ color: 'var(--text-muted)', transform: 'rotate(-90deg)' }"
-          />
-        </button>
-      </div>
-
       <div class="h-20"></div>
     </div>
-
-    <button
-      @click="emit('open-settings')"
-      class="settings-btn"
-    >
-      <IconSettings :size="26" color="var(--text-muted)" />
-    </button>
 
     <button
       v-show="fabVisible"
@@ -566,69 +434,6 @@ onMounted(() => {
 <style scoped>
 .todo-group > :not(:last-child) {
   border-bottom: 1px solid var(--divider);
-}
-
-.pull-down-indicator {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.pull-down-content {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding-bottom: 8px;
-}
-
-.completed-history-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: var(--item-bg);
-  box-shadow: var(--card-shadow);
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--text-secondary);
-  transition: all 0.2s ease;
-}
-.completed-history-btn:active {
-  transform: scale(0.98);
-  opacity: 0.8;
-}
-.completed-history-btn span {
-  flex: 1;
-  text-align: left;
-}
-
-.settings-btn {
-  position: absolute;
-  top: calc(var(--safe-area-top, 0px) + 24px);
-  right: 20px;
-  z-index: 20;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-}
-.settings-btn:active {
-  transform: scale(0.92);
 }
 
 .fab-add {
