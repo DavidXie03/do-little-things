@@ -296,7 +296,7 @@ onMounted(() => {
       @click="emit('open-settings')"
       class="settings-btn"
     >
-      <IconSettings :size="20" color="var(--text-muted)" />
+      <IconSettings :size="26" color="var(--text-muted)" />
     </button>
 
     <button
@@ -333,14 +333,12 @@ onMounted(() => {
   z-index: 20;
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  background: var(--item-bg);
-  box-shadow: var(--card-shadow);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
   border: none;
+  background: transparent;
   cursor: pointer;
 }
 .settings-btn:active {

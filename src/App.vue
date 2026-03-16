@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { App as CapApp } from '@capacitor/app'
 import TabBar from './components/TabBar.vue'
 import AppToast from './components/AppToast.vue'
 import HomeView from './views/HomeView.vue'
@@ -64,6 +65,16 @@ function closeSettings() {
   }
   requestAnimationFrame(tick)
 }
+
+onMounted(() => {
+  CapApp.addListener('backButton', () => {
+    if (showSettings.value) {
+      closeSettings()
+    } else {
+      CapApp.exitApp()
+    }
+  })
+})
 
 function onSettingsTouchStart(e: TouchEvent) {
   const touch = e.touches[0]
