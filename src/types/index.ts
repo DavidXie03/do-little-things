@@ -77,6 +77,11 @@ export interface DailyConfig {
   action: number
 }
 
+export interface PastDailyTodos {
+  date: string // YYYY-MM-DD
+  items: DailyTodoItem[]
+}
+
 export interface StorageData {
   version: number
   records: TaskRecord[]
@@ -84,6 +89,8 @@ export interface StorageData {
   dailyConfig: DailyConfig
   customActions: CustomAction[]
   dailyTodos: DailyTodoList | null
+  pastTodos: PastDailyTodos[] // 过去未完成的任务（按天保存）
+  completedTodos: DailyTodoItem[] // 已完成的任务归档
   slogan?: string
   showSlogan?: boolean
   typingEffect?: boolean

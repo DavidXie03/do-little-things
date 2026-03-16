@@ -3,7 +3,7 @@ import type { StorageData, DailyConfig } from '../types'
 import { DEFAULT_ACTIONS } from '../services/taskService'
 
 const STORAGE_KEY = 'flip-a-little-data'
-const CURRENT_VERSION = 5
+const CURRENT_VERSION = 6
 
 function getDefaultDailyConfig(): DailyConfig {
   return { action: 5 }
@@ -36,6 +36,8 @@ function migrateData(data: any): StorageData {
   if (!data.dailyTodos) data.dailyTodos = null
   if (!data.pendingTasks) data.pendingTasks = []
   if (!data.records) data.records = []
+  if (!data.pastTodos) data.pastTodos = []
+  if (!data.completedTodos) data.completedTodos = []
 
   for (const ca of data.customActions) {
     if (ca.repeatCount === undefined) ca.repeatCount = 1

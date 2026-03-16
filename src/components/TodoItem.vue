@@ -10,6 +10,8 @@ const props = defineProps<{
   showRecurrence?: boolean
   showDateLabel?: boolean
   isFuture?: boolean
+  isOverdue?: boolean
+  isCompletedArchive?: boolean
   grouped?: boolean
 }>()
 
@@ -30,15 +32,42 @@ function getSubInfo(): string {
   <div
     class="relative overflow-hidden transition-all duration-300"
     :class="[
-      item.completed ? 'opacity-60' : '',
+      item.completed && !isCompletedArchive ? 'opacity-60' : '',
       isFuture ? 'opacity-70' : '',
       grouped ? '' : 'rounded-2xl u-mb-md',
     ]"
     :style="grouped ? {} : { background: 'var(--item-bg)', boxShadow: 'var(--card-shadow)' }"
   >
-    <div class="flex items-center gap-3 u-item" @click="emit('edit', item)">
+    <div class="flex items-center gap-3 u-item" @click="!isCompletedArchive ? emit('edit', item) : undefined">
+      <!-- 已完成归档：绿色圆（可点击恢复） -->
       <button
-        v-if="!isFuture"
+        v-if="isCompletedArchive"
+        @click.stop="emit('complete', item.id)"
+        class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 active:scale-90"
+        :style="{
+          background: 'var(--secondary)',
+          border: 'none',
+        }"
+      >
+        <IconCheck :size="16" color="white" />
+      </button>
+      <!-- 过期任务：红色空心圆（可点击完成） -->
+      <button
+        v-else-if="isOverdue"
+        @click.stop="emit('complete', item.id)"
+        class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 active:scale-90"
+        style="background: transparent; border: 2px solid #ef4444;"
+      >
+      </button>
+      <!-- 普通未来项：虚线圆 -->
+      <div
+        v-else-if="isFuture"
+        class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+        style="border: 2px dashed var(--text-muted); opacity: 0.4;"
+      ></div>
+      <!-- 正常今日项 -->
+      <button
+        v-else
         @click.stop="emit('complete', item.id)"
         class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 active:scale-90"
         :style="{
@@ -48,17 +77,16 @@ function getSubInfo(): string {
       >
         <IconCheck v-if="item.completed" :size="16" color="white" />
       </button>
-      <div
-        v-else
-        class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
-        style="border: 2px dashed var(--text-muted); opacity: 0.4;"
-      ></div>
 
       <div class="flex-1 min-w-0">
         <p
           class="text-sm leading-relaxed transition-all duration-300"
-          :class="item.completed ? 'line-through' : ''"
-          style="color: var(--text-primary);"
+          :class="[
+            item.completed && !isCompletedArchive ? 'line-through' : '',
+            isOverdue ? 'overdue-text' : '',
+            isCompletedArchive ? 'line-through' : '',
+          ]"
+          :style="isOverdue ? { color: '#ef4444' } : { color: 'var(--text-primary)' }"
         >
           {{ item.task.content }}
         </p>
@@ -71,8 +99,8 @@ function getSubInfo(): string {
         v-if="item.totalCount > 1"
         class="flex-shrink-0 text-xs u-badge rounded-full"
         :style="{
-          background: item.completed ? 'var(--toast-success-bg)' : 'rgba(108,99,255,0.08)',
-          color: item.completed ? 'var(--secondary)' : 'var(--primary)',
+          background: item.completed ? 'var(--toast-success-bg)' : isOverdue ? 'rgba(239,68,68,0.08)' : 'rgba(108,99,255,0.08)',
+          color: item.completed ? 'var(--secondary)' : isOverdue ? '#ef4444' : 'var(--primary)',
         }"
       >
         {{ item.completedCount }}/{{ item.totalCount }}
@@ -80,3 +108,9 @@ function getSubInfo(): string {
     </div>
   </div>
 </template>
+
+<style scoped>
+.overdue-text {
+  font-weight: 500;
+}
+</style>

@@ -8,7 +8,7 @@ import { useToast } from '../composables/useToast'
 import { usePageSwipe } from '../composables/usePageSwipe'
 import TodoItem from '../components/TodoItem.vue'
 import TodoModal from '../components/TodoModal.vue'
-import { ClipboardList } from 'lucide-vue-next'
+import { ClipboardList, ChevronDown } from 'lucide-vue-next'
 import IconPlus from '../components/icons/IconPlus.vue'
 import IconSettings from '../components/icons/IconSettings.vue'
 
@@ -25,6 +25,7 @@ const isScrolling = ref(false)
 let fabTimer: ReturnType<typeof setTimeout> | null = null
 let scrollTimer: ReturnType<typeof setTimeout> | null = null
 const scrollContainerRef = ref<HTMLElement | null>(null)
+const completedExpanded = ref(false)
 
 function onListScroll() {
   isScrolling.value = true
@@ -50,11 +51,15 @@ const {
   ensureDailyTodos,
   dailyTodos,
   markTodoComplete,
+  markPastTodoComplete,
+  restoreCompletedTodo,
   removeTodoItem,
   customActions,
   addCustomAction,
   updateCustomAction,
   futureTodos,
+  pastTodos,
+  completedTodos,
 } = useStorage()
 
 function handleComplete(todoId: string) {
@@ -66,7 +71,36 @@ function handleComplete(todoId: string) {
   }
 }
 
-const todayItems = computed(() => dailyTodos.value?.items ?? [])
+function handlePastComplete(todoId: string, dateStr: string) {
+  const done = markPastTodoComplete(todoId, dateStr)
+  if (done) {
+    const messages = tm('toast.completeMessages') as string[]
+    const msg = messages[Math.floor(Math.random() * messages.length)]
+    showToast(msg, 'success')
+  }
+}
+
+function handleRestoreCompleted(todoId: string) {
+  if (isTodayCompletedItem(todoId)) {
+    // 今天的任务：直接 toggle 回未完成（用 markTodoComplete）
+    markTodoComplete(todoId)
+  } else {
+    // 归档的任务：从 completedTodos 恢复到 pastTodos
+    restoreCompletedTodo(todoId)
+  }
+}
+
+const todayItems = computed(() => {
+  const items = dailyTodos.value?.items ?? []
+  // 只展示未完成的任务在"今天"分组
+  return items.filter(i => !i.completed)
+})
+
+// 今天已完成的任务
+const todayCompletedItems = computed(() => {
+  const items = dailyTodos.value?.items ?? []
+  return items.filter(i => i.completed)
+})
 
 const existingNames = computed((): Set<string> => {
   const names = new Set<string>()
@@ -91,6 +125,7 @@ interface DateGroup {
   count: number
   items: DailyTodoItem[]
   isFuture: boolean     // 是否未来日期（不可操作）
+  isOverdue: boolean    // 是否过期
 }
 
 const groupedTodos = computed((): DateGroup[] => {
@@ -104,6 +139,7 @@ const groupedTodos = computed((): DateGroup[] => {
       count: todayItems.value.length,
       items: [...todayItems.value],
       isFuture: false,
+      isOverdue: false,
     })
   }
 
@@ -120,12 +156,42 @@ const groupedTodos = computed((): DateGroup[] => {
         count: 1,
         items: [item],
         isFuture: true,
+        isOverdue: false,
       })
     }
   }
 
   return Array.from(groups.values()).sort((a, b) => a.dateStr.localeCompare(b.dateStr))
 })
+
+// 过期未完成任务分组（按日期从近到远排列）
+const overdueGroups = computed((): DateGroup[] => {
+  return pastTodos.value
+    .filter(p => p.items.length > 0)
+    .map(p => ({
+      dateStr: p.date,
+      label: formatPastDate(p.date),
+      count: p.items.length,
+      items: p.items,
+      isFuture: false,
+      isOverdue: true,
+    }))
+    .sort((a, b) => b.dateStr.localeCompare(a.dateStr)) // 最近的在前
+})
+
+// 已完成任务（合并今天已完成 + 归档已完成，按完成时间从近到远）
+const sortedCompletedTodos = computed(() => {
+  const all = [
+    ...todayCompletedItems.value,
+    ...completedTodos.value,
+  ]
+  return all.sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0))
+})
+
+// 判断一个已完成任务是否属于今天（恢复逻辑不同）
+function isTodayCompletedItem(todoId: string): boolean {
+  return todayCompletedItems.value.some(i => i.id === todoId)
+}
 
 function getTodayStr(): string {
   const now = new Date()
@@ -210,6 +276,28 @@ function formatGroupDate(dateStr: string): string {
   }
 }
 
+function formatPastDate(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00')
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const diffDays = Math.round((today.getTime() - target.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 1) return t('todos.yesterday')
+  if (diffDays === 2) return t('todos.dayBeforeYesterday')
+  if (diffDays <= 7) return t('todos.daysAgo', { days: diffDays })
+
+  const weekdays = tm('date.weekdays') as string[]
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+
+  if (locale.value === 'zh') {
+    return `${month}月${day}日${weekdays[date.getDay()]}`
+  } else {
+    return `${month}/${day} ${weekdays[date.getDay()]}`
+  }
+}
+
 onMounted(() => {
   ensureDailyTodos()
 })
@@ -226,10 +314,10 @@ onMounted(() => {
       </h1>
     </header>
 
-    <div ref="scrollContainerRef" class="flex-1 overflow-y-auto pb-4 u-section-x" :class="{ 'flex flex-col': groupedTodos.length === 0 }" style="-webkit-overflow-scrolling: touch;" @scroll="onListScroll">
+    <div ref="scrollContainerRef" class="flex-1 overflow-y-auto pb-4 u-section-x" :class="{ 'flex flex-col': groupedTodos.length === 0 && overdueGroups.length === 0 }" style="-webkit-overflow-scrolling: touch;" @scroll="onListScroll">
 
       <div
-        v-if="groupedTodos.length === 0"
+        v-if="groupedTodos.length === 0 && overdueGroups.length === 0"
         class="flex-1 flex flex-col items-center justify-center"
       >
         <ClipboardList :size="48" color="var(--text-muted)" :stroke-width="1.5" />
@@ -238,6 +326,7 @@ onMounted(() => {
         </p>
       </div>
 
+      <!-- 今日 + 未来待办 -->
       <div v-for="group in groupedTodos" :key="group.dateStr" class="u-mb-lg">
         <div class="flex items-center gap-2 u-mb-sm">
           <span
@@ -260,7 +349,7 @@ onMounted(() => {
           style="background: var(--item-bg); box-shadow: var(--card-shadow);"
         >
           <TodoItem
-            v-for="(item, idx) in group.items"
+            v-for="item in group.items"
             :key="item.id"
             :item="item"
             :show-recurrence="true"
@@ -277,7 +366,7 @@ onMounted(() => {
           style="background: var(--item-bg); box-shadow: var(--card-shadow);"
         >
           <TodoItem
-            v-for="(item, idx) in group.items"
+            v-for="item in group.items"
             :key="item.id"
             :item="item"
             :show-recurrence="true"
@@ -285,6 +374,79 @@ onMounted(() => {
             :is-future="true"
             :grouped="true"
             @edit="openEditModal"
+          />
+        </div>
+      </div>
+
+      <!-- 过期未完成任务 -->
+      <div v-for="group in overdueGroups" :key="'past_' + group.dateStr" class="u-mb-lg">
+        <div class="flex items-center gap-2 u-mb-sm">
+          <span class="text-sm font-bold" style="color: #ef4444;">
+            {{ group.label }}
+          </span>
+          <span
+            class="text-xs font-semibold min-w-[18px] h-[18px] flex items-center justify-center rounded-full"
+            style="background: rgba(239,68,68,0.1); color: #ef4444;"
+          >
+            {{ group.count }}
+          </span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded" style="background: rgba(239,68,68,0.1); color: #ef4444;">
+            {{ t('todos.overdue') }}
+          </span>
+        </div>
+
+        <div
+          class="todo-group rounded-2xl overflow-hidden"
+          style="background: var(--item-bg); box-shadow: var(--card-shadow);"
+        >
+          <TodoItem
+            v-for="item in group.items"
+            :key="item.id"
+            :item="item"
+            :show-recurrence="true"
+            :show-date-label="false"
+            :is-overdue="true"
+            :grouped="true"
+            @complete="(todoId: string) => handlePastComplete(todoId, group.dateStr)"
+          />
+        </div>
+      </div>
+
+      <!-- 已完成任务 -->
+      <div v-if="sortedCompletedTodos.length > 0" class="u-mb-lg">
+        <button
+          @click="completedExpanded = !completedExpanded"
+          class="flex items-center gap-2 u-mb-sm w-full text-left bg-transparent border-none cursor-pointer p-0"
+        >
+          <span class="text-sm font-bold" style="color: var(--secondary);">
+            {{ t('todos.completedSection') }}
+          </span>
+          <span
+            class="text-xs font-semibold min-w-[18px] h-[18px] flex items-center justify-center rounded-full"
+            style="background: var(--toast-success-bg); color: var(--secondary);"
+          >
+            {{ sortedCompletedTodos.length }}
+          </span>
+          <ChevronDown
+            :size="16"
+            :style="{ color: 'var(--secondary)', transform: completedExpanded ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s ease' }"
+          />
+        </button>
+
+        <div
+          v-if="completedExpanded"
+          class="todo-group rounded-2xl overflow-hidden"
+          style="background: var(--item-bg); box-shadow: var(--card-shadow);"
+        >
+          <TodoItem
+            v-for="item in sortedCompletedTodos"
+            :key="'done_' + item.id"
+            :item="item"
+            :show-recurrence="true"
+            :show-date-label="false"
+            :is-completed-archive="true"
+            :grouped="true"
+            @complete="handleRestoreCompleted"
           />
         </div>
       </div>

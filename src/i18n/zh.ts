@@ -17,6 +17,11 @@ export default {
     today: '今天',
     tomorrow: '明天',
     dayAfterTomorrow: '后天',
+    yesterday: '昨天',
+    dayBeforeYesterday: '前天',
+    daysAgo: '{days}天前',
+    overdue: '已过期',
+    completedSection: '已完成',
   },
   modal: {
     addTitle: '添加待办',

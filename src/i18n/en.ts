@@ -17,6 +17,11 @@ export default {
     today: 'Today',
     tomorrow: 'Tomorrow',
     dayAfterTomorrow: 'Day After Tomorrow',
+    yesterday: 'Yesterday',
+    dayBeforeYesterday: 'Day Before Yesterday',
+    daysAgo: '{days} days ago',
+    overdue: 'Overdue',
+    completedSection: 'Completed',
   },
   modal: {
     addTitle: 'Add Todo',
