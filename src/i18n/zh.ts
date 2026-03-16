@@ -23,6 +23,13 @@ export default {
     overdue: '已过期',
     completedSection: '已完成',
   },
+  completed: {
+    title: '已完成',
+    empty: '还没有已完成的任务',
+    pullDown: '下拉查看已完成',
+    release: '松手查看已完成',
+    viewHistory: '查看已完成历史',
+  },
   modal: {
     addTitle: '添加待办',
     editTitle: '编辑待办',

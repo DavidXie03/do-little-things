@@ -7,6 +7,7 @@ import AppToast from './components/AppToast.vue'
 import HomeView from './views/HomeView.vue'
 import PendingView from './views/PendingView.vue'
 import SettingsView from './views/SettingsView.vue'
+import CompletedView from './views/CompletedView.vue'
 import { usePageSwipe } from './composables/usePageSwipe'
 
 const { translateX, containerWidth, settingsOpen } = usePageSwipe()
@@ -18,6 +19,13 @@ let settingsStartX = 0
 let settingsStartY = 0
 let settingsDirectionLocked: 'horizontal' | 'vertical' | null = null
 let settingsClosing = false
+
+const containerHeight = ref(window.innerHeight)
+
+// 已完成页面状态
+const showCompleted = ref(false)
+const completedPanelOffset = ref(0)
+let completedClosing = false
 
 function openSettings() {
   showSettings.value = true
@@ -67,10 +75,57 @@ function closeSettings() {
   requestAnimationFrame(tick)
 }
 
+function openCompleted() {
+  showCompleted.value = true
+  completedClosing = false
+  completedPanelOffset.value = containerHeight.value
+  const start = containerHeight.value
+  const duration = 300
+  const startTime = performance.now()
+
+  function tick(now: number) {
+    const elapsed = now - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    const eased = 1 - Math.pow(1 - progress, 3)
+    completedPanelOffset.value = start * (1 - eased)
+    if (progress < 1) {
+      requestAnimationFrame(tick)
+    }
+  }
+  requestAnimationFrame(tick)
+}
+
+function closeCompleted() {
+  if (completedClosing) return
+  completedClosing = true
+  const start = completedPanelOffset.value
+  const target = containerHeight.value
+  const duration = 250
+  const startTime = performance.now()
+
+  function tick(now: number) {
+    const elapsed = now - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    const eased = 1 - Math.pow(1 - progress, 3)
+    completedPanelOffset.value = start + (target - start) * eased
+
+    if (progress < 1) {
+      requestAnimationFrame(tick)
+    } else {
+      showCompleted.value = false
+      completedPanelOffset.value = 0
+      completedClosing = false
+    }
+  }
+  requestAnimationFrame(tick)
+}
+
 onMounted(() => {
   if (Capacitor.isNativePlatform()) {
     CapApp.addListener('backButton', () => {
-      if (showSettings.value) {
+      if (showCompleted.value) {
+        closeCompleted()
+      } else if (showSettings.value) {
         closeSettings()
       } else {
         CapApp.exitApp()
@@ -152,13 +207,33 @@ function onSettingsTouchEnd() {
           <HomeView />
         </div>
         <div :style="{ width: containerWidth + 'px', flexShrink: 0 }" class="h-full">
-          <PendingView @open-settings="openSettings" />
+          <PendingView @open-settings="openSettings" @open-completed="openCompleted" />
         </div>
       </div>
     </main>
 
     <TabBar />
     <AppToast />
+
+    <!-- 已完成任务面板（从底部滑入） -->
+    <div
+      v-show="showCompleted"
+      class="fixed inset-0 z-[200]"
+    >
+      <div
+        class="completed-mask"
+        :style="{ opacity: Math.max(0, 1 - completedPanelOffset / (containerHeight || 1)) }"
+        @click="closeCompleted"
+      ></div>
+      <div
+        class="completed-slide-panel"
+        :style="{
+          transform: `translateY(${completedPanelOffset}px)`,
+        }"
+      >
+        <CompletedView @back="closeCompleted" />
+      </div>
+    </div>
 
     <div
       v-show="showSettings"
@@ -196,6 +271,22 @@ function onSettingsTouchEnd() {
 }
 
 .settings-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.completed-slide-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  background-color: var(--bg-primary);
+}
+
+.completed-mask {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.3);
