@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 
-const DARK_STORAGE_KEY = 'do-little-things-dark-mode'
-const COLOR_STORAGE_KEY = 'do-little-things-color-theme'
+const DARK_STORAGE_KEY = 'flip-a-little-dark-mode'
+const COLOR_STORAGE_KEY = 'flip-a-little-color-theme'
 
 export type ColorTheme = 'purple' | 'blue'
 

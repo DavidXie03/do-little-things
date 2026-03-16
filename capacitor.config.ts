@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
   appId: 'com.dolittlethings.app',
-  appName: '做件小事',
+  appName: '小事一翻',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

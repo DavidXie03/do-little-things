@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import type { StorageData, DailyConfig } from '../types'
 import { DEFAULT_ACTIONS } from '../services/taskService'
 
-const STORAGE_KEY = 'do-little-things-data'
+const STORAGE_KEY = 'flip-a-little-data'
 const CURRENT_VERSION = 5
 
 function getDefaultDailyConfig(): DailyConfig {

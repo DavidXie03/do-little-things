@@ -53,7 +53,7 @@ function closeLangModal() {
 function switchLanguage(langCode: string) {
   locale.value = langCode
   saveLanguage(langCode)
-  document.title = langCode === 'zh' ? '做件小事' : 'Do Little Things'
+  document.title = langCode === 'zh' ? '小事一翻' : 'Flip a Little'
   document.documentElement.lang = langCode === 'zh' ? 'zh-CN' : 'en'
   showLangModal.value = false
 }

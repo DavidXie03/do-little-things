@@ -2,7 +2,7 @@ import { createI18n } from 'vue-i18n'
 import zh from './zh'
 import en from './en'
 
-const LANG_STORAGE_KEY = 'do-little-things-lang'
+const LANG_STORAGE_KEY = 'flip-a-little-lang'
 
 function getSavedLanguage(): string {
   try {

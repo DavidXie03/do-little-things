@@ -15,7 +15,7 @@ export function useImportExport() {
 
   async function exportConfig() {
     const actions = storageData.value.customActions
-    const filename = `do-little-things-config-${new Date().toISOString().slice(0, 10)}.json`
+    const filename = `flip-a-little-config-${new Date().toISOString().slice(0, 10)}.json`
     const exportData = { version: 1, customActions: actions }
 
     try {

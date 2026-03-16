@@ -1,4 +1,4 @@
-# Do Little Things
+# Flip a Little
 
 A lightweight daily micro-action app that recommends small tasks each day to help you build positive habits.
 
@@ -104,8 +104,8 @@ npm run build:apk:release
 
 | Build Type | Output Filename | Description |
 |---|---|---|
-| debug | `做件小事-debug.apk` | Ready to install for testing, no signing required |
-| release | `做件小事-release-YYYYMMDD_HHMMSS.apk` | Unsigned, timestamped, requires manual signing |
+| debug | `小事一翻-debug.apk` | Ready to install for testing, no signing required |
+| release | `小事一翻-release-YYYYMMDD_HHMMSS.apk` | Unsigned, timestamped, requires manual signing |
 
 The APK is output to the **project root directory**. On macOS, Finder will automatically open the containing folder.
 

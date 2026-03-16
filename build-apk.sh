@@ -27,7 +27,7 @@ step()    { echo -e "\n${CYAN}━━━ Step $1: $2 ━━━${NC}"; }
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ANDROID_DIR="${PROJECT_DIR}/android"
 BUILD_TYPE="${1:-debug}"  # 默认 debug
-APP_NAME="做件小事"
+APP_NAME="小事一翻"
 OUTPUT_DIR="${PROJECT_DIR}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 

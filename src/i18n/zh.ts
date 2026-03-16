@@ -1,6 +1,6 @@
 export default {
   app: {
-    title: '做件小事',
+    title: '小事一翻',
   },
   home: {
     allDoneTitle: '今日任务完成！',
@@ -69,7 +69,7 @@ export default {
     importSuccess: '恢复成功，已加载 {count} 个任务',
     importFail: '恢复失败：文件格式不正确',
     exportSuccess: '备份已导出',
-    aboutAppName: '做件小事',
+    aboutAppName: '小事一翻',
     aboutDescription: '翻转卡片，随机做一件小事。每完成一张，都是一份小小的成就感。',
     aboutAuthor: '作者',
     aboutAuthorName: 'DavidXie03',

@@ -1,6 +1,6 @@
 export default {
   app: {
-    title: 'Do Little Things',
+    title: 'Flip a Little',
   },
   home: {
     allDoneTitle: 'All Done for Today!',
@@ -69,7 +69,7 @@ export default {
     importFail: 'Restore failed: invalid file format',
     exportSuccess: 'Backup exported',
     about: 'About',
-    aboutAppName: 'Do Little Things',
+    aboutAppName: 'Flip a Little',
     aboutDescription: 'Flip a card, do something small. Every card you complete is a little win.',
     aboutAuthor: 'Author',
     aboutAuthorName: 'DavidXie03',
