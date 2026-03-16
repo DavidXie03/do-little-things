@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'com.dolittlethings.app',
+  appId: 'com.flipalittle.app',
   appName: '小事一翻',
   webDir: 'dist',
   server: {
