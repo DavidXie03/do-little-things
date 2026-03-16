@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build": "vite build",
+    "type-check": "vue-tsc -b",
     "preview": "vite preview",
     "build:apk": "bash build-apk.sh debug",
     "build:apk:release": "bash build-apk.sh release"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { Capacitor } from '@capacitor/core'
 import { App as CapApp } from '@capacitor/app'
 import TabBar from './components/TabBar.vue'
 import AppToast from './components/AppToast.vue'
@@ -67,13 +68,15 @@ function closeSettings() {
 }
 
 onMounted(() => {
-  CapApp.addListener('backButton', () => {
-    if (showSettings.value) {
-      closeSettings()
-    } else {
-      CapApp.exitApp()
-    }
-  })
+  if (Capacitor.isNativePlatform()) {
+    CapApp.addListener('backButton', () => {
+      if (showSettings.value) {
+        closeSettings()
+      } else {
+        CapApp.exitApp()
+      }
+    })
+  }
 })
 
 function onSettingsTouchStart(e: TouchEvent) {
