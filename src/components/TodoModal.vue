@@ -273,7 +273,6 @@ function formatCustomDate(dateStr: string): string {
         <input
           type="date"
           :value="customDate"
-          :min="getTodayStr()"
           @input="handleDateInput"
           class="w-full text-sm px-4 py-2.5 rounded-lg border-none outline-none"
           style="background: rgba(108,99,255,0.04); color: var(--text-primary);"

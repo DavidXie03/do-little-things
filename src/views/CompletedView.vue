@@ -8,22 +8,18 @@ import IconCheck from '../components/icons/IconCheck.vue'
 const { t, tm, locale } = useI18n()
 const { completedTodos, restoreCompletedTodo } = useStorage()
 
-// 只显示昨天及更早完成的任务（不包含今天完成的）
 const pastCompletedTodos = computed(() => {
   const now = new Date()
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
 
   return completedTodos.value
     .filter(item => {
-      // 如果没有 completedAt，视为旧数据保留
       if (!item.completedAt) return true
-      // 只要 completedAt 在今天零点之前的
       return item.completedAt < todayStart
     })
     .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0))
 })
 
-// 按日期分组
 interface CompletedGroup {
   dateStr: string
   label: string
@@ -90,7 +86,8 @@ function handleRestore(todoId: string) {
 
 <template>
   <div
-    class="h-full flex flex-col overflow-hidden relative"
+    data-vertical-scroll="completed"
+    class="flex flex-col"
     style="background-color: var(--bg-primary); transition: background-color 0.3s ease;"
   >
     <!-- Header -->
@@ -105,21 +102,19 @@ function handleRestore(todoId: string) {
 
     <!-- Content -->
     <div
-      data-vertical-scroll="completed"
-      class="flex-1 overflow-y-auto pb-4 u-section-x"
-      :class="{ 'flex flex-col': pastCompletedTodos.length === 0 }"
-      style="-webkit-overflow-scrolling: touch;"
+      class="u-section-x"
+      :class="{ 'pb-4': pastCompletedTodos.length > 0 }"
     >
       <!-- Empty state -->
       <div
         v-if="pastCompletedTodos.length === 0"
-        class="flex-1 flex flex-col items-center justify-center"
+        class="flex flex-col items-center justify-center py-8"
       >
         <div
-          class="w-16 h-16 rounded-full flex items-center justify-center"
+          class="w-12 h-12 rounded-full flex items-center justify-center"
           style="background: var(--toast-success-bg);"
         >
-          <IconCheck :size="32" color="var(--secondary)" />
+          <IconCheck :size="24" color="var(--secondary)" />
         </div>
         <p class="text-sm mt-3" style="color: var(--text-muted);">
           {{ t('completed.empty') }}
@@ -159,8 +154,11 @@ function handleRestore(todoId: string) {
           />
         </div>
       </div>
+    </div>
 
-      <div class="h-20"></div>
+    <!-- Swipe indicator at bottom -->
+    <div class="flex justify-center py-3">
+      <div class="w-10 h-1 rounded-full" style="background: var(--text-muted); opacity: 0.25;"></div>
     </div>
   </div>
 </template>

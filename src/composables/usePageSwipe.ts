@@ -10,14 +10,25 @@ const isAnimating = ref(false)
 const containerWidth = ref(window.innerWidth)
 const settingsOpen = ref(false)
 
-// ─── Vertical (up/down) state ───
-const verticalIndex = ref(1) // 0 = CompletedView (top), 1 = PendingView (bottom, default)
-const verticalDragOffset = ref(0)
+// ─── Vertical (continuous scroll) state ───
+// verticalIndex: 0 = showing CompletedView at top, 1 = showing PendingView (default)
+const verticalIndex = ref(1)
+const verticalDragOffset = ref(0) // drag offset in pixels during gesture
 const isVerticalAnimating = ref(false)
 const containerHeight = ref(window.innerHeight)
-const headerHeight = ref(0) // set by App.vue after mount
+const headerHeight = ref(0)
+const tabBarHeight = ref(52) // default 52px, will be measured in App.vue
+const completedPanelHeight = ref(200) // measured from actual DOM
 
-const scrollAreaHeight = computed(() => containerHeight.value - headerHeight.value)
+const scrollAreaHeight = computed(() => containerHeight.value - headerHeight.value - tabBarHeight.value)
+
+// The vertical translate when at rest:
+// - verticalIndex=1 (PendingView): translateY = -completedPanelHeight (hide CompletedView above)
+// - verticalIndex=0 (CompletedView visible): translateY = 0
+const verticalTranslateY = computed(() => {
+  const baseOffset = verticalIndex.value === 1 ? -completedPanelHeight.value : 0
+  return baseOffset + verticalDragOffset.value
+})
 
 // ─── Shared touch state ───
 let startX = 0
@@ -32,17 +43,12 @@ const LOCK_THRESHOLD = 8
 const VELOCITY_THRESHOLD = 0.3
 const SNAP_THRESHOLD = 0.25
 
-// ─── Vertical thresholds (with resistance) ───
-const V_VELOCITY_THRESHOLD = 0.5
-const V_SNAP_THRESHOLD = 0.35
-const V_DRAG_DAMPING = 0.4
+// ─── Vertical thresholds ───
+const V_VELOCITY_THRESHOLD = 0.4
+const V_SNAP_THRESHOLD = 0.25
 
 const translateX = computed(() => {
   return -(currentIndex.value * containerWidth.value) + dragOffset.value
-})
-
-const verticalTranslateY = computed(() => {
-  return -(verticalIndex.value * scrollAreaHeight.value) + verticalDragOffset.value
 })
 
 // ─── Horizontal animation ───
@@ -95,7 +101,7 @@ function cancelVerticalAnimation() {
   isVerticalAnimating.value = false
 }
 
-function animateVerticalTo(targetIndex: number, duration = 300): Promise<void> {
+function animateVerticalTo(targetOffset: number, duration = 300): Promise<void> {
   return new Promise(resolve => {
     cancelVerticalAnimation()
     isVerticalAnimating.value = true
@@ -107,12 +113,12 @@ function animateVerticalTo(targetIndex: number, duration = 300): Promise<void> {
       const progress = Math.min(elapsed / duration, 1)
       const eased = 1 - Math.pow(1 - progress, 3)
 
-      verticalDragOffset.value = startOffset * (1 - eased)
+      verticalDragOffset.value = startOffset + (targetOffset - startOffset) * eased
 
       if (progress < 1) {
         vAnimationFrameId = requestAnimationFrame(tick)
       } else {
-        verticalDragOffset.value = 0
+        verticalDragOffset.value = targetOffset
         isVerticalAnimating.value = false
         vAnimationFrameId = null
         resolve()
@@ -124,10 +130,11 @@ function animateVerticalTo(targetIndex: number, duration = 300): Promise<void> {
 }
 
 function findVerticalScrollContainer(): HTMLElement | null {
-  const selector = verticalIndex.value === 0
-    ? '[data-vertical-scroll="completed"]'
-    : '[data-vertical-scroll="pending"]'
-  return document.querySelector(selector)
+  return document.querySelector('[data-vertical-scroll="pending"]')
+}
+
+function findCompletedScrollContainer(): HTMLElement | null {
+  return document.querySelector('[data-vertical-scroll="completed"]')
 }
 
 function isAtScrollTop(el: HTMLElement): boolean {
@@ -135,7 +142,7 @@ function isAtScrollTop(el: HTMLElement): boolean {
 }
 
 function isAtScrollBottom(el: HTMLElement): boolean {
-  return el.scrollTop + el.clientHeight >= el.scrollHeight - 1
+  return el.scrollTop + el.clientHeight >= el.scrollHeight - 2
 }
 
 export function usePageSwipe() {
@@ -175,12 +182,10 @@ export function usePageSwipe() {
       cancelVerticalAnimation()
     }
 
-    const diff = clamped - verticalIndex.value
-    verticalDragOffset.value += diff * scrollAreaHeight.value
     verticalIndex.value = clamped
 
     if (animate) {
-      animateVerticalTo(clamped)
+      animateVerticalTo(0)
     } else {
       verticalDragOffset.value = 0
     }
@@ -239,7 +244,6 @@ export function usePageSwipe() {
     if (!directionLocked) {
       if (Math.abs(dx) < LOCK_THRESHOLD && Math.abs(dy) < LOCK_THRESHOLD) return
 
-      // Horizontal edge detection: at first page pulling right or last page pulling left
       const atLeftEdge = currentIndex.value === 0 && dx > 0
       const atRightEdge = currentIndex.value === TAB_PATHS.length - 1 && dx < 0
       if (atLeftEdge || atRightEdge) {
@@ -274,23 +278,25 @@ export function usePageSwipe() {
 
     // ─── Vertical swipe (only on todos page, index=1) ───
     if (directionLocked === 'vertical' && currentIndex.value === 1) {
-      // Check scroll boundary once per gesture
       if (!verticalScrollChecked) {
         verticalScrollChecked = true
-        const scrollEl = findVerticalScrollContainer()
-        if (scrollEl) {
-          const pullingDown = dy > 0
-          const pullingUp = dy < 0
-          if (verticalIndex.value === 1 && pullingDown && isAtScrollTop(scrollEl)) {
-            verticalScrollAllowed = true
-          } else if (verticalIndex.value === 0 && pullingUp && isAtScrollBottom(scrollEl)) {
-            verticalScrollAllowed = true
+
+        if (verticalIndex.value === 1) {
+          // Currently showing PendingView, check if at scroll top to allow pull-down
+          const scrollEl = findVerticalScrollContainer()
+          if (scrollEl) {
+            verticalScrollAllowed = dy > 0 && isAtScrollTop(scrollEl)
           } else {
-            verticalScrollAllowed = false
+            verticalScrollAllowed = dy > 0
           }
         } else {
-          // No scroll container found, allow page switch
-          verticalScrollAllowed = true
+          // Currently showing CompletedView, check if at scroll bottom to allow pull-up
+          const scrollEl = findCompletedScrollContainer()
+          if (scrollEl) {
+            verticalScrollAllowed = dy < 0 && isAtScrollBottom(scrollEl)
+          } else {
+            verticalScrollAllowed = dy < 0
+          }
         }
       }
 
@@ -307,17 +313,19 @@ export function usePageSwipe() {
       lastTouchY = touch.clientY
       lastTouchTime = now
 
-      // Apply damping for resistance feel
-      let dampedDy = dy * V_DRAG_DAMPING
+      const panelH = completedPanelHeight.value
 
-      // Clamp at vertical edges
-      if (verticalIndex.value === 0 && dampedDy > 0) {
-        dampedDy = 0 // Can't pull down further when already at CompletedView
-      } else if (verticalIndex.value === 1 && dampedDy < 0) {
-        dampedDy = 0 // Can't pull up further when already at PendingView
+      if (verticalIndex.value === 1) {
+        // Pulling down from PendingView to reveal CompletedView
+        // dragOffset goes from 0 to +panelH
+        const dampedDy = Math.max(0, Math.min(panelH, dy))
+        verticalDragOffset.value = dampedDy
+      } else {
+        // Pulling up from CompletedView to go back to PendingView
+        // dragOffset goes from 0 to -panelH
+        const dampedDy = Math.max(-panelH, Math.min(0, dy))
+        verticalDragOffset.value = dampedDy
       }
-
-      verticalDragOffset.value = dampedDy
     }
   }
 
@@ -364,27 +372,31 @@ export function usePageSwipe() {
       directionLocked = null
 
       const offset = verticalDragOffset.value
-      const height = scrollAreaHeight.value
-      const ratio = Math.abs(offset) / height
+      const panelH = completedPanelHeight.value
+      const ratio = Math.abs(offset) / panelH
       const fastSwipe = Math.abs(vVelocity) > V_VELOCITY_THRESHOLD
 
-      let targetIndex = verticalIndex.value
-
-      if (offset > 0 && (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity > 0))) {
-        targetIndex = verticalIndex.value - 1
-      } else if (offset < 0 && (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity < 0))) {
-        targetIndex = verticalIndex.value + 1
+      if (verticalIndex.value === 1) {
+        // Was pulling down from PendingView
+        if (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity > 0)) {
+          // Switch to CompletedView
+          verticalIndex.value = 0
+          animateVerticalTo(0)
+        } else {
+          // Snap back to PendingView
+          animateVerticalTo(0)
+        }
+      } else {
+        // Was pulling up from CompletedView
+        if (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity < 0)) {
+          // Switch to PendingView
+          verticalIndex.value = 1
+          animateVerticalTo(0)
+        } else {
+          // Snap back to CompletedView
+          animateVerticalTo(0)
+        }
       }
-
-      targetIndex = Math.max(0, Math.min(1, targetIndex))
-
-      if (targetIndex !== verticalIndex.value) {
-        const diff = targetIndex - verticalIndex.value
-        verticalDragOffset.value += diff * scrollAreaHeight.value
-        verticalIndex.value = targetIndex
-      }
-
-      animateVerticalTo(targetIndex)
       return
     }
 
@@ -422,11 +434,13 @@ export function usePageSwipe() {
     settingsOpen,
     // Vertical
     verticalIndex,
-    verticalTranslateY,
     verticalDragOffset,
+    verticalTranslateY,
     containerHeight,
     headerHeight,
+    tabBarHeight,
     scrollAreaHeight,
+    completedPanelHeight,
     isVerticalAnimating,
     goToVerticalPage,
   }

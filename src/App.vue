@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Capacitor } from '@capacitor/core'
 import { App as CapApp } from '@capacitor/app'
@@ -21,10 +21,13 @@ const {
   verticalTranslateY,
   scrollAreaHeight,
   headerHeight,
+  tabBarHeight,
   goToVerticalPage,
+  completedPanelHeight,
 } = usePageSwipe()
 
 const pendingHeaderRef = ref<HTMLElement | null>(null)
+const completedPanelRef = ref<HTMLElement | null>(null)
 
 const showSettings = ref(false)
 const settingsPanelOffset = ref(0)
@@ -82,10 +85,42 @@ function closeSettings() {
   requestAnimationFrame(tick)
 }
 
+let resizeObserver: ResizeObserver | null = null
+
+function measureCompletedPanel() {
+  if (completedPanelRef.value) {
+    const h = completedPanelRef.value.scrollHeight
+    if (h > 0) {
+      completedPanelHeight.value = h
+    }
+  }
+}
+
+onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
+})
+
 onMounted(async () => {
   await nextTick()
   if (pendingHeaderRef.value) {
     headerHeight.value = pendingHeaderRef.value.offsetHeight
+  }
+  // TabBar is position:fixed, query it directly
+  const tabBarEl = document.querySelector('nav.fixed')
+  if (tabBarEl) {
+    tabBarHeight.value = tabBarEl.getBoundingClientRect().height
+  }
+  measureCompletedPanel()
+
+  // Use ResizeObserver to track CompletedView height changes
+  if (completedPanelRef.value) {
+    resizeObserver = new ResizeObserver(() => {
+      measureCompletedPanel()
+    })
+    resizeObserver.observe(completedPanelRef.value)
   }
 
   if (Capacitor.isNativePlatform()) {
@@ -161,7 +196,7 @@ function onSettingsTouchEnd() {
 
 <template>
   <div class="h-full flex flex-col overflow-hidden" style="background-color: var(--bg-primary); transition: background-color 0.3s ease;">
-    <main class="flex-1 overflow-hidden" style="padding-bottom: calc(52px + var(--safe-area-bottom));">
+    <main class="flex-1 overflow-hidden">
       <div
         class="h-full flex"
         :style="{
@@ -193,21 +228,20 @@ function onSettingsTouchEnd() {
             </button>
           </header>
 
-          <!-- Vertical swipe area -->
+          <!-- Vertical swipe area (continuous layout) -->
           <div class="flex-1 overflow-hidden relative">
             <div
               class="flex flex-col"
               :style="{
-                height: scrollAreaHeight * 2 + 'px',
                 transform: `translateY(${verticalTranslateY}px)`,
                 willChange: 'transform',
               }"
             >
-              <!-- Vertical page 0: CompletedView (top) -->
-              <div :style="{ height: scrollAreaHeight + 'px', flexShrink: 0 }" class="overflow-hidden">
+              <!-- CompletedView (auto-height, sits above PendingView) -->
+              <div ref="completedPanelRef" class="completed-section" style="flex-shrink: 0;">
                 <CompletedView />
               </div>
-              <!-- Vertical page 1: PendingView content (bottom, default) -->
+              <!-- PendingView (fills remaining screen height) -->
               <div :style="{ height: scrollAreaHeight + 'px', flexShrink: 0 }" class="overflow-hidden">
                 <PendingView />
               </div>
@@ -260,6 +294,12 @@ function onSettingsTouchEnd() {
 }
 .settings-btn:active {
   transform: scale(0.92);
+}
+
+.completed-section {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: 70vh;
 }
 
 .settings-slide-panel {

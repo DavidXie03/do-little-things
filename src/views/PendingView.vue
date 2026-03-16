@@ -13,7 +13,7 @@ import IconPlus from '../components/icons/IconPlus.vue'
 
 const { t, tm, locale } = useI18n()
 const { showToast } = useToast()
-const { isAnimating, dragOffset, currentIndex, verticalIndex } = usePageSwipe()
+const { isAnimating, dragOffset, currentIndex, verticalIndex, verticalDragOffset } = usePageSwipe()
 
 const fabVisible = ref(false)
 const isScrolling = ref(false)
@@ -28,8 +28,8 @@ function onListScroll() {
   }, 150)
 }
 
-watch([isAnimating, dragOffset, currentIndex, isScrolling, verticalIndex], ([animating, offset, idx, scrolling, vIdx]) => {
-  if (animating || offset !== 0 || idx !== 1 || scrolling || vIdx !== 1) {
+watch([isAnimating, dragOffset, currentIndex, isScrolling, verticalIndex, verticalDragOffset], ([animating, offset, idx, scrolling, vIdx, vOffset]) => {
+  if (animating || offset !== 0 || idx !== 1 || scrolling || vIdx !== 1 || vOffset !== 0) {
     if (fabTimer) { clearTimeout(fabTimer); fabTimer = null }
     fabVisible.value = false
   } else {
@@ -76,7 +76,6 @@ const todayItems = computed(() => {
   return items.filter(i => !i.completed)
 })
 
-// 今天已完成的任务（仍需保留，用于在待办列表中显示今天完成的）
 const todayCompletedItems = computed(() => {
   const items = dailyTodos.value?.items ?? []
   return items.filter(i => i.completed)
@@ -112,12 +111,13 @@ const groupedTodos = computed((): DateGroup[] => {
   const groups: Map<string, DateGroup> = new Map()
 
   const todayDateStr = dailyTodos.value?.date ?? getTodayStr()
-  if (todayItems.value.length > 0) {
+  const allTodayItems = [...todayItems.value, ...todayCompletedItems.value]
+  if (allTodayItems.length > 0) {
     groups.set(todayDateStr, {
       dateStr: todayDateStr,
       label: t('todos.today'),
-      count: todayItems.value.length,
-      items: [...todayItems.value],
+      count: allTodayItems.length,
+      items: allTodayItems,
       isFuture: false,
       isOverdue: false,
     })
@@ -317,8 +317,9 @@ onMounted(() => {
             :item="item"
             :show-recurrence="true"
             :show-date-label="false"
+            :is-completed-archive="item.completed"
             :grouped="true"
-            @complete="handleComplete"
+            @complete="(todoId: string) => item.completed ? markTodoComplete(todoId) : handleComplete(todoId)"
             @edit="openEditModal"
           />
         </div>
@@ -371,37 +372,6 @@ onMounted(() => {
             :is-overdue="true"
             :grouped="true"
             @complete="(todoId: string) => handlePastComplete(todoId, group.dateStr)"
-          />
-        </div>
-      </div>
-
-      <!-- 今日已完成任务（仅今天的，可直接 toggle 恢复） -->
-      <div v-if="todayCompletedItems.length > 0" class="u-mb-lg">
-        <div class="flex items-center gap-2 u-mb-sm">
-          <span class="text-sm font-bold" style="color: var(--secondary);">
-            {{ t('todos.completedSection') }}
-          </span>
-          <span
-            class="text-xs font-semibold min-w-[18px] h-[18px] flex items-center justify-center rounded-full"
-            style="background: var(--toast-success-bg); color: var(--secondary);"
-          >
-            {{ todayCompletedItems.length }}
-          </span>
-        </div>
-
-        <div
-          class="todo-group rounded-2xl overflow-hidden"
-          style="background: var(--item-bg); box-shadow: var(--card-shadow);"
-        >
-          <TodoItem
-            v-for="item in todayCompletedItems"
-            :key="'done_' + item.id"
-            :item="item"
-            :show-recurrence="true"
-            :show-date-label="false"
-            :is-completed-archive="true"
-            :grouped="true"
-            @complete="(todoId: string) => markTodoComplete(todoId)"
           />
         </div>
       </div>
