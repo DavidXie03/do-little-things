@@ -27,6 +27,10 @@ export default {
     title: '已完成',
     empty: '还没有已完成的任务',
   },
+  swipeOverlay: {
+    history: '历史日程',
+    current: '当前日程',
+  },
   modal: {
     addTitle: '添加待办',
     editTitle: '编辑待办',

@@ -15,6 +15,8 @@ const settingsOpen = ref(false)
 const verticalIndex = ref(1)
 const verticalDragOffset = ref(0) // drag offset in pixels during gesture
 const isVerticalAnimating = ref(false)
+// Direction of the current vertical swipe/animation: 'up' = going to PendingView, 'down' = going to CompletedView, null = idle
+const verticalSwipeDirection = ref<'up' | 'down' | null>(null)
 const containerHeight = ref(window.innerHeight)
 const headerHeight = ref(0)
 const tabBarHeight = ref(52) // default 52px, will be measured in App.vue
@@ -125,6 +127,7 @@ function animateVerticalTo(targetOffset: number, duration = 300, onComplete?: ()
         verticalDragOffset.value = targetOffset
         isVerticalAnimating.value = false
         vAnimationFrameId = null
+        verticalSwipeDirection.value = null
         if (onComplete) onComplete()
         resolve()
       }
@@ -193,6 +196,7 @@ export function usePageSwipe() {
       if (verticalIndex.value === 1 && clamped === 0) {
         // Going from PendingView to CompletedView
         // Immediately flip index and compensate offset so translateY stays the same
+        verticalSwipeDirection.value = 'down'
         const currentOffset = verticalDragOffset.value
         const newOffset = -travel + currentOffset
         verticalIndex.value = 0
@@ -200,6 +204,7 @@ export function usePageSwipe() {
         animateVerticalTo(0)
       } else if (verticalIndex.value === 0 && clamped === 1) {
         // Going from CompletedView to PendingView
+        verticalSwipeDirection.value = 'up'
         const currentOffset = verticalDragOffset.value
         const newOffset = travel + currentOffset
         verticalIndex.value = 1
@@ -345,11 +350,13 @@ export function usePageSwipe() {
         const clampedDy = Math.max(0, dy)
         const damped = travel * (1 - Math.exp(-clampedDy / (travel * 0.4)))
         verticalDragOffset.value = Math.min(travel, damped)
+        verticalSwipeDirection.value = 'down'
       } else {
         // Pulling up from CompletedView to go back to PendingView
         const clampedDy = Math.max(0, -dy)
         const damped = travel * (1 - Math.exp(-clampedDy / (travel * 0.8)))
         verticalDragOffset.value = -Math.min(travel, damped)
+        verticalSwipeDirection.value = 'up'
       }
     }
   }
@@ -471,6 +478,7 @@ export function usePageSwipe() {
     verticalIndex,
     verticalDragOffset,
     verticalTranslateY,
+    verticalSwipeDirection,
     containerHeight,
     headerHeight,
     tabBarHeight,

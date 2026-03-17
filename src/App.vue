@@ -20,6 +20,7 @@ const {
   verticalIndex,
   verticalTranslateY,
   verticalDragOffset,
+  verticalSwipeDirection,
   scrollAreaHeight,
   headerHeight,
   tabBarHeight,
@@ -29,6 +30,16 @@ const {
 
 const pendingHeaderRef = ref<HTMLElement | null>(null)
 const completedPanelRef = ref<HTMLElement | null>(null)
+
+// Overlay opacity: proportional to drag progress (0→1)
+const overlayOpacity = computed(() => {
+  if (!verticalSwipeDirection.value) return 0
+  const offset = Math.abs(verticalDragOffset.value)
+  const travel = scrollAreaHeight.value
+  if (travel <= 0) return 0
+  // Map drag distance to 0..0.5 opacity (capped at 0.5 to keep it subtle)
+  return Math.min(0.5, (offset / travel) * 0.6)
+})
 
 const showSettings = ref(false)
 const settingsPanelOffset = ref(0)
@@ -249,6 +260,20 @@ function onSettingsTouchEnd() {
                 <PendingView />
               </div>
             </div>
+
+            <!-- Swipe direction overlay -->
+            <Transition name="overlay-fade">
+              <div
+                v-if="verticalSwipeDirection"
+                class="swipe-overlay"
+                :style="{ backgroundColor: `rgba(0, 0, 0, ${overlayOpacity})` }"
+              >
+                <div class="swipe-overlay-content">
+                  <span class="swipe-overlay-arrow">{{ verticalSwipeDirection === 'down' ? '↑' : '↓' }}</span>
+                  <span class="swipe-overlay-text">{{ verticalSwipeDirection === 'down' ? t('swipeOverlay.history') : t('swipeOverlay.current') }}</span>
+                </div>
+              </div>
+            </Transition>
           </div>
         </div>
       </div>
@@ -317,5 +342,43 @@ function onSettingsTouchEnd() {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Swipe overlay ─── */
+.swipe-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.swipe-overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.swipe-overlay-arrow {
+  font-size: 28px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1;
+}
+
+.swipe-overlay-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 2px;
+}
+
+.overlay-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.overlay-fade-leave-to {
+  opacity: 0;
 }
 </style>

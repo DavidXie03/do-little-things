@@ -27,6 +27,10 @@ export default {
     title: 'Completed',
     empty: 'No completed tasks yet',
   },
+  swipeOverlay: {
+    history: 'History',
+    current: 'Schedule',
+  },
   modal: {
     addTitle: 'Add Todo',
     editTitle: 'Edit Todo',
