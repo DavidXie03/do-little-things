@@ -156,62 +156,65 @@ watch(verticalIndex, async (newVal) => {
       class="completed-scroll flex-1 overflow-y-auto u-section-x"
       style="-webkit-overflow-scrolling: touch;"
     >
-      <!-- Empty state -->
-      <div
-        v-if="allCompletedTodos.length === 0"
-        class="flex flex-col items-center justify-center py-8"
-      >
+      <!-- Inner wrapper: pushes content to the bottom when items don't fill the viewport -->
+      <div class="completed-scroll-inner">
+        <!-- Empty state -->
         <div
-          class="w-12 h-12 rounded-full flex items-center justify-center"
-          style="background: rgba(108,99,255,0.1);"
+          v-if="allCompletedTodos.length === 0"
+          class="flex flex-col items-center justify-center py-8"
         >
-          <IconCheck :size="24" color="var(--primary)" />
-        </div>
-        <p class="text-sm mt-3" style="color: var(--text-muted);">
-          {{ t('completed.empty') }}
-        </p>
-      </div>
-
-      <!-- Grouped completed items -->
-      <div class="pt-8 pb-2">
-        <div v-for="group in groupedCompleted" :key="group.dateStr" class="u-mb-lg">
-          <div class="flex items-center gap-2 u-mb-sm">
-            <span
-              class="text-sm font-bold"
-              style="color: var(--primary);"
-            >
-              {{ group.label }}
-            </span>
-            <span
-              class="text-xs font-semibold min-w-[18px] h-[18px] flex items-center justify-center rounded-full"
-              style="background: rgba(108,99,255,0.1); color: var(--primary);"
-            >
-              {{ group.items.length }}
-            </span>
-          </div>
-
           <div
-            class="todo-group rounded-2xl overflow-hidden"
-            style="background: var(--item-bg); box-shadow: var(--card-shadow);"
+            class="w-12 h-12 rounded-full flex items-center justify-center"
+            style="background: rgba(108,99,255,0.1);"
           >
-            <TodoItem
-              v-for="item in group.items"
-              :key="'done_' + item.id"
-              :item="item"
-              :show-recurrence="true"
-              :show-date-label="false"
-              :is-completed-archive="true"
-              :grouped="true"
-              @complete="handleRestore"
-              @edit="openEditModal"
-            />
+            <IconCheck :size="24" color="var(--primary)" />
+          </div>
+          <p class="text-sm mt-3" style="color: var(--text-muted);">
+            {{ t('completed.empty') }}
+          </p>
+        </div>
+
+        <!-- Grouped completed items -->
+        <div class="pt-8 pb-2">
+          <div v-for="group in groupedCompleted" :key="group.dateStr" class="u-mb-lg">
+            <div class="flex items-center gap-2 u-mb-sm">
+              <span
+                class="text-sm font-bold"
+                style="color: var(--primary);"
+              >
+                {{ group.label }}
+              </span>
+              <span
+                class="text-xs font-semibold min-w-[18px] h-[18px] flex items-center justify-center rounded-full"
+                style="background: rgba(108,99,255,0.1); color: var(--primary);"
+              >
+                {{ group.items.length }}
+              </span>
+            </div>
+
+            <div
+              class="todo-group rounded-2xl overflow-hidden"
+              style="background: var(--item-bg); box-shadow: var(--card-shadow);"
+            >
+              <TodoItem
+                v-for="item in group.items"
+                :key="'done_' + item.id"
+                :item="item"
+                :show-recurrence="true"
+                :show-date-label="false"
+                :is-completed-archive="true"
+                :grouped="true"
+                @complete="handleRestore"
+                @edit="openEditModal"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Swipe indicator at bottom (hint to pull up) — faded out during drag to avoid double indicator -->
-      <div class="completed-swipe-indicator" :style="{ opacity: verticalDragOffset === 0 ? 1 : 0 }">
-        <div class="w-10 h-1 rounded-full" style="background: var(--text-muted); opacity: 0.3;"></div>
+        <!-- Swipe indicator at bottom (hint to pull up) — faded out during drag to avoid double indicator -->
+        <div class="completed-swipe-indicator" :style="{ opacity: verticalDragOffset === 0 ? 1 : 0 }">
+          <div class="w-10 h-1 rounded-full" style="background: var(--text-muted); opacity: 0.3;"></div>
+        </div>
       </div>
     </div>
 
@@ -232,6 +235,13 @@ watch(verticalIndex, async (newVal) => {
 <style scoped>
 .completed-root {
   height: 100%;
+}
+
+.completed-scroll-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 100%;
 }
 
 .completed-swipe-indicator {
