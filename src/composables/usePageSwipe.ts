@@ -192,16 +192,19 @@ export function usePageSwipe() {
       const travel = scrollAreaHeight.value
       if (verticalIndex.value === 1 && clamped === 0) {
         // Going from PendingView to CompletedView
-        animateVerticalTo(travel, 300, () => {
-          verticalIndex.value = 0
-          verticalDragOffset.value = 0
-        })
+        // Immediately flip index and compensate offset so translateY stays the same
+        const currentOffset = verticalDragOffset.value
+        const newOffset = -travel + currentOffset
+        verticalIndex.value = 0
+        verticalDragOffset.value = newOffset
+        animateVerticalTo(0)
       } else if (verticalIndex.value === 0 && clamped === 1) {
         // Going from CompletedView to PendingView
-        animateVerticalTo(-travel, 300, () => {
-          verticalIndex.value = 1
-          verticalDragOffset.value = 0
-        })
+        const currentOffset = verticalDragOffset.value
+        const newOffset = travel + currentOffset
+        verticalIndex.value = 1
+        verticalDragOffset.value = newOffset
+        animateVerticalTo(0)
       } else {
         // Same index, just animate offset back to 0
         animateVerticalTo(0)
@@ -401,11 +404,14 @@ export function usePageSwipe() {
       if (verticalIndex.value === 1) {
         // Was pulling down from PendingView
         if (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity > 0)) {
-          // Switch to CompletedView
-          animateVerticalTo(travel, 300, () => {
-            verticalIndex.value = 0
-            verticalDragOffset.value = 0
-          })
+          // Switch to CompletedView: immediately flip index and compensate offset
+          // Before: translateY = -travel + offset  (verticalIndex=1)
+          // After:  translateY = 0 + newOffset      (verticalIndex=0)
+          // Keep translateY the same: newOffset = -travel + offset
+          const newOffset = -travel + offset
+          verticalIndex.value = 0
+          verticalDragOffset.value = newOffset
+          animateVerticalTo(0)
         } else {
           // Snap back to PendingView
           animateVerticalTo(0)
@@ -413,11 +419,14 @@ export function usePageSwipe() {
       } else {
         // Was pulling up from CompletedView
         if (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity < 0)) {
-          // Switch to PendingView
-          animateVerticalTo(-travel, 300, () => {
-            verticalIndex.value = 1
-            verticalDragOffset.value = 0
-          })
+          // Switch to PendingView: immediately flip index and compensate offset
+          // Before: translateY = 0 + offset         (verticalIndex=0)
+          // After:  translateY = -travel + newOffset (verticalIndex=1)
+          // Keep translateY the same: newOffset = travel + offset
+          const newOffset = travel + offset
+          verticalIndex.value = 1
+          verticalDragOffset.value = newOffset
+          animateVerticalTo(0)
         } else {
           // Snap back to CompletedView
           animateVerticalTo(0)
