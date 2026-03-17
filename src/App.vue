@@ -31,20 +31,18 @@ const {
 const pendingHeaderRef = ref<HTMLElement | null>(null)
 const completedPanelRef = ref<HTMLElement | null>(null)
 
-// Overlay style: only covers the revealed area (not the full viewport)
+// Overlay style: opaque background matching page color, covers the revealed area + extra padding
+const OVERLAY_EXTRA = 60 // extra px to ensure full coverage of edge content
 const overlayPositionStyle = computed(() => {
   const offset = Math.abs(verticalDragOffset.value)
-  const travel = scrollAreaHeight.value
-  const opacity = travel > 0 ? Math.min(0.5, (offset / travel) * 0.6) : 0
-  const bg = `rgba(0, 0, 0, ${opacity})`
-  const h = `${offset}px`
+  const h = `${offset + OVERLAY_EXTRA}px`
 
   if (verticalSwipeDirection.value === 'down') {
     // Pulling down → CompletedView revealed at top
-    return { top: '0', left: '0', right: '0', height: h, bottom: 'auto', backgroundColor: bg }
+    return { top: `-${OVERLAY_EXTRA}px`, left: '0', right: '0', height: h, bottom: 'auto' }
   } else {
     // Pulling up → PendingView revealed at bottom
-    return { bottom: '0', left: '0', right: '0', height: h, top: 'auto', backgroundColor: bg }
+    return { bottom: `-${OVERLAY_EXTRA}px`, left: '0', right: '0', height: h, top: 'auto' }
   }
 })
 
@@ -360,6 +358,7 @@ function onSettingsTouchEnd() {
   justify-content: center;
   pointer-events: none;
   overflow: hidden;
+  background-color: var(--bg-primary);
 }
 
 .swipe-overlay-content {
@@ -371,14 +370,14 @@ function onSettingsTouchEnd() {
 
 .swipe-overlay-arrow {
   font-size: 28px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-muted);
   line-height: 1;
 }
 
 .swipe-overlay-text {
   font-size: 16px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-muted);
   letter-spacing: 2px;
 }
 
