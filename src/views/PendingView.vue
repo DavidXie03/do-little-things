@@ -156,7 +156,7 @@ const overdueGroups = computed((): DateGroup[] => {
       isFuture: false,
       isOverdue: true,
     }))
-    .sort((a, b) => b.dateStr.localeCompare(a.dateStr)) // 最近的在前
+    .sort((a, b) => a.dateStr.localeCompare(b.dateStr)) // 最远的在前（前天在昨天上面）
 })
 
 function getTodayStr(): string {
@@ -302,9 +302,6 @@ onMounted(() => {
             style="background: rgba(239,68,68,0.1); color: #ef4444;"
           >
             {{ group.count }}
-          </span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded" style="background: rgba(239,68,68,0.1); color: #ef4444;">
-            {{ t('todos.overdue') }}
           </span>
         </div>
 
