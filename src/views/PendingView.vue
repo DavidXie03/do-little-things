@@ -280,9 +280,9 @@ onMounted(() => {
       style="-webkit-overflow-scrolling: touch;"
       @scroll="onListScroll"
     >
-      <!-- Swipe indicator that scrolls with list content -->
+      <!-- Swipe indicator that scrolls with list content — hidden during drag to avoid double indicator -->
       <div
-        v-if="verticalIndex === 1"
+        v-if="verticalIndex === 1 && verticalDragOffset === 0"
         class="pending-swipe-indicator"
       >
         <div class="w-10 h-1 rounded-full" style="background: var(--text-muted); opacity: 0.3;"></div>

@@ -11,7 +11,7 @@ import { RecurrenceType as RT } from '../types'
 
 const { t, tm, locale } = useI18n()
 const { completedTodos, restoreCompletedTodo, customActions, updateCustomAction, removeTodoItem } = useStorage()
-const { verticalIndex } = usePageSwipe()
+const { verticalIndex, verticalDragOffset } = usePageSwipe()
 
 const scrollContainer = ref<HTMLElement | null>(null)
 
@@ -209,8 +209,8 @@ watch(verticalIndex, async (newVal) => {
         </div>
       </div>
 
-      <!-- Swipe indicator at bottom (hint to pull up) -->
-      <div class="completed-swipe-indicator">
+      <!-- Swipe indicator at bottom (hint to pull up) — hidden during drag to avoid double indicator -->
+      <div v-if="verticalDragOffset === 0" class="completed-swipe-indicator">
         <div class="w-10 h-1 rounded-full" style="background: var(--text-muted); opacity: 0.3;"></div>
       </div>
     </div>
