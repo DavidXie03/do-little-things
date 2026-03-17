@@ -26,13 +26,12 @@ const INDICATOR_HEIGHT = 20
 const scrollAreaHeight = computed(() => containerHeight.value - headerHeight.value - tabBarHeight.value)
 
 // The vertical translate when at rest:
-// - verticalIndex=1 (PendingView): hide CompletedView above but let bottom half of separator peek
-// - verticalIndex=0 (CompletedView): show CompletedView with top half of separator peeking at bottom
+// - verticalIndex=1 (PendingView): hide CompletedView above but let full separator peek at top
+// - verticalIndex=0 (CompletedView): show CompletedView with full separator peeking at bottom
 const verticalTranslateY = computed(() => {
-  const halfIndicator = INDICATOR_HEIGHT / 2
   const baseOffset = verticalIndex.value === 1
-    ? -(completedPanelHeight.value - halfIndicator)
-    : -halfIndicator
+    ? -(completedPanelHeight.value - INDICATOR_HEIGHT)
+    : 0
   return baseOffset + verticalDragOffset.value
 })
 
@@ -192,7 +191,7 @@ export function usePageSwipe() {
 
     if (animate) {
       const panelH = completedPanelHeight.value
-      const travel = panelH - INDICATOR_HEIGHT
+      const travel = panelH - INDICATOR_HEIGHT  // scrollAreaHeight portion
       if (verticalIndex.value === 1 && clamped === 0) {
         // Going from PendingView to CompletedView
         animateVerticalTo(travel, 300, () => {

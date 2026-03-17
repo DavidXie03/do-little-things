@@ -10,7 +10,7 @@ export default {
     defaultSlogan: 'Do it early, the best kind of lazy',
   },
   todos: {
-    title: 'Todo List',
+    title: 'Schedule',
     empty: 'No todos yet',
     addTodo: 'Add Todo',
     regenerate: 'Regenerate',

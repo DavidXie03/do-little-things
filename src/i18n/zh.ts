@@ -10,7 +10,7 @@ export default {
     defaultSlogan: '早做是最好的偷懒',
   },
   todos: {
-    title: '待办列表',
+    title: '日程',
     empty: '还没有任何待办',
     addTodo: '添加待办',
     regenerate: '重新生成',
