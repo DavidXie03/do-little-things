@@ -228,7 +228,7 @@ function onSettingsTouchEnd() {
             </button>
           </header>
 
-          <!-- Vertical swipe area (continuous layout) -->
+          <!-- Vertical swipe area -->
           <div class="flex-1 overflow-hidden relative">
             <div
               class="flex flex-col"
@@ -237,18 +237,17 @@ function onSettingsTouchEnd() {
                 willChange: 'transform',
               }"
             >
-              <!-- CompletedView + separator wrapper (measured as a unit for vertical offset) -->
+              <!-- CompletedView + separator (moves together as a unit) -->
               <div ref="completedPanelRef" style="flex-shrink: 0;">
-                <div class="completed-section" :style="{ height: scrollAreaHeight + 'px' }">
+                <div class="completed-section" :style="{ height: (scrollAreaHeight - 20) + 'px' }">
                   <CompletedView />
                 </div>
-                <!-- Fixed separator indicator bar -->
                 <div class="swipe-indicator">
                   <div class="w-10 h-1 rounded-full" style="background: var(--text-muted); opacity: 0.3;"></div>
                 </div>
               </div>
-              <!-- PendingView (fills remaining screen height) -->
-              <div :style="{ height: scrollAreaHeight + 'px', flexShrink: 0 }" class="overflow-hidden">
+              <!-- PendingView -->
+              <div :style="{ height: (scrollAreaHeight - 20) + 'px', flexShrink: 0 }" class="overflow-hidden">
                 <PendingView />
               </div>
             </div>

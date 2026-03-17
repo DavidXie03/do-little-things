@@ -26,12 +26,15 @@ const INDICATOR_HEIGHT = 20
 const scrollAreaHeight = computed(() => containerHeight.value - headerHeight.value - tabBarHeight.value)
 
 // The vertical translate when at rest:
-// - verticalIndex=1 (PendingView): hide CompletedView above but let full separator peek at top
-// - verticalIndex=0 (CompletedView): show CompletedView with full separator peeking at bottom
+// viewHeight = scrollAreaHeight - INDICATOR_HEIGHT (each view's height)
+// completedPanelHeight = viewHeight + INDICATOR_HEIGHT = scrollAreaHeight
+// - verticalIndex=1 (PendingView): separator at top, CompletedView hidden above
+// - verticalIndex=0 (CompletedView): separator at bottom, PendingView hidden below
 const verticalTranslateY = computed(() => {
+  const viewHeight = scrollAreaHeight.value - INDICATOR_HEIGHT
   const baseOffset = verticalIndex.value === 1
-    ? -(completedPanelHeight.value - INDICATOR_HEIGHT)
-    : 0
+    ? -viewHeight      // hide CompletedView, show separator + PendingView
+    : -INDICATOR_HEIGHT // show CompletedView + separator, hide PendingView
   return baseOffset + verticalDragOffset.value
 })
 
@@ -190,8 +193,10 @@ export function usePageSwipe() {
     }
 
     if (animate) {
-      const panelH = completedPanelHeight.value
-      const travel = panelH - INDICATOR_HEIGHT  // scrollAreaHeight portion
+      // Travel = difference between two rest positions
+      // index1 base = -(scrollArea - IH), index0 base = -IH
+      // travel = scrollArea - 2*IH
+      const travel = scrollAreaHeight.value - 2 * INDICATOR_HEIGHT
       if (verticalIndex.value === 1 && clamped === 0) {
         // Going from PendingView to CompletedView
         animateVerticalTo(travel, 300, () => {
@@ -336,8 +341,7 @@ export function usePageSwipe() {
       lastTouchY = touch.clientY
       lastTouchTime = now
 
-      const panelH = completedPanelHeight.value
-      const travel = panelH - INDICATOR_HEIGHT
+      const travel = scrollAreaHeight.value - 2 * INDICATOR_HEIGHT
 
       if (verticalIndex.value === 1) {
         // Pulling down from PendingView to reveal CompletedView
@@ -397,8 +401,7 @@ export function usePageSwipe() {
       directionLocked = null
 
       const offset = verticalDragOffset.value
-      const panelH = completedPanelHeight.value
-      const travel = panelH - INDICATOR_HEIGHT
+      const travel = scrollAreaHeight.value - 2 * INDICATOR_HEIGHT
       const ratio = Math.abs(offset) / travel
       const fastSwipe = Math.abs(vVelocity) > V_VELOCITY_THRESHOLD
 
