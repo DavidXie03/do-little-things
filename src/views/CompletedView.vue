@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStorage } from '../composables/useStorage'
+import { usePageSwipe } from '../composables/usePageSwipe'
 import TodoItem from '../components/TodoItem.vue'
 import IconCheck from '../components/icons/IconCheck.vue'
 
 const { t, tm, locale } = useI18n()
 const { completedTodos, restoreCompletedTodo } = useStorage()
+const { verticalIndex } = usePageSwipe()
+
+const scrollContainer = ref<HTMLElement | null>(null)
 
 const allCompletedTodos = computed(() => {
   return completedTodos.value
@@ -24,7 +28,6 @@ const groupedCompleted = computed((): CompletedGroup[] => {
   const groups = new Map<string, CompletedGroup>()
 
   for (const item of allCompletedTodos.value) {
-    // Group by scheduledDate (the original date the task was meant to be completed)
     const dateStr = item.scheduledDate
 
     if (groups.has(dateStr)) {
@@ -38,7 +41,8 @@ const groupedCompleted = computed((): CompletedGroup[] => {
     }
   }
 
-  return Array.from(groups.values()).sort((a, b) => b.dateStr.localeCompare(a.dateStr))
+  // Sort oldest first (top) → newest last (bottom), so user sees recent items at the bottom
+  return Array.from(groups.values()).sort((a, b) => a.dateStr.localeCompare(b.dateStr))
 })
 
 function formatCompletedDate(dateStr: string): string {
@@ -68,28 +72,29 @@ function formatCompletedDate(dateStr: string): string {
 function handleRestore(todoId: string) {
   restoreCompletedTodo(todoId)
 }
+
+// When CompletedView becomes visible (verticalIndex switches to 0), scroll to bottom
+watch(verticalIndex, async (newVal) => {
+  if (newVal === 0) {
+    await nextTick()
+    if (scrollContainer.value) {
+      scrollContainer.value.scrollTop = scrollContainer.value.scrollHeight
+    }
+  }
+})
 </script>
 
 <template>
   <div
     data-vertical-scroll="completed"
-    class="flex flex-col"
+    class="completed-root flex flex-col"
     style="background-color: var(--bg-primary); transition: background-color 0.3s ease;"
   >
-    <!-- Header -->
-    <header class="completed-header u-section-x">
-      <h2
-        class="text-lg font-bold"
-        style="color: var(--secondary);"
-      >
-        {{ t('completed.title') }}
-      </h2>
-    </header>
-
-    <!-- Content -->
+    <!-- Scrollable content area -->
     <div
-      class="u-section-x"
-      :class="{ 'pb-4': allCompletedTodos.length > 0 }"
+      ref="scrollContainer"
+      class="completed-scroll flex-1 overflow-y-auto u-section-x"
+      style="-webkit-overflow-scrolling: touch;"
     >
       <!-- Empty state -->
       <div
@@ -108,48 +113,54 @@ function handleRestore(todoId: string) {
       </div>
 
       <!-- Grouped completed items -->
-      <div v-for="group in groupedCompleted" :key="group.dateStr" class="u-mb-lg">
-        <div class="flex items-center gap-2 u-mb-sm">
-          <span
-            class="text-sm font-bold"
-            style="color: var(--primary);"
-          >
-            {{ group.label }}
-          </span>
-          <span
-            class="text-xs font-semibold min-w-[18px] h-[18px] flex items-center justify-center rounded-full"
-            style="background: rgba(108,99,255,0.1); color: var(--primary);"
-          >
-            {{ group.items.length }}
-          </span>
-        </div>
+      <div class="pt-4 pb-2">
+        <div v-for="group in groupedCompleted" :key="group.dateStr" class="u-mb-lg">
+          <div class="flex items-center gap-2 u-mb-sm">
+            <span
+              class="text-sm font-bold"
+              style="color: var(--primary);"
+            >
+              {{ group.label }}
+            </span>
+            <span
+              class="text-xs font-semibold min-w-[18px] h-[18px] flex items-center justify-center rounded-full"
+              style="background: rgba(108,99,255,0.1); color: var(--primary);"
+            >
+              {{ group.items.length }}
+            </span>
+          </div>
 
-        <div
-          class="todo-group rounded-2xl overflow-hidden"
-          style="background: var(--item-bg); box-shadow: var(--card-shadow);"
-        >
-          <TodoItem
-            v-for="item in group.items"
-            :key="'done_' + item.id"
-            :item="item"
-            :show-recurrence="true"
-            :show-date-label="false"
-            :is-completed-archive="true"
-            :grouped="true"
-            @complete="handleRestore"
-          />
+          <div
+            class="todo-group rounded-2xl overflow-hidden"
+            style="background: var(--item-bg); box-shadow: var(--card-shadow);"
+          >
+            <TodoItem
+              v-for="item in group.items"
+              :key="'done_' + item.id"
+              :item="item"
+              :show-recurrence="true"
+              :show-date-label="false"
+              :is-completed-archive="true"
+              :grouped="true"
+              @complete="handleRestore"
+            />
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Swipe indicator at bottom -->
-    <div class="flex justify-center py-3">
+    <!-- Swipe indicator at bottom (pull up to go back) -->
+    <div class="flex justify-center py-2" style="flex-shrink: 0;">
       <div class="w-10 h-1 rounded-full" style="background: var(--text-muted); opacity: 0.25;"></div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.completed-root {
+  height: 100%;
+}
+
 .todo-group > :not(:last-child) {
   border-bottom: 1px solid var(--divider);
 }

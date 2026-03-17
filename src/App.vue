@@ -89,7 +89,7 @@ let resizeObserver: ResizeObserver | null = null
 
 function measureCompletedPanel() {
   if (completedPanelRef.value) {
-    const h = completedPanelRef.value.scrollHeight
+    const h = completedPanelRef.value.offsetHeight
     if (h > 0) {
       completedPanelHeight.value = h
     }
@@ -237,8 +237,8 @@ function onSettingsTouchEnd() {
                 willChange: 'transform',
               }"
             >
-              <!-- CompletedView (auto-height, sits above PendingView) -->
-              <div ref="completedPanelRef" class="completed-section" style="flex-shrink: 0;">
+              <!-- CompletedView (fixed height, fills the scroll area, internally scrollable) -->
+              <div ref="completedPanelRef" class="completed-section" :style="{ height: scrollAreaHeight + 'px', flexShrink: 0 }">
                 <CompletedView />
               </div>
               <!-- PendingView (fills remaining screen height) -->
@@ -297,9 +297,7 @@ function onSettingsTouchEnd() {
 }
 
 .completed-section {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  max-height: 70vh;
+  overflow: hidden;
 }
 
 .settings-slide-panel {

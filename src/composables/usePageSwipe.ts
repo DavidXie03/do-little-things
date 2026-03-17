@@ -44,8 +44,8 @@ const VELOCITY_THRESHOLD = 0.3
 const SNAP_THRESHOLD = 0.25
 
 // ─── Vertical thresholds ───
-const V_VELOCITY_THRESHOLD = 0.4
-const V_SNAP_THRESHOLD = 0.25
+const V_VELOCITY_THRESHOLD = 0.5
+const V_SNAP_THRESHOLD = 0.35
 
 const translateX = computed(() => {
   return -(currentIndex.value * containerWidth.value) + dragOffset.value
@@ -136,7 +136,7 @@ function findVerticalScrollContainer(): HTMLElement | null {
 }
 
 function findCompletedScrollContainer(): HTMLElement | null {
-  return document.querySelector('[data-vertical-scroll="completed"]')
+  return document.querySelector('[data-vertical-scroll="completed"] .completed-scroll')
 }
 
 function isAtScrollTop(el: HTMLElement): boolean {
@@ -336,7 +336,7 @@ export function usePageSwipe() {
         // Pulling down from PendingView to reveal CompletedView
         // Apply damping: the further you pull, the more resistance
         const clampedDy = Math.max(0, dy)
-        const damped = panelH * (1 - Math.exp(-clampedDy / (panelH * 0.8)))
+        const damped = panelH * (1 - Math.exp(-clampedDy / (panelH * 0.4)))
         verticalDragOffset.value = Math.min(panelH, damped)
       } else {
         // Pulling up from CompletedView to go back to PendingView
