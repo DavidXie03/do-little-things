@@ -379,13 +379,15 @@ onMounted(() => {
       <div class="h-20"></div>
     </div>
 
-    <button
-      v-show="fabVisible"
-      @click="openAddModal"
-      class="fab-add"
-    >
-      <IconPlus :size="24" color="white" />
-    </button>
+    <Transition name="fab-fade">
+      <button
+        v-show="fabVisible"
+        @click="openAddModal"
+        class="fab-add"
+      >
+        <IconPlus :size="24" color="white" />
+      </button>
+    </Transition>
 
     <TodoModal
       :visible="showModal"
@@ -426,6 +428,21 @@ onMounted(() => {
 .fab-add:active {
   transform: scale(0.92);
   box-shadow: 0 2px 8px -2px rgba(108, 99, 255, 0.5);
+}
+
+.fab-fade-enter-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.fab-fade-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.fab-fade-enter-from {
+  opacity: 0;
+  transform: scale(0.6);
+}
+.fab-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.6);
 }
 
 </style>

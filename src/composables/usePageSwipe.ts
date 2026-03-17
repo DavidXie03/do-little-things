@@ -101,7 +101,7 @@ function cancelVerticalAnimation() {
   isVerticalAnimating.value = false
 }
 
-function animateVerticalTo(targetOffset: number, duration = 300): Promise<void> {
+function animateVerticalTo(targetOffset: number, duration = 300, onComplete?: () => void): Promise<void> {
   return new Promise(resolve => {
     cancelVerticalAnimation()
     isVerticalAnimating.value = true
@@ -111,7 +111,8 @@ function animateVerticalTo(targetOffset: number, duration = 300): Promise<void> 
     function tick(now: number) {
       const elapsed = now - startTime
       const progress = Math.min(elapsed / duration, 1)
-      const eased = 1 - Math.pow(1 - progress, 3)
+      // Use linear-ish easing (ease-out quad) to avoid any bounce feel
+      const eased = 1 - Math.pow(1 - progress, 2)
 
       verticalDragOffset.value = startOffset + (targetOffset - startOffset) * eased
 
@@ -121,6 +122,7 @@ function animateVerticalTo(targetOffset: number, duration = 300): Promise<void> 
         verticalDragOffset.value = targetOffset
         isVerticalAnimating.value = false
         vAnimationFrameId = null
+        if (onComplete) onComplete()
         resolve()
       }
     }
@@ -182,11 +184,26 @@ export function usePageSwipe() {
       cancelVerticalAnimation()
     }
 
-    verticalIndex.value = clamped
-
     if (animate) {
-      animateVerticalTo(0)
+      const panelH = completedPanelHeight.value
+      if (verticalIndex.value === 1 && clamped === 0) {
+        // Going from PendingView to CompletedView
+        animateVerticalTo(panelH, 300, () => {
+          verticalIndex.value = 0
+          verticalDragOffset.value = 0
+        })
+      } else if (verticalIndex.value === 0 && clamped === 1) {
+        // Going from CompletedView to PendingView
+        animateVerticalTo(-completedPanelHeight.value, 300, () => {
+          verticalIndex.value = 1
+          verticalDragOffset.value = 0
+        })
+      } else {
+        // Same index, just animate offset back to 0
+        animateVerticalTo(0)
+      }
     } else {
+      verticalIndex.value = clamped
       verticalDragOffset.value = 0
     }
   }
@@ -379,9 +396,11 @@ export function usePageSwipe() {
       if (verticalIndex.value === 1) {
         // Was pulling down from PendingView
         if (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity > 0)) {
-          // Switch to CompletedView
-          verticalIndex.value = 0
-          animateVerticalTo(0)
+          // Switch to CompletedView: animate offset to full panelH, then flip index
+          animateVerticalTo(panelH, 300, () => {
+            verticalIndex.value = 0
+            verticalDragOffset.value = 0
+          })
         } else {
           // Snap back to PendingView
           animateVerticalTo(0)
@@ -389,9 +408,11 @@ export function usePageSwipe() {
       } else {
         // Was pulling up from CompletedView
         if (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity < 0)) {
-          // Switch to PendingView
-          verticalIndex.value = 1
-          animateVerticalTo(0)
+          // Switch to PendingView: animate offset to -panelH, then flip index
+          animateVerticalTo(-panelH, 300, () => {
+            verticalIndex.value = 1
+            verticalDragOffset.value = 0
+          })
         } else {
           // Snap back to CompletedView
           animateVerticalTo(0)
