@@ -208,6 +208,11 @@ watch(verticalIndex, async (newVal) => {
           </div>
         </div>
       </div>
+
+      <!-- Swipe indicator at bottom (hint to pull up) -->
+      <div class="completed-swipe-indicator">
+        <div class="w-10 h-1 rounded-full" style="background: var(--text-muted); opacity: 0.3;"></div>
+      </div>
     </div>
 
     <TodoModal
@@ -227,6 +232,16 @@ watch(verticalIndex, async (newVal) => {
 <style scoped>
 .completed-root {
   height: 100%;
+}
+
+.completed-swipe-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 20px;
+  margin-left: -20px;
+  margin-right: -20px;
+  flex-shrink: 0;
 }
 
 .todo-group > :not(:last-child) {

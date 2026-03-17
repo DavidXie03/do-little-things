@@ -280,6 +280,13 @@ onMounted(() => {
       style="-webkit-overflow-scrolling: touch;"
       @scroll="onListScroll"
     >
+      <!-- Swipe indicator that scrolls with list content -->
+      <div
+        v-if="verticalIndex === 1"
+        class="pending-swipe-indicator"
+      >
+        <div class="w-10 h-1 rounded-full" style="background: var(--text-muted); opacity: 0.3;"></div>
+      </div>
 
       <div
         v-if="groupedTodos.length === 0 && overdueGroups.length === 0"
@@ -404,6 +411,15 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.pending-swipe-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 20px;
+  margin-left: -20px;
+  margin-right: -20px;
+}
+
 .todo-group > :not(:last-child) {
   border-bottom: 1px solid var(--divider);
 }
