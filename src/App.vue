@@ -31,14 +31,21 @@ const {
 const pendingHeaderRef = ref<HTMLElement | null>(null)
 const completedPanelRef = ref<HTMLElement | null>(null)
 
-// Overlay opacity: proportional to drag progress (0→1)
-const overlayOpacity = computed(() => {
-  if (!verticalSwipeDirection.value) return 0
+// Overlay style: only covers the revealed area (not the full viewport)
+const overlayPositionStyle = computed(() => {
   const offset = Math.abs(verticalDragOffset.value)
   const travel = scrollAreaHeight.value
-  if (travel <= 0) return 0
-  // Map drag distance to 0..0.5 opacity (capped at 0.5 to keep it subtle)
-  return Math.min(0.5, (offset / travel) * 0.6)
+  const opacity = travel > 0 ? Math.min(0.5, (offset / travel) * 0.6) : 0
+  const bg = `rgba(0, 0, 0, ${opacity})`
+  const h = `${offset}px`
+
+  if (verticalSwipeDirection.value === 'down') {
+    // Pulling down → CompletedView revealed at top
+    return { top: '0', left: '0', right: '0', height: h, bottom: 'auto', backgroundColor: bg }
+  } else {
+    // Pulling up → PendingView revealed at bottom
+    return { bottom: '0', left: '0', right: '0', height: h, top: 'auto', backgroundColor: bg }
+  }
 })
 
 const showSettings = ref(false)
@@ -261,12 +268,12 @@ function onSettingsTouchEnd() {
               </div>
             </div>
 
-            <!-- Swipe direction overlay -->
+            <!-- Swipe direction overlay (covers only the revealed area) -->
             <Transition name="overlay-fade">
               <div
                 v-if="verticalSwipeDirection"
                 class="swipe-overlay"
-                :style="{ backgroundColor: `rgba(0, 0, 0, ${overlayOpacity})` }"
+                :style="overlayPositionStyle"
               >
                 <div class="swipe-overlay-content">
                   <span class="swipe-overlay-arrow">{{ verticalSwipeDirection === 'down' ? '↑' : '↓' }}</span>
@@ -347,12 +354,12 @@ function onSettingsTouchEnd() {
 /* ─── Swipe overlay ─── */
 .swipe-overlay {
   position: absolute;
-  inset: 0;
   z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .swipe-overlay-content {
