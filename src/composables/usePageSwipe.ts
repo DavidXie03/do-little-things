@@ -348,13 +348,13 @@ export function usePageSwipe() {
         // Pulling down from PendingView to reveal CompletedView
         // Apply damping: the further you pull, the more resistance
         const clampedDy = Math.max(0, dy)
-        const damped = travel * (1 - Math.exp(-clampedDy / (travel * 0.4)))
+        const damped = travel * (1 - Math.exp(-clampedDy / (travel * 0.25)))
         verticalDragOffset.value = Math.min(travel, damped)
         verticalSwipeDirection.value = 'down'
       } else {
         // Pulling up from CompletedView to go back to PendingView
         const clampedDy = Math.max(0, -dy)
-        const damped = travel * (1 - Math.exp(-clampedDy / (travel * 0.8)))
+        const damped = travel * (1 - Math.exp(-clampedDy / (travel * 0.5)))
         verticalDragOffset.value = -Math.min(travel, damped)
         verticalSwipeDirection.value = 'up'
       }
