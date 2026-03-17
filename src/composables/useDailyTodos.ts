@@ -43,10 +43,16 @@ export function useDailyTodos() {
       }
     }
 
-    // 将已完成任务归档到 completedTodos
+    // 将还留在 dailyTodos 中的已完成任务归档到 completedTodos
+    // (大部分已在实时完成时移入，这里处理边缘情况)
     if (completedItems.length > 0) {
       if (!storageData.value.completedTodos) storageData.value.completedTodos = []
-      storageData.value.completedTodos.push(...completedItems)
+      const existingIds = new Set(storageData.value.completedTodos.map(i => i.id))
+      for (const item of completedItems) {
+        if (!existingIds.has(item.id)) {
+          storageData.value.completedTodos.push(item)
+        }
+      }
     }
 
     // 清理超过 MAX_PAST_DAYS 天的过期任务
@@ -85,13 +91,23 @@ export function useDailyTodos() {
   function markTodoComplete(todoId: string): boolean {
     if (!storageData.value.dailyTodos) return false
     const item = storageData.value.dailyTodos.items.find(i => i.id === todoId)
-    if (!item) return false
+    if (!item) {
+      // Check if it's in completedTodos (user wants to undo completion)
+      if (!storageData.value.completedTodos) return false
+      const completedIdx = storageData.value.completedTodos.findIndex(i => i.id === todoId)
+      if (completedIdx < 0) return false
 
-    if (item.completed) {
-      item.completed = false
-      item.completedCount = 0
-      delete item.completedAt
-      saveData(storageData.value)
+      const completedItem = storageData.value.completedTodos[completedIdx]
+      // Only allow restoring today's items back to dailyTodos
+      const today = getTodayStr()
+      if (completedItem.scheduledDate === today) {
+        storageData.value.completedTodos.splice(completedIdx, 1)
+        completedItem.completed = false
+        completedItem.completedCount = 0
+        delete completedItem.completedAt
+        storageData.value.dailyTodos.items.push(completedItem)
+        saveData(storageData.value)
+      }
       return false
     }
 
@@ -101,6 +117,15 @@ export function useDailyTodos() {
     if (fullyDone) {
       item.completed = true
       item.completedAt = Date.now()
+
+      // Move to completedTodos
+      if (!storageData.value.completedTodos) storageData.value.completedTodos = []
+      storageData.value.completedTodos.push({ ...item })
+
+      // Remove from dailyTodos
+      storageData.value.dailyTodos.items = storageData.value.dailyTodos.items.filter(
+        i => i.id !== todoId
+      )
     }
 
     const now = new Date()
@@ -132,18 +157,23 @@ export function useDailyTodos() {
     item.completedCount = 0
     delete item.completedAt
 
-    // 归档到 pastTodos 中对应日期下
-    if (!storageData.value.pastTodos) storageData.value.pastTodos = []
-    const pastGroup = storageData.value.pastTodos.find(p => p.date === item.scheduledDate)
-    if (pastGroup) {
-      pastGroup.items.push(item)
+    const today = getTodayStr()
+    if (item.scheduledDate === today && storageData.value.dailyTodos && storageData.value.dailyTodos.date === today) {
+      // 今天的任务放回 dailyTodos
+      storageData.value.dailyTodos.items.push(item)
     } else {
-      storageData.value.pastTodos.push({
-        date: item.scheduledDate,
-        items: [item],
-      })
-      // 按日期排序
-      storageData.value.pastTodos.sort((a, b) => b.date.localeCompare(a.date))
+      // 过去日期的任务归档到 pastTodos
+      if (!storageData.value.pastTodos) storageData.value.pastTodos = []
+      const pastGroup = storageData.value.pastTodos.find(p => p.date === item.scheduledDate)
+      if (pastGroup) {
+        pastGroup.items.push(item)
+      } else {
+        storageData.value.pastTodos.push({
+          date: item.scheduledDate,
+          items: [item],
+        })
+        storageData.value.pastTodos.sort((a, b) => b.date.localeCompare(a.date))
+      }
     }
 
     saveData(storageData.value)

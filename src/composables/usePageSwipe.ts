@@ -334,14 +334,15 @@ export function usePageSwipe() {
 
       if (verticalIndex.value === 1) {
         // Pulling down from PendingView to reveal CompletedView
-        // dragOffset goes from 0 to +panelH
-        const dampedDy = Math.max(0, Math.min(panelH, dy))
-        verticalDragOffset.value = dampedDy
+        // Apply damping: the further you pull, the more resistance
+        const clampedDy = Math.max(0, dy)
+        const damped = panelH * (1 - Math.exp(-clampedDy / (panelH * 0.8)))
+        verticalDragOffset.value = Math.min(panelH, damped)
       } else {
         // Pulling up from CompletedView to go back to PendingView
-        // dragOffset goes from 0 to -panelH
-        const dampedDy = Math.max(-panelH, Math.min(0, dy))
-        verticalDragOffset.value = dampedDy
+        const clampedDy = Math.max(0, -dy)
+        const damped = panelH * (1 - Math.exp(-clampedDy / (panelH * 0.8)))
+        verticalDragOffset.value = -Math.min(panelH, damped)
       }
     }
   }

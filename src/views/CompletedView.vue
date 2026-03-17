@@ -8,28 +8,22 @@ import IconCheck from '../components/icons/IconCheck.vue'
 const { t, tm, locale } = useI18n()
 const { completedTodos, restoreCompletedTodo } = useStorage()
 
-const pastCompletedTodos = computed(() => {
-  const now = new Date()
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
-
+const allCompletedTodos = computed(() => {
   return completedTodos.value
-    .filter(item => {
-      if (!item.completedAt) return true
-      return item.completedAt < todayStart
-    })
+    .slice()
     .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0))
 })
 
 interface CompletedGroup {
   dateStr: string
   label: string
-  items: typeof pastCompletedTodos.value
+  items: typeof allCompletedTodos.value
 }
 
 const groupedCompleted = computed((): CompletedGroup[] => {
   const groups = new Map<string, CompletedGroup>()
 
-  for (const item of pastCompletedTodos.value) {
+  for (const item of allCompletedTodos.value) {
     const dateStr = item.completedAt
       ? toDateStr(new Date(item.completedAt))
       : item.scheduledDate
@@ -62,19 +56,20 @@ function formatCompletedDate(dateStr: string): string {
   const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
   const diffDays = Math.round((today.getTime() - target.getTime()) / (1000 * 60 * 60 * 24))
 
+  if (diffDays === 0) return t('todos.today')
   if (diffDays === 1) return t('todos.yesterday')
   if (diffDays === 2) return t('todos.dayBeforeYesterday')
-  if (diffDays <= 7) return t('todos.daysAgo', { days: diffDays })
 
   const weekdays = tm('date.weekdays') as string[]
   const month = date.getMonth() + 1
   const day = date.getDate()
+  const crossYear = date.getFullYear() !== now.getFullYear()
 
   if (locale.value === 'zh') {
-    const yearPrefix = date.getFullYear() !== now.getFullYear() ? `${date.getFullYear()}年` : ''
+    const yearPrefix = crossYear ? `${date.getFullYear()}年` : ''
     return `${yearPrefix}${month}月${day}日${weekdays[date.getDay()]}`
   } else {
-    const yearPrefix = date.getFullYear() !== now.getFullYear() ? `${date.getFullYear()}/` : ''
+    const yearPrefix = crossYear ? `${date.getFullYear()}/` : ''
     return `${yearPrefix}${month}/${day} ${weekdays[date.getDay()]}`
   }
 }
@@ -103,11 +98,11 @@ function handleRestore(todoId: string) {
     <!-- Content -->
     <div
       class="u-section-x"
-      :class="{ 'pb-4': pastCompletedTodos.length > 0 }"
+      :class="{ 'pb-4': allCompletedTodos.length > 0 }"
     >
       <!-- Empty state -->
       <div
-        v-if="pastCompletedTodos.length === 0"
+        v-if="allCompletedTodos.length === 0"
         class="flex flex-col items-center justify-center py-8"
       >
         <div

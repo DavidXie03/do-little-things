@@ -76,11 +76,6 @@ const todayItems = computed(() => {
   return items.filter(i => !i.completed)
 })
 
-const todayCompletedItems = computed(() => {
-  const items = dailyTodos.value?.items ?? []
-  return items.filter(i => i.completed)
-})
-
 const existingNames = computed((): Set<string> => {
   const names = new Set<string>()
   for (const ca of customActions.value) {
@@ -111,13 +106,12 @@ const groupedTodos = computed((): DateGroup[] => {
   const groups: Map<string, DateGroup> = new Map()
 
   const todayDateStr = dailyTodos.value?.date ?? getTodayStr()
-  const allTodayItems = [...todayItems.value, ...todayCompletedItems.value]
-  if (allTodayItems.length > 0) {
+  if (todayItems.value.length > 0) {
     groups.set(todayDateStr, {
       dateStr: todayDateStr,
       label: t('todos.today'),
-      count: allTodayItems.length,
-      items: allTodayItems,
+      count: todayItems.value.length,
+      items: todayItems.value,
       isFuture: false,
       isOverdue: false,
     })
@@ -251,16 +245,18 @@ function formatPastDate(dateStr: string): string {
 
   if (diffDays === 1) return t('todos.yesterday')
   if (diffDays === 2) return t('todos.dayBeforeYesterday')
-  if (diffDays <= 7) return t('todos.daysAgo', { days: diffDays })
 
   const weekdays = tm('date.weekdays') as string[]
   const month = date.getMonth() + 1
   const day = date.getDate()
+  const crossYear = date.getFullYear() !== now.getFullYear()
 
   if (locale.value === 'zh') {
-    return `${month}月${day}日${weekdays[date.getDay()]}`
+    const yearPrefix = crossYear ? `${date.getFullYear()}年` : ''
+    return `${yearPrefix}${month}月${day}日${weekdays[date.getDay()]}`
   } else {
-    return `${month}/${day} ${weekdays[date.getDay()]}`
+    const yearPrefix = crossYear ? `${date.getFullYear()}/` : ''
+    return `${yearPrefix}${month}/${day} ${weekdays[date.getDay()]}`
   }
 }
 
@@ -287,6 +283,40 @@ onMounted(() => {
         <p class="text-sm mt-3" style="color: var(--text-muted);">
           {{ t('todos.empty') }}
         </p>
+      </div>
+
+      <!-- 过期未完成任务（展示在今天上面） -->
+      <div v-for="group in overdueGroups" :key="'past_' + group.dateStr" class="u-mb-lg">
+        <div class="flex items-center gap-2 u-mb-sm">
+          <span class="text-sm font-bold" style="color: #ef4444;">
+            {{ group.label }}
+          </span>
+          <span
+            class="text-xs font-semibold min-w-[18px] h-[18px] flex items-center justify-center rounded-full"
+            style="background: rgba(239,68,68,0.1); color: #ef4444;"
+          >
+            {{ group.count }}
+          </span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded" style="background: rgba(239,68,68,0.1); color: #ef4444;">
+            {{ t('todos.overdue') }}
+          </span>
+        </div>
+
+        <div
+          class="todo-group rounded-2xl overflow-hidden"
+          style="background: var(--item-bg); box-shadow: var(--card-shadow);"
+        >
+          <TodoItem
+            v-for="item in group.items"
+            :key="item.id"
+            :item="item"
+            :show-recurrence="true"
+            :show-date-label="false"
+            :is-overdue="true"
+            :grouped="true"
+            @complete="(todoId: string) => handlePastComplete(todoId, group.dateStr)"
+          />
+        </div>
       </div>
 
       <!-- 今日 + 未来待办 -->
@@ -338,40 +368,6 @@ onMounted(() => {
             :is-future="true"
             :grouped="true"
             @edit="openEditModal"
-          />
-        </div>
-      </div>
-
-      <!-- 过期未完成任务 -->
-      <div v-for="group in overdueGroups" :key="'past_' + group.dateStr" class="u-mb-lg">
-        <div class="flex items-center gap-2 u-mb-sm">
-          <span class="text-sm font-bold" style="color: #ef4444;">
-            {{ group.label }}
-          </span>
-          <span
-            class="text-xs font-semibold min-w-[18px] h-[18px] flex items-center justify-center rounded-full"
-            style="background: rgba(239,68,68,0.1); color: #ef4444;"
-          >
-            {{ group.count }}
-          </span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded" style="background: rgba(239,68,68,0.1); color: #ef4444;">
-            {{ t('todos.overdue') }}
-          </span>
-        </div>
-
-        <div
-          class="todo-group rounded-2xl overflow-hidden"
-          style="background: var(--item-bg); box-shadow: var(--card-shadow);"
-        >
-          <TodoItem
-            v-for="item in group.items"
-            :key="item.id"
-            :item="item"
-            :show-recurrence="true"
-            :show-date-label="false"
-            :is-overdue="true"
-            :grouped="true"
-            @complete="(todoId: string) => handlePastComplete(todoId, group.dateStr)"
           />
         </div>
       </div>
