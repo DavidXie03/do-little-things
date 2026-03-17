@@ -197,10 +197,8 @@ export function usePageSwipe() {
           verticalDragOffset.value = 0
         })
       } else if (verticalIndex.value === 0 && clamped === 1) {
-        // Going from CompletedView to PendingView — dynamic duration
-        const remaining = Math.abs(-travel - verticalDragOffset.value) / travel
-        const duration = Math.max(120, Math.round(remaining * 300))
-        animateVerticalTo(-travel, duration, () => {
+        // Going from CompletedView to PendingView
+        animateVerticalTo(-travel, 300, () => {
           verticalIndex.value = 1
           verticalDragOffset.value = 0
         })
@@ -347,7 +345,7 @@ export function usePageSwipe() {
       } else {
         // Pulling up from CompletedView to go back to PendingView
         const clampedDy = Math.max(0, -dy)
-        const damped = travel * (1 - Math.exp(-clampedDy / (travel * 0.5)))
+        const damped = travel * (1 - Math.exp(-clampedDy / (travel * 0.8)))
         verticalDragOffset.value = -Math.min(travel, damped)
       }
     }
@@ -415,10 +413,8 @@ export function usePageSwipe() {
       } else {
         // Was pulling up from CompletedView
         if (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity < 0)) {
-          // Switch to PendingView — dynamic duration based on remaining distance
-          const remaining = Math.abs(-travel - offset) / travel
-          const duration = Math.max(120, Math.round(remaining * 300))
-          animateVerticalTo(-travel, duration, () => {
+          // Switch to PendingView
+          animateVerticalTo(-travel, 300, () => {
             verticalIndex.value = 1
             verticalDragOffset.value = 0
           })
