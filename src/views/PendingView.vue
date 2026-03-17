@@ -76,6 +76,11 @@ const todayItems = computed(() => {
   return items.filter(i => !i.completed)
 })
 
+const todayCompletedItems = computed(() => {
+  const items = dailyTodos.value?.items ?? []
+  return items.filter(i => i.completed)
+})
+
 const existingNames = computed((): Set<string> => {
   const names = new Set<string>()
   for (const ca of customActions.value) {
@@ -106,12 +111,13 @@ const groupedTodos = computed((): DateGroup[] => {
   const groups: Map<string, DateGroup> = new Map()
 
   const todayDateStr = dailyTodos.value?.date ?? getTodayStr()
-  if (todayItems.value.length > 0) {
+  const allTodayItems = [...todayItems.value, ...todayCompletedItems.value]
+  if (allTodayItems.length > 0) {
     groups.set(todayDateStr, {
       dateStr: todayDateStr,
       label: t('todos.today'),
-      count: todayItems.value.length,
-      items: todayItems.value,
+      count: allTodayItems.length,
+      items: allTodayItems,
       isFuture: false,
       isOverdue: false,
     })

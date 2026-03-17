@@ -24,9 +24,8 @@ const groupedCompleted = computed((): CompletedGroup[] => {
   const groups = new Map<string, CompletedGroup>()
 
   for (const item of allCompletedTodos.value) {
-    const dateStr = item.completedAt
-      ? toDateStr(new Date(item.completedAt))
-      : item.scheduledDate
+    // Group by scheduledDate (the original date the task was meant to be completed)
+    const dateStr = item.scheduledDate
 
     if (groups.has(dateStr)) {
       groups.get(dateStr)!.items.push(item)
@@ -42,13 +41,6 @@ const groupedCompleted = computed((): CompletedGroup[] => {
   return Array.from(groups.values()).sort((a, b) => b.dateStr.localeCompare(a.dateStr))
 })
 
-function toDateStr(date: Date): string {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
 function formatCompletedDate(dateStr: string): string {
   const date = new Date(dateStr + 'T00:00:00')
   const now = new Date()
@@ -56,7 +48,6 @@ function formatCompletedDate(dateStr: string): string {
   const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
   const diffDays = Math.round((today.getTime() - target.getTime()) / (1000 * 60 * 60 * 24))
 
-  if (diffDays === 0) return t('todos.today')
   if (diffDays === 1) return t('todos.yesterday')
   if (diffDays === 2) return t('todos.dayBeforeYesterday')
 
