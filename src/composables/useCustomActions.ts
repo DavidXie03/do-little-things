@@ -93,9 +93,13 @@ export function useCustomActions() {
       ca.content = content
       ca.repeatCount = Math.max(1, repeatCount)
       ca.recurrence = recurrence
+
+      const taskId = `custom_${id}`
+
+      // Update in today's dailyTodos
       if (storageData.value.dailyTodos) {
         const todoItem = storageData.value.dailyTodos.items.find(
-          i => i.task.id === `custom_${id}`
+          i => i.task.id === taskId
         )
         if (todoItem) {
           todoItem.task.content = content
@@ -104,6 +108,21 @@ export function useCustomActions() {
           todoItem.totalCount = Math.max(1, repeatCount)
         }
       }
+
+      // Update in pastTodos
+      if (storageData.value.pastTodos) {
+        for (const group of storageData.value.pastTodos) {
+          for (const item of group.items) {
+            if (item.task.id === taskId) {
+              item.task.content = content
+              item.task.repeatCount = Math.max(1, repeatCount)
+              item.task.recurrence = recurrence
+              item.totalCount = Math.max(1, repeatCount)
+            }
+          }
+        }
+      }
+
       saveData(storageData.value)
     }
   }

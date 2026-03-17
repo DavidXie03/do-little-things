@@ -179,43 +179,71 @@ export function useDailyTodos() {
   }
 
   function removeTodoItem(todoId: string): void {
-    const todayItem = storageData.value.dailyTodos?.items.find(i => i.id === todoId)
+    let taskId: string | null = null
 
+    // Check in today's dailyTodos
+    const todayItem = storageData.value.dailyTodos?.items.find(i => i.id === todoId)
     if (todayItem) {
-      const taskId = todayItem.task.id
-      if (taskId.startsWith('custom_')) {
-        const caId = taskId.slice(7)
-        storageData.value.customActions = storageData.value.customActions.filter(
-          ca => ca.id !== caId
-        )
-      }
+      taskId = todayItem.task.id
       storageData.value.dailyTodos!.items = storageData.value.dailyTodos!.items.filter(
         i => i.id !== todoId
       )
-      saveData(storageData.value)
-      return
     }
 
-    const futureItems = generateFutureTodoItems(
-      storageData.value.customActions,
-      getTodayStr()
-    )
-    const futureItem = futureItems.find(i => i.id === todoId)
-    if (futureItem) {
-      const taskId = futureItem.task.id
-      if (taskId.startsWith('custom_')) {
-        const caId = taskId.slice(7)
-        storageData.value.customActions = storageData.value.customActions.filter(
-          ca => ca.id !== caId
-        )
-        if (storageData.value.dailyTodos) {
-          storageData.value.dailyTodos.items = storageData.value.dailyTodos.items.filter(
-            i => i.task.id !== taskId
-          )
+    // Check in pastTodos
+    if (!taskId && storageData.value.pastTodos) {
+      for (const group of storageData.value.pastTodos) {
+        const pastItem = group.items.find(i => i.id === todoId)
+        if (pastItem) {
+          taskId = pastItem.task.id
+          break
         }
-        saveData(storageData.value)
       }
     }
+
+    // Check in future items
+    if (!taskId) {
+      const futureItems = generateFutureTodoItems(
+        storageData.value.customActions,
+        getTodayStr()
+      )
+      const futureItem = futureItems.find(i => i.id === todoId)
+      if (futureItem) {
+        taskId = futureItem.task.id
+      }
+    }
+
+    if (!taskId) return
+
+    // Delete the customAction
+    if (taskId.startsWith('custom_')) {
+      const caId = taskId.slice(7)
+      storageData.value.customActions = storageData.value.customActions.filter(
+        ca => ca.id !== caId
+      )
+    }
+
+    // Clean up all references to this taskId across all lists
+    if (storageData.value.dailyTodos) {
+      storageData.value.dailyTodos.items = storageData.value.dailyTodos.items.filter(
+        i => i.task.id !== taskId
+      )
+    }
+
+    if (storageData.value.pastTodos) {
+      for (const group of storageData.value.pastTodos) {
+        group.items = group.items.filter(i => i.task.id !== taskId)
+      }
+      storageData.value.pastTodos = storageData.value.pastTodos.filter(p => p.items.length > 0)
+    }
+
+    if (storageData.value.completedTodos) {
+      storageData.value.completedTodos = storageData.value.completedTodos.filter(
+        i => i.task.id !== taskId
+      )
+    }
+
+    saveData(storageData.value)
   }
 
   function getUncompletedTodos(): DailyTodoItem[] {

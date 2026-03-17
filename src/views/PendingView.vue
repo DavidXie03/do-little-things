@@ -321,6 +321,7 @@ onMounted(() => {
             :is-overdue="true"
             :grouped="true"
             @complete="(todoId: string) => handlePastComplete(todoId, group.dateStr)"
+            @edit="openEditModal"
           />
         </div>
       </div>
