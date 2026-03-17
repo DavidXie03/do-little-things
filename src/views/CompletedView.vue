@@ -4,10 +4,13 @@ import { useI18n } from 'vue-i18n'
 import { useStorage } from '../composables/useStorage'
 import { usePageSwipe } from '../composables/usePageSwipe'
 import TodoItem from '../components/TodoItem.vue'
+import TodoModal from '../components/TodoModal.vue'
 import IconCheck from '../components/icons/IconCheck.vue'
+import type { DailyTodoItem, RecurrenceType } from '../types'
+import { RecurrenceType as RT } from '../types'
 
 const { t, tm, locale } = useI18n()
-const { completedTodos, restoreCompletedTodo } = useStorage()
+const { completedTodos, restoreCompletedTodo, customActions, updateCustomAction, removeTodoItem } = useStorage()
 const { verticalIndex } = usePageSwipe()
 
 const scrollContainer = ref<HTMLElement | null>(null)
@@ -71,6 +74,63 @@ function formatCompletedDate(dateStr: string): string {
 
 function handleRestore(todoId: string) {
   restoreCompletedTodo(todoId)
+}
+
+// ─── Edit Modal ───
+const showModal = ref(false)
+const modalMode = ref<'add' | 'edit'>('edit')
+const modalContent = ref('')
+const modalRepeatCount = ref(1)
+const modalRecurrence = ref<RecurrenceType>(RT.Daily)
+const modalEditId = ref<string | null>(null)
+const modalEditTodoId = ref<string | null>(null)
+
+const existingNames = computed((): Set<string> => {
+  const names = new Set<string>()
+  for (const ca of customActions.value) {
+    names.add(ca.content)
+  }
+  return names
+})
+
+const existingNamesForModal = computed((): Set<string> => {
+  if (modalContent.value) {
+    const names = new Set(existingNames.value)
+    names.delete(modalContent.value)
+    return names
+  }
+  return existingNames.value
+})
+
+function openEditModal(item: DailyTodoItem) {
+  const taskId = item.task.id
+  const caId = taskId.startsWith('custom_') ? taskId.slice(7) : null
+  if (!caId) return
+
+  const ca = customActions.value.find(c => c.id === caId)
+  if (!ca) return
+
+  modalMode.value = 'edit'
+  modalContent.value = ca.content
+  modalRepeatCount.value = ca.repeatCount
+  modalRecurrence.value = ca.recurrence || RT.Daily
+  modalEditId.value = caId
+  modalEditTodoId.value = item.id
+  showModal.value = true
+}
+
+function handleModalConfirm(content: string, repeatCount: number, recurrence: RecurrenceType) {
+  if (modalEditId.value) {
+    updateCustomAction(modalEditId.value, content, repeatCount, recurrence)
+  }
+  showModal.value = false
+}
+
+function handleModalDelete() {
+  if (modalEditTodoId.value) {
+    removeTodoItem(modalEditTodoId.value)
+  }
+  showModal.value = false
 }
 
 // When CompletedView becomes visible (verticalIndex switches to 0), scroll to bottom
@@ -143,16 +203,24 @@ watch(verticalIndex, async (newVal) => {
               :is-completed-archive="true"
               :grouped="true"
               @complete="handleRestore"
+              @edit="openEditModal"
             />
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Swipe indicator at bottom (pull up to go back) -->
-    <div class="flex justify-center py-2" style="flex-shrink: 0;">
-      <div class="w-10 h-1 rounded-full" style="background: var(--text-muted); opacity: 0.25;"></div>
-    </div>
+    <TodoModal
+      :visible="showModal"
+      :mode="modalMode"
+      :initial-content="modalContent"
+      :initial-repeat-count="modalRepeatCount"
+      :initial-recurrence="modalRecurrence"
+      :existing-names="existingNamesForModal"
+      @confirm="handleModalConfirm"
+      @cancel="showModal = false"
+      @delete="handleModalDelete"
+    />
   </div>
 </template>
 

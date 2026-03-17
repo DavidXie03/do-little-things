@@ -38,7 +38,7 @@ function getSubInfo(): string {
     ]"
     :style="grouped ? {} : { background: 'var(--item-bg)', boxShadow: 'var(--card-shadow)' }"
   >
-    <div class="flex items-center gap-3 u-item" @click="!isCompletedArchive ? emit('edit', item) : undefined">
+    <div class="flex items-center gap-3 u-item" @click="emit('edit', item)">
       <!-- 已完成归档：绿色圆（可点击恢复） -->
       <button
         v-if="isCompletedArchive"

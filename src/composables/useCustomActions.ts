@@ -123,6 +123,18 @@ export function useCustomActions() {
         }
       }
 
+      // Update in completedTodos
+      if (storageData.value.completedTodos) {
+        for (const item of storageData.value.completedTodos) {
+          if (item.task.id === taskId) {
+            item.task.content = content
+            item.task.repeatCount = Math.max(1, repeatCount)
+            item.task.recurrence = recurrence
+            item.totalCount = Math.max(1, repeatCount)
+          }
+        }
+      }
+
       saveData(storageData.value)
     }
   }

@@ -237,9 +237,15 @@ function onSettingsTouchEnd() {
                 willChange: 'transform',
               }"
             >
-              <!-- CompletedView (fixed height, fills the scroll area, internally scrollable) -->
-              <div ref="completedPanelRef" class="completed-section" :style="{ height: scrollAreaHeight + 'px', flexShrink: 0 }">
-                <CompletedView />
+              <!-- CompletedView + separator wrapper (measured as a unit for vertical offset) -->
+              <div ref="completedPanelRef" style="flex-shrink: 0;">
+                <div class="completed-section" :style="{ height: scrollAreaHeight + 'px' }">
+                  <CompletedView />
+                </div>
+                <!-- Fixed separator indicator bar -->
+                <div class="swipe-indicator">
+                  <div class="w-10 h-1 rounded-full" style="background: var(--text-muted); opacity: 0.3;"></div>
+                </div>
               </div>
               <!-- PendingView (fills remaining screen height) -->
               <div :style="{ height: scrollAreaHeight + 'px', flexShrink: 0 }" class="overflow-hidden">
@@ -298,6 +304,15 @@ function onSettingsTouchEnd() {
 
 .completed-section {
   overflow: hidden;
+}
+
+.swipe-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 20px;
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease;
 }
 
 .settings-slide-panel {

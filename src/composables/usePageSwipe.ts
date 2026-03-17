@@ -20,13 +20,19 @@ const headerHeight = ref(0)
 const tabBarHeight = ref(52) // default 52px, will be measured in App.vue
 const completedPanelHeight = ref(200) // measured from actual DOM
 
+// Separator indicator bar height (must match the CSS height in App.vue .swipe-indicator)
+const INDICATOR_HEIGHT = 20
+
 const scrollAreaHeight = computed(() => containerHeight.value - headerHeight.value - tabBarHeight.value)
 
 // The vertical translate when at rest:
-// - verticalIndex=1 (PendingView): translateY = -completedPanelHeight (hide CompletedView above)
-// - verticalIndex=0 (CompletedView visible): translateY = 0
+// - verticalIndex=1 (PendingView): hide CompletedView above but let bottom half of separator peek
+// - verticalIndex=0 (CompletedView): show CompletedView with top half of separator peeking at bottom
 const verticalTranslateY = computed(() => {
-  const baseOffset = verticalIndex.value === 1 ? -completedPanelHeight.value : 0
+  const halfIndicator = INDICATOR_HEIGHT / 2
+  const baseOffset = verticalIndex.value === 1
+    ? -(completedPanelHeight.value - halfIndicator)
+    : -halfIndicator
   return baseOffset + verticalDragOffset.value
 })
 
@@ -186,15 +192,16 @@ export function usePageSwipe() {
 
     if (animate) {
       const panelH = completedPanelHeight.value
+      const travel = panelH - INDICATOR_HEIGHT
       if (verticalIndex.value === 1 && clamped === 0) {
         // Going from PendingView to CompletedView
-        animateVerticalTo(panelH, 300, () => {
+        animateVerticalTo(travel, 300, () => {
           verticalIndex.value = 0
           verticalDragOffset.value = 0
         })
       } else if (verticalIndex.value === 0 && clamped === 1) {
         // Going from CompletedView to PendingView
-        animateVerticalTo(-completedPanelHeight.value, 300, () => {
+        animateVerticalTo(-travel, 300, () => {
           verticalIndex.value = 1
           verticalDragOffset.value = 0
         })
@@ -331,18 +338,19 @@ export function usePageSwipe() {
       lastTouchTime = now
 
       const panelH = completedPanelHeight.value
+      const travel = panelH - INDICATOR_HEIGHT
 
       if (verticalIndex.value === 1) {
         // Pulling down from PendingView to reveal CompletedView
         // Apply damping: the further you pull, the more resistance
         const clampedDy = Math.max(0, dy)
-        const damped = panelH * (1 - Math.exp(-clampedDy / (panelH * 0.4)))
-        verticalDragOffset.value = Math.min(panelH, damped)
+        const damped = travel * (1 - Math.exp(-clampedDy / (travel * 0.4)))
+        verticalDragOffset.value = Math.min(travel, damped)
       } else {
         // Pulling up from CompletedView to go back to PendingView
         const clampedDy = Math.max(0, -dy)
-        const damped = panelH * (1 - Math.exp(-clampedDy / (panelH * 0.8)))
-        verticalDragOffset.value = -Math.min(panelH, damped)
+        const damped = travel * (1 - Math.exp(-clampedDy / (travel * 0.8)))
+        verticalDragOffset.value = -Math.min(travel, damped)
       }
     }
   }
@@ -391,14 +399,15 @@ export function usePageSwipe() {
 
       const offset = verticalDragOffset.value
       const panelH = completedPanelHeight.value
-      const ratio = Math.abs(offset) / panelH
+      const travel = panelH - INDICATOR_HEIGHT
+      const ratio = Math.abs(offset) / travel
       const fastSwipe = Math.abs(vVelocity) > V_VELOCITY_THRESHOLD
 
       if (verticalIndex.value === 1) {
         // Was pulling down from PendingView
         if (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity > 0)) {
-          // Switch to CompletedView: animate offset to full panelH, then flip index
-          animateVerticalTo(panelH, 300, () => {
+          // Switch to CompletedView
+          animateVerticalTo(travel, 300, () => {
             verticalIndex.value = 0
             verticalDragOffset.value = 0
           })
@@ -409,8 +418,8 @@ export function usePageSwipe() {
       } else {
         // Was pulling up from CompletedView
         if (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity < 0)) {
-          // Switch to PendingView: animate offset to -panelH, then flip index
-          animateVerticalTo(-panelH, 300, () => {
+          // Switch to PendingView
+          animateVerticalTo(-travel, 300, () => {
             verticalIndex.value = 1
             verticalDragOffset.value = 0
           })
