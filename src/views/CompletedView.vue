@@ -98,9 +98,9 @@ function handleRestore(todoId: string) {
       >
         <div
           class="w-12 h-12 rounded-full flex items-center justify-center"
-          style="background: var(--toast-success-bg);"
+          style="background: rgba(108,99,255,0.1);"
         >
-          <IconCheck :size="24" color="var(--secondary)" />
+          <IconCheck :size="24" color="var(--primary)" />
         </div>
         <p class="text-sm mt-3" style="color: var(--text-muted);">
           {{ t('completed.empty') }}
@@ -112,13 +112,13 @@ function handleRestore(todoId: string) {
         <div class="flex items-center gap-2 u-mb-sm">
           <span
             class="text-sm font-bold"
-            style="color: var(--secondary);"
+            style="color: var(--primary);"
           >
             {{ group.label }}
           </span>
           <span
             class="text-xs font-semibold min-w-[18px] h-[18px] flex items-center justify-center rounded-full"
-            style="background: var(--toast-success-bg); color: var(--secondary);"
+            style="background: rgba(108,99,255,0.1); color: var(--primary);"
           >
             {{ group.items.length }}
           </span>
@@ -152,10 +152,5 @@ function handleRestore(todoId: string) {
 <style scoped>
 .todo-group > :not(:last-child) {
   border-bottom: 1px solid var(--divider);
-}
-
-.completed-header {
-  padding-top: var(--gap-md);
-  padding-bottom: var(--gap-md);
 }
 </style>

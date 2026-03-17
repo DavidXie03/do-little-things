@@ -71,7 +71,7 @@ function getSubInfo(): string {
         @click.stop="emit('complete', item.id)"
         class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 active:scale-90"
         :style="{
-          background: item.completed ? 'var(--secondary)' : 'transparent',
+          background: item.completed ? 'var(--primary)' : 'transparent',
           border: item.completed ? 'none' : '2px solid var(--text-muted)',
         }"
       >
@@ -83,10 +83,9 @@ function getSubInfo(): string {
           class="text-sm leading-relaxed transition-all duration-300"
           :class="[
             item.completed && !isCompletedArchive ? 'line-through' : '',
-            isOverdue ? 'overdue-text' : '',
             isCompletedArchive ? 'line-through' : '',
           ]"
-          :style="isOverdue ? { color: '#ef4444' } : { color: 'var(--text-primary)' }"
+          :style="{ color: 'var(--text-primary)' }"
         >
           {{ item.task.content }}
         </p>
@@ -99,8 +98,8 @@ function getSubInfo(): string {
         v-if="item.totalCount > 1"
         class="flex-shrink-0 text-xs u-badge rounded-full"
         :style="{
-          background: item.completed ? 'var(--toast-success-bg)' : isOverdue ? 'rgba(239,68,68,0.08)' : 'rgba(108,99,255,0.08)',
-          color: item.completed ? 'var(--secondary)' : isOverdue ? '#ef4444' : 'var(--primary)',
+          background: 'rgba(108,99,255,0.08)',
+          color: 'var(--primary)',
         }"
       >
         {{ item.completedCount }}/{{ item.totalCount }}
@@ -110,7 +109,4 @@ function getSubInfo(): string {
 </template>
 
 <style scoped>
-.overdue-text {
-  font-weight: 500;
-}
 </style>

@@ -294,12 +294,12 @@ onMounted(() => {
       <!-- 过期未完成任务（展示在今天上面） -->
       <div v-for="group in overdueGroups" :key="'past_' + group.dateStr" class="u-mb-lg">
         <div class="flex items-center gap-2 u-mb-sm">
-          <span class="text-sm font-bold" style="color: #ef4444;">
+          <span class="text-sm font-bold" style="color: var(--primary);">
             {{ group.label }}
           </span>
           <span
             class="text-xs font-semibold min-w-[18px] h-[18px] flex items-center justify-center rounded-full"
-            style="background: rgba(239,68,68,0.1); color: #ef4444;"
+            style="background: rgba(108,99,255,0.1); color: var(--primary);"
           >
             {{ group.count }}
           </span>
