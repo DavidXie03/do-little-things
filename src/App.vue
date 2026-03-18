@@ -10,6 +10,7 @@ import PendingView from './views/PendingView.vue'
 import SettingsView from './views/SettingsView.vue'
 import CompletedView from './views/CompletedView.vue'
 import IconSettings from './components/icons/IconSettings.vue'
+import IconChevron from './components/icons/IconChevron.vue'
 import { usePageSwipe } from './composables/usePageSwipe'
 
 const { t } = useI18n()
@@ -269,6 +270,7 @@ function onSettingsTouchEnd() {
               <div
                 v-if="isVerticalDraggingRef && verticalSwipeDirection"
                 class="swipe-overlay"
+                :class="verticalSwipeDirection === 'up' ? 'swipe-overlay--up' : 'swipe-overlay--down'"
                 :style="{
                   ...(verticalSwipeDirection === 'down'
                     ? { top: '0', bottom: 'auto', height: Math.abs(verticalDragOffset) + 'px' }
@@ -277,7 +279,11 @@ function onSettingsTouchEnd() {
                 }"
               >
                 <div class="swipe-overlay-content">
-                  <span class="swipe-overlay-arrow" :style="{ transform: verticalSwipeDirection === 'down' ? 'rotate(-90deg)' : 'rotate(90deg)' }">›</span>
+                  <IconChevron
+                    :size="28"
+                    color="var(--text-muted)"
+                    :direction="verticalSwipeDirection === 'down' ? 'up' : 'down'"
+                  />
                   <Transition name="text-fade">
                     <span v-if="hasReachedThreshold" class="swipe-overlay-text">{{ verticalSwipeDirection === 'down' ? t('swipeOverlay.history') : t('swipeOverlay.current') }}</span>
                   </Transition>
@@ -361,29 +367,31 @@ function onSettingsTouchEnd() {
   right: 0;
   z-index: 50;
   display: flex;
-  align-items: center;
   justify-content: center;
   pointer-events: none;
   background-color: var(--bg-primary);
   overflow: hidden;
 }
 
+.swipe-overlay--down {
+  align-items: flex-end;
+  padding-bottom: 12px;
+}
+
+.swipe-overlay--up {
+  align-items: flex-start;
+  padding-top: 12px;
+}
+
 .swipe-overlay-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-}
-
-.swipe-overlay-arrow {
-  font-size: 28px;
-  color: var(--text-muted);
-  line-height: 1;
-  display: inline-block;
+  gap: 6px;
 }
 
 .swipe-overlay-text {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-muted);
   letter-spacing: 2px;
