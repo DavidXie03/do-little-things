@@ -32,6 +32,7 @@ const {
   hasReachedThreshold,
   pendingAtTop,
   completedAtBottom,
+  indicatorHeight,
 } = usePageSwipe()
 
 // Morph progress: 0 (flat bar) → 1 (full chevron) based on drag distance relative to threshold
@@ -96,6 +97,7 @@ const indicatorVisible = computed(() => {
 
 const pendingHeaderRef = ref<HTMLElement | null>(null)
 const completedPanelRef = ref<HTMLElement | null>(null)
+const indicatorGroupRef = ref<HTMLElement | null>(null)
 
 const showSettings = ref(false)
 const settingsPanelOffset = ref(0)
@@ -182,6 +184,11 @@ onMounted(async () => {
     tabBarHeight.value = tabBarEl.getBoundingClientRect().height
   }
   measureCompletedPanel()
+
+  // Measure indicator height for dynamic padding in views
+  if (indicatorGroupRef.value) {
+    indicatorHeight.value = indicatorGroupRef.value.offsetHeight
+  }
 
   // Use ResizeObserver to track CompletedView height changes
   if (completedPanelRef.value) {
@@ -354,7 +361,7 @@ function onSettingsTouchEnd() {
                 pointerEvents: 'none',
               }"
             >
-              <div class="swipe-indicator-group">
+              <div ref="indicatorGroupRef" class="swipe-indicator-group">
                 <Transition name="text-fade">
                   <span v-if="hasReachedThreshold && verticalSwipeDirection === 'up'" class="swipe-overlay-text">{{ t('swipeOverlay.current') }}</span>
                 </Transition>

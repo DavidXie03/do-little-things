@@ -13,7 +13,7 @@ import IconPlus from '../components/icons/IconPlus.vue'
 
 const { t, tm, locale } = useI18n()
 const { showToast } = useToast()
-const { isAnimating, dragOffset, currentIndex, verticalIndex, verticalDragOffset, pendingAtTop } = usePageSwipe()
+const { isAnimating, dragOffset, currentIndex, verticalIndex, verticalDragOffset, pendingAtTop, indicatorHeight } = usePageSwipe()
 
 const fabVisible = ref(false)
 const isScrolling = ref(false)
@@ -278,8 +278,9 @@ onMounted(() => {
   <div class="h-full flex flex-col overflow-hidden relative" style="background-color: var(--bg-primary); transition: background-color 0.3s ease;">
     <div
       data-vertical-scroll="pending"
-      class="flex-1 overflow-y-auto pb-4 pt-[44px] u-section-x"
+      class="flex-1 overflow-y-auto pb-4 u-section-x"
       :class="{ 'flex flex-col': groupedTodos.length === 0 && overdueGroups.length === 0 }"
+      :style="{ paddingTop: indicatorHeight + 'px' }"
       style="-webkit-overflow-scrolling: touch;"
       @scroll="onListScroll"
     >

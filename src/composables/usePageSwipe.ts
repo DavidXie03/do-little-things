@@ -32,6 +32,9 @@ const shouldRenderTarget = ref(false)
 const pendingAtTop = ref(true)
 const completedAtBottom = ref(true)
 
+// Measured height of the swipe indicator (chevron + text + gap), used by views to reserve padding
+const indicatorHeight = ref(0)
+
 const scrollAreaHeight = computed(() => containerHeight.value - headerHeight.value - tabBarHeight.value)
 
 // Whether the current drag has reached the snap threshold (used by overlay to show text)
@@ -521,5 +524,6 @@ export function usePageSwipe() {
     goToVerticalPage,
     pendingAtTop,
     completedAtBottom,
+    indicatorHeight,
   }
 }

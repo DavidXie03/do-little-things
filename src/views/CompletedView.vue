@@ -11,7 +11,7 @@ import { RecurrenceType as RT } from '../types'
 
 const { t, tm, locale } = useI18n()
 const { completedTodos, restoreCompletedTodo, customActions, updateCustomAction, removeTodoItem } = useStorage()
-const { verticalIndex, completedAtBottom } = usePageSwipe()
+const { verticalIndex, completedAtBottom, indicatorHeight } = usePageSwipe()
 
 const scrollContainer = ref<HTMLElement | null>(null)
 
@@ -182,7 +182,7 @@ watch(verticalIndex, async (newVal) => {
         </div>
 
         <!-- Grouped completed items -->
-        <div class="pt-8 pb-[44px]">
+        <div class="pt-8" :style="{ paddingBottom: indicatorHeight + 'px' }">
           <div v-for="group in groupedCompleted" :key="group.dateStr" class="u-mb-lg">
             <div class="flex items-center gap-2 u-mb-sm">
               <span
