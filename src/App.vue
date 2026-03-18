@@ -279,13 +279,16 @@ function onSettingsTouchEnd() {
                 }"
               >
                 <div class="swipe-overlay-content">
+                  <Transition name="text-fade">
+                    <span v-if="hasReachedThreshold && verticalSwipeDirection === 'up'" class="swipe-overlay-text">{{ t('swipeOverlay.current') }}</span>
+                  </Transition>
                   <IconChevron
                     :size="28"
                     color="var(--text-muted)"
                     :direction="verticalSwipeDirection === 'down' ? 'up' : 'down'"
                   />
                   <Transition name="text-fade">
-                    <span v-if="hasReachedThreshold" class="swipe-overlay-text">{{ verticalSwipeDirection === 'down' ? t('swipeOverlay.history') : t('swipeOverlay.current') }}</span>
+                    <span v-if="hasReachedThreshold && verticalSwipeDirection === 'down'" class="swipe-overlay-text">{{ t('swipeOverlay.history') }}</span>
                   </Transition>
                 </div>
               </div>
