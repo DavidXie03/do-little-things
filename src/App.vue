@@ -26,6 +26,7 @@ const {
   tabBarHeight,
   goToVerticalPage,
   completedPanelHeight,
+  isVerticalDraggingRef,
 } = usePageSwipe()
 
 const pendingHeaderRef = ref<HTMLElement | null>(null)
@@ -240,40 +241,39 @@ function onSettingsTouchEnd() {
               }"
             >
               <!-- CompletedView (full height) -->
-              <div ref="completedPanelRef" style="flex-shrink: 0; position: relative;">
+              <div
+                ref="completedPanelRef"
+                style="flex-shrink: 0; position: relative;"
+                :style="{ visibility: verticalIndex === 1 && isVerticalDraggingRef ? 'hidden' : 'visible' }"
+              >
                 <div class="completed-section" :style="{ height: scrollAreaHeight + 'px' }">
                   <CompletedView />
                 </div>
-                <!-- "当前日程" overlay: sits at the bottom of CompletedView, revealed when pulling up -->
-                <Transition name="overlay-fade">
-                  <div
-                    v-if="verticalSwipeDirection === 'up'"
-                    class="swipe-overlay swipe-overlay--bottom"
-                  >
-                    <div class="swipe-overlay-content">
-                      <span class="swipe-overlay-arrow">↓</span>
-                      <span class="swipe-overlay-text">{{ t('swipeOverlay.current') }}</span>
-                    </div>
-                  </div>
-                </Transition>
               </div>
               <!-- PendingView (full height) -->
-              <div :style="{ height: scrollAreaHeight + 'px', flexShrink: 0, visibility: verticalIndex === 0 && verticalDragOffset === 0 ? 'hidden' : 'visible' }" class="overflow-hidden relative">
+              <div
+                :style="{
+                  height: scrollAreaHeight + 'px',
+                  flexShrink: 0,
+                  visibility: verticalIndex === 0 && (isVerticalDraggingRef || verticalDragOffset === 0) ? 'hidden' : 'visible',
+                }"
+                class="overflow-hidden relative"
+              >
                 <PendingView />
-                <!-- "历史日程" overlay: sits at the top of PendingView, revealed when pulling down -->
-                <Transition name="overlay-fade">
-                  <div
-                    v-if="verticalSwipeDirection === 'down'"
-                    class="swipe-overlay swipe-overlay--top"
-                  >
-                    <div class="swipe-overlay-content">
-                      <span class="swipe-overlay-arrow">↑</span>
-                      <span class="swipe-overlay-text">{{ t('swipeOverlay.history') }}</span>
-                    </div>
-                  </div>
-                </Transition>
               </div>
             </div>
+            <!-- Swipe overlay: covers entire viewport during drag -->
+            <Transition name="overlay-fade">
+              <div
+                v-if="isVerticalDraggingRef && verticalSwipeDirection"
+                class="swipe-overlay"
+              >
+                <div class="swipe-overlay-content">
+                  <span class="swipe-overlay-arrow">{{ verticalSwipeDirection === 'down' ? '↑' : '↓' }}</span>
+                  <span class="swipe-overlay-text">{{ verticalSwipeDirection === 'down' ? t('swipeOverlay.history') : t('swipeOverlay.current') }}</span>
+                </div>
+              </div>
+            </Transition>
           </div>
         </div>
       </div>
@@ -347,26 +347,13 @@ function onSettingsTouchEnd() {
 /* ─── Swipe overlay ─── */
 .swipe-overlay {
   position: absolute;
-  left: 0;
-  right: 0;
+  inset: 0;
   z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
   background-color: var(--bg-primary);
-}
-
-/* "当前日程" — covers bottom of CompletedView */
-.swipe-overlay--bottom {
-  bottom: 0;
-  height: 120px;
-}
-
-/* "历史日程" — covers top of PendingView */
-.swipe-overlay--top {
-  top: 0;
-  height: 120px;
 }
 
 .swipe-overlay-content {
