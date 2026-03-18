@@ -27,6 +27,7 @@ const {
   goToVerticalPage,
   completedPanelHeight,
   isVerticalDraggingRef,
+  shouldRenderTarget,
 } = usePageSwipe()
 
 const pendingHeaderRef = ref<HTMLElement | null>(null)
@@ -244,7 +245,7 @@ function onSettingsTouchEnd() {
               <div
                 ref="completedPanelRef"
                 style="flex-shrink: 0; position: relative;"
-                :style="{ visibility: verticalIndex === 1 && isVerticalDraggingRef ? 'hidden' : 'visible' }"
+                :style="{ visibility: verticalIndex === 0 || shouldRenderTarget ? 'visible' : 'hidden' }"
               >
                 <div class="completed-section" :style="{ height: scrollAreaHeight + 'px' }">
                   <CompletedView />
@@ -255,18 +256,24 @@ function onSettingsTouchEnd() {
                 :style="{
                   height: scrollAreaHeight + 'px',
                   flexShrink: 0,
-                  visibility: verticalIndex === 0 && (isVerticalDraggingRef || verticalDragOffset === 0) ? 'hidden' : 'visible',
+                  visibility: verticalIndex === 1 || shouldRenderTarget ? 'visible' : 'hidden',
                 }"
                 class="overflow-hidden relative"
               >
                 <PendingView />
               </div>
             </div>
-            <!-- Swipe overlay: covers entire viewport during drag -->
+            <!-- Swipe overlay: covers only the exposed blank area during drag -->
             <Transition name="overlay-fade">
               <div
                 v-if="isVerticalDraggingRef && verticalSwipeDirection"
                 class="swipe-overlay"
+                :style="{
+                  ...(verticalSwipeDirection === 'down'
+                    ? { top: '0', bottom: 'auto', height: Math.abs(verticalDragOffset) + 'px' }
+                    : { bottom: '0', top: 'auto', height: Math.abs(verticalDragOffset) + 'px' }
+                  ),
+                }"
               >
                 <div class="swipe-overlay-content">
                   <span class="swipe-overlay-arrow">{{ verticalSwipeDirection === 'down' ? '↑' : '↓' }}</span>
@@ -347,13 +354,15 @@ function onSettingsTouchEnd() {
 /* ─── Swipe overlay ─── */
 .swipe-overlay {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
   z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
   background-color: var(--bg-primary);
+  overflow: hidden;
 }
 
 .swipe-overlay-content {

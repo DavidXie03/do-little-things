@@ -22,6 +22,10 @@ const headerHeight = ref(0)
 const tabBarHeight = ref(52) // default 52px, will be measured in App.vue
 const completedPanelHeight = ref(200) // measured from actual DOM
 
+// Whether the target view should be rendered (visible) during a vertical switch.
+// Stays false during drag; set to true only after touch-end confirms a switch.
+const shouldRenderTarget = ref(false)
+
 const scrollAreaHeight = computed(() => containerHeight.value - headerHeight.value - tabBarHeight.value)
 
 // The vertical translate when at rest:
@@ -129,6 +133,7 @@ function animateVerticalTo(targetOffset: number, duration = 300, onComplete?: ()
         isVerticalAnimating.value = false
         vAnimationFrameId = null
         verticalSwipeDirection.value = null
+        shouldRenderTarget.value = false
         if (onComplete) onComplete()
         resolve()
       }
@@ -198,6 +203,7 @@ export function usePageSwipe() {
         // Going from PendingView to CompletedView
         // Immediately flip index and compensate offset so translateY stays the same
         verticalSwipeDirection.value = 'down'
+        shouldRenderTarget.value = true
         const currentOffset = verticalDragOffset.value
         const newOffset = -travel + currentOffset
         verticalIndex.value = 0
@@ -206,6 +212,7 @@ export function usePageSwipe() {
       } else if (verticalIndex.value === 0 && clamped === 1) {
         // Going from CompletedView to PendingView
         verticalSwipeDirection.value = 'up'
+        shouldRenderTarget.value = true
         const currentOffset = verticalDragOffset.value
         const newOffset = travel + currentOffset
         verticalIndex.value = 1
@@ -242,7 +249,10 @@ export function usePageSwipe() {
     }
 
     if (isAnimating.value) cancelAnimation()
-    if (isVerticalAnimating.value) cancelVerticalAnimation()
+    if (isVerticalAnimating.value) {
+      cancelVerticalAnimation()
+      shouldRenderTarget.value = false
+    }
 
     isIgnored = false
     const touch = e.touches[0]
@@ -417,6 +427,7 @@ export function usePageSwipe() {
         // Was pulling down from PendingView
         if (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity > 0)) {
           // Switch to CompletedView: immediately flip index and compensate offset
+          shouldRenderTarget.value = true
           const newOffset = -travel + offset
           verticalIndex.value = 0
           verticalDragOffset.value = newOffset
@@ -432,6 +443,7 @@ export function usePageSwipe() {
         // Was pulling up from CompletedView
         if (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity < 0)) {
           // Switch to PendingView: immediately flip index and compensate offset
+          shouldRenderTarget.value = true
           const newOffset = travel + offset
           verticalIndex.value = 1
           verticalDragOffset.value = newOffset
@@ -490,6 +502,7 @@ export function usePageSwipe() {
     completedPanelHeight,
     isVerticalAnimating,
     isVerticalDraggingRef,
+    shouldRenderTarget,
     goToVerticalPage,
   }
 }
