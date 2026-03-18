@@ -30,6 +30,8 @@ const {
   isVerticalDraggingRef,
   shouldRenderTarget,
   hasReachedThreshold,
+  pendingAtTop,
+  completedAtBottom,
 } = usePageSwipe()
 
 // Morph progress: 0 (flat bar) → 1 (full chevron) based on drag distance relative to threshold
@@ -75,6 +77,20 @@ const indicatorTop = computed(() => {
       return areaH - overlayH - 10 + textOffset
     }
     return areaH - 20
+  }
+})
+
+// Whether the swipe indicator should be visible at rest
+// Hidden when the list has scrolled away from the boundary where the indicator sits
+// Always visible during vertical drag
+const indicatorVisible = computed(() => {
+  if (isVerticalDraggingRef.value || verticalDragOffset.value !== 0) return true
+  if (verticalIndex.value === 1) {
+    // PendingView: indicator at top, hide when list scrolled down
+    return pendingAtTop.value
+  } else {
+    // CompletedView: indicator at bottom, hide when list scrolled up
+    return completedAtBottom.value
   }
 })
 
@@ -333,6 +349,9 @@ function onSettingsTouchEnd() {
               :style="{
                 top: indicatorTop + 'px',
                 zIndex: 60,
+                opacity: indicatorVisible ? 1 : 0,
+                transition: 'opacity 0.2s ease',
+                pointerEvents: 'none',
               }"
             >
               <div class="swipe-indicator-group">

@@ -26,6 +26,12 @@ const completedPanelHeight = ref(200) // measured from actual DOM
 // Stays false during drag; set to true only after touch-end confirms a switch.
 const shouldRenderTarget = ref(false)
 
+// Whether the scroll containers are at their boundary edges (used to show/hide indicator)
+// PendingView: true when scrollTop <= 0 (at top)
+// CompletedView: true when scrolled to bottom
+const pendingAtTop = ref(true)
+const completedAtBottom = ref(true)
+
 const scrollAreaHeight = computed(() => containerHeight.value - headerHeight.value - tabBarHeight.value)
 
 // Whether the current drag has reached the snap threshold (used by overlay to show text)
@@ -513,5 +519,7 @@ export function usePageSwipe() {
     shouldRenderTarget,
     hasReachedThreshold,
     goToVerticalPage,
+    pendingAtTop,
+    completedAtBottom,
   }
 }

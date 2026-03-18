@@ -13,19 +13,22 @@ import IconPlus from '../components/icons/IconPlus.vue'
 
 const { t, tm, locale } = useI18n()
 const { showToast } = useToast()
-const { isAnimating, dragOffset, currentIndex, verticalIndex, verticalDragOffset } = usePageSwipe()
+const { isAnimating, dragOffset, currentIndex, verticalIndex, verticalDragOffset, pendingAtTop } = usePageSwipe()
 
 const fabVisible = ref(false)
 const isScrolling = ref(false)
 let fabTimer: ReturnType<typeof setTimeout> | null = null
 let scrollTimer: ReturnType<typeof setTimeout> | null = null
 
-function onListScroll() {
+function onListScroll(e: Event) {
   isScrolling.value = true
   if (scrollTimer) clearTimeout(scrollTimer)
   scrollTimer = setTimeout(() => {
     isScrolling.value = false
   }, 150)
+
+  const el = e.target as HTMLElement
+  pendingAtTop.value = el.scrollTop <= 0
 }
 
 watch([isAnimating, dragOffset, currentIndex, isScrolling, verticalIndex, verticalDragOffset], ([animating, offset, idx, scrolling, vIdx, vOffset]) => {

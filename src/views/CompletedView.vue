@@ -11,7 +11,7 @@ import { RecurrenceType as RT } from '../types'
 
 const { t, tm, locale } = useI18n()
 const { completedTodos, restoreCompletedTodo, customActions, updateCustomAction, removeTodoItem } = useStorage()
-const { verticalIndex } = usePageSwipe()
+const { verticalIndex, completedAtBottom } = usePageSwipe()
 
 const scrollContainer = ref<HTMLElement | null>(null)
 
@@ -133,12 +133,18 @@ function handleModalDelete() {
   showModal.value = false
 }
 
+function onCompletedScroll(e: Event) {
+  const el = e.target as HTMLElement
+  completedAtBottom.value = el.scrollTop + el.clientHeight >= el.scrollHeight - 2
+}
+
 // When CompletedView becomes visible (verticalIndex switches to 0), scroll to bottom
 watch(verticalIndex, async (newVal) => {
   if (newVal === 0) {
     await nextTick()
     if (scrollContainer.value) {
       scrollContainer.value.scrollTop = scrollContainer.value.scrollHeight
+      completedAtBottom.value = true
     }
   }
 })
@@ -155,6 +161,7 @@ watch(verticalIndex, async (newVal) => {
       ref="scrollContainer"
       class="completed-scroll flex-1 overflow-y-auto u-section-x"
       style="-webkit-overflow-scrolling: touch;"
+      @scroll="onCompletedScroll"
     >
       <!-- Inner wrapper: pushes content to the bottom when items don't fill the viewport -->
       <div class="completed-scroll-inner">
