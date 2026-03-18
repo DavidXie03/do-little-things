@@ -367,19 +367,20 @@ function onSettingsTouchEnd() {
   right: 0;
   z-index: 50;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   pointer-events: none;
   background-color: var(--bg-primary);
   overflow: hidden;
 }
 
 .swipe-overlay--down {
-  align-items: flex-end;
+  justify-content: flex-end;
   padding-bottom: 12px;
 }
 
 .swipe-overlay--up {
-  align-items: flex-start;
+  justify-content: flex-start;
   padding-top: 12px;
 }
 
