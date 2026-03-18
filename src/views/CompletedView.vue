@@ -182,7 +182,7 @@ watch(verticalIndex, async (newVal) => {
         </div>
 
         <!-- Grouped completed items -->
-        <div class="pt-8 pb-2">
+        <div class="pt-8 pb-[44px]">
           <div v-for="group in groupedCompleted" :key="group.dateStr" class="u-mb-lg">
             <div class="flex items-center gap-2 u-mb-sm">
               <span
