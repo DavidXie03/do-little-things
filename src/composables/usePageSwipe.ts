@@ -39,7 +39,7 @@ const verticalTranslateY = computed(() => {
 let startX = 0
 let startY = 0
 let isDragging = false
-let isVerticalDragging = false
+const isVerticalDraggingRef = ref(false)
 let isIgnored = false
 let directionLocked: 'horizontal' | 'vertical' | null = null
 
@@ -51,6 +51,7 @@ const SNAP_THRESHOLD = 0.25
 // ─── Vertical thresholds ───
 const V_VELOCITY_THRESHOLD = 0.5
 const V_SNAP_THRESHOLD = 0.35
+const V_MAX_PULL_RATIO = 0.35 // max drag distance as ratio of scrollAreaHeight
 
 const translateX = computed(() => {
   return -(currentIndex.value * containerWidth.value) + dragOffset.value
@@ -255,7 +256,7 @@ export function usePageSwipe() {
     velocity = 0
     vVelocity = 0
     isDragging = false
-    isVerticalDragging = false
+    isVerticalDraggingRef.value = false
     directionLocked = null
     verticalScrollChecked = false
     verticalScrollAllowed = false
@@ -332,7 +333,7 @@ export function usePageSwipe() {
       if (!verticalScrollAllowed) return
 
       e.preventDefault()
-      isVerticalDragging = true
+      isVerticalDraggingRef.value = true
 
       const now = performance.now()
       const dt = now - lastTouchTime
@@ -343,19 +344,21 @@ export function usePageSwipe() {
       lastTouchTime = now
 
       const travel = scrollAreaHeight.value
+      const maxPull = travel * V_MAX_PULL_RATIO
 
       if (verticalIndex.value === 1) {
         // Pulling down from PendingView to reveal CompletedView
-        // Apply damping: the further you pull, the more resistance
+        // Hyperbolic damping: y = maxPull * x / (x + maxPull * 0.5)
+        // Hard ceiling at maxPull, resistance → ∞ as damped → maxPull
         const clampedDy = Math.max(0, dy)
-        const damped = travel * (1 - Math.exp(-clampedDy / (travel * 0.25)))
-        verticalDragOffset.value = Math.min(travel, damped)
+        const damped = maxPull * clampedDy / (clampedDy + maxPull * 0.5)
+        verticalDragOffset.value = damped
         verticalSwipeDirection.value = 'down'
       } else {
         // Pulling up from CompletedView to go back to PendingView
         const clampedDy = Math.max(0, -dy)
-        const damped = travel * (1 - Math.exp(-clampedDy / (travel * 0.5)))
-        verticalDragOffset.value = -Math.min(travel, damped)
+        const damped = maxPull * clampedDy / (clampedDy + maxPull * 0.5)
+        verticalDragOffset.value = -damped
         verticalSwipeDirection.value = 'up'
       }
     }
@@ -399,26 +402,28 @@ export function usePageSwipe() {
     }
 
     // ─── Vertical touch end ───
-    if (isVerticalDragging) {
-      isVerticalDragging = false
+    if (isVerticalDraggingRef.value) {
+      isVerticalDraggingRef.value = false
       directionLocked = null
 
       const offset = verticalDragOffset.value
       const travel = scrollAreaHeight.value
-      const ratio = Math.abs(offset) / travel
+      const maxPull = travel * V_MAX_PULL_RATIO
+      // ratio relative to maxPull for threshold comparison
+      const ratio = Math.abs(offset) / maxPull
       const fastSwipe = Math.abs(vVelocity) > V_VELOCITY_THRESHOLD
 
       if (verticalIndex.value === 1) {
         // Was pulling down from PendingView
         if (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity > 0)) {
           // Switch to CompletedView: immediately flip index and compensate offset
-          // Before: translateY = -travel + offset  (verticalIndex=1)
-          // After:  translateY = 0 + newOffset      (verticalIndex=0)
-          // Keep translateY the same: newOffset = -travel + offset
           const newOffset = -travel + offset
           verticalIndex.value = 0
           verticalDragOffset.value = newOffset
-          animateVerticalTo(0)
+          // Dynamic duration: the more already dragged, the shorter the animation
+          const remaining = Math.abs(newOffset) / travel
+          const duration = Math.max(150, Math.round(remaining * 300))
+          animateVerticalTo(0, duration)
         } else {
           // Snap back to PendingView
           animateVerticalTo(0)
@@ -427,13 +432,12 @@ export function usePageSwipe() {
         // Was pulling up from CompletedView
         if (ratio > V_SNAP_THRESHOLD || (fastSwipe && vVelocity < 0)) {
           // Switch to PendingView: immediately flip index and compensate offset
-          // Before: translateY = 0 + offset         (verticalIndex=0)
-          // After:  translateY = -travel + newOffset (verticalIndex=1)
-          // Keep translateY the same: newOffset = travel + offset
           const newOffset = travel + offset
           verticalIndex.value = 1
           verticalDragOffset.value = newOffset
-          animateVerticalTo(0)
+          const remaining = Math.abs(newOffset) / travel
+          const duration = Math.max(150, Math.round(remaining * 300))
+          animateVerticalTo(0, duration)
         } else {
           // Snap back to CompletedView
           animateVerticalTo(0)
@@ -485,6 +489,7 @@ export function usePageSwipe() {
     scrollAreaHeight,
     completedPanelHeight,
     isVerticalAnimating,
+    isVerticalDraggingRef,
     goToVerticalPage,
   }
 }
