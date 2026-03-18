@@ -51,24 +51,28 @@ const indicatorDirection = computed<'up' | 'down'>(() => {
 // Indicator vertical position (px from top of scroll area)
 // At rest: flush with the content edge (top for PendingView, bottom for CompletedView)
 // During drag: stays at the boundary between overlay and content (overlay's inner edge)
+// As morphProgress increases, the indicator shifts inward to make room for the label text
+const TEXT_RESERVE = 24 // text height (14px) + gap (6px) + small padding
 const indicatorTop = computed(() => {
   const areaH = scrollAreaHeight.value
+  const textOffset = morphProgress.value * TEXT_RESERVE
 
   if (verticalIndex.value === 1) {
     // PendingView shown: indicator at top (y=0)
     // When pulling down, overlay grows from top, indicator follows to overlay bottom edge
+    // Subtract textOffset so the indicator moves up, leaving space below for "历史日程"
     if (verticalDragOffset.value > 0) {
       const overlayH = verticalDragOffset.value
-      // Place indicator at overlay/content boundary, with a small gap above
-      return overlayH - 10
+      return overlayH - 10 - textOffset
     }
     return 0
   } else {
     // CompletedView shown: indicator at bottom
     // When pulling up, overlay grows from bottom, indicator follows to overlay top edge
+    // Add textOffset so the indicator moves down, leaving space above for "当前日程"
     if (verticalDragOffset.value < 0) {
       const overlayH = Math.abs(verticalDragOffset.value)
-      return areaH - overlayH - 10
+      return areaH - overlayH - 10 + textOffset
     }
     return areaH - 20
   }
