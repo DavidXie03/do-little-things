@@ -8,11 +8,10 @@ import TodoModal from '../components/TodoModal.vue'
 import IconCheck from '../components/icons/IconCheck.vue'
 import type { DailyTodoItem, RecurrenceType } from '../types'
 import { RecurrenceType as RT } from '../types'
-import SwipeIndicator from '../components/SwipeIndicator.vue'
 
 const { t, tm, locale } = useI18n()
 const { completedTodos, restoreCompletedTodo, customActions, updateCustomAction, removeTodoItem } = useStorage()
-const { verticalIndex, verticalDragOffset } = usePageSwipe()
+const { verticalIndex } = usePageSwipe()
 
 const scrollContainer = ref<HTMLElement | null>(null)
 
@@ -211,11 +210,6 @@ watch(verticalIndex, async (newVal) => {
             </div>
           </div>
         </div>
-
-        <!-- Swipe indicator at bottom (hint to pull up) — faded out during drag to avoid double indicator -->
-        <div class="completed-swipe-indicator" :style="{ opacity: verticalDragOffset === 0 ? 1 : 0 }">
-          <SwipeIndicator :progress="0" direction="down" />
-        </div>
       </div>
     </div>
 
@@ -243,16 +237,6 @@ watch(verticalIndex, async (newVal) => {
   flex-direction: column;
   justify-content: flex-end;
   min-height: 100%;
-}
-
-.completed-swipe-indicator {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 20px;
-  margin-left: -20px;
-  margin-right: -20px;
-  flex-shrink: 0;
 }
 
 .todo-group > :not(:last-child) {

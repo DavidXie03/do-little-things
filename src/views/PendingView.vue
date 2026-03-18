@@ -10,7 +10,6 @@ import TodoItem from '../components/TodoItem.vue'
 import TodoModal from '../components/TodoModal.vue'
 import { ClipboardList } from 'lucide-vue-next'
 import IconPlus from '../components/icons/IconPlus.vue'
-import SwipeIndicator from '../components/SwipeIndicator.vue'
 
 const { t, tm, locale } = useI18n()
 const { showToast } = useToast()
@@ -281,13 +280,6 @@ onMounted(() => {
       style="-webkit-overflow-scrolling: touch;"
       @scroll="onListScroll"
     >
-      <!-- Swipe indicator that scrolls with list content — faded out during drag to avoid double indicator -->
-      <div
-        class="pending-swipe-indicator"
-        :style="{ opacity: verticalIndex === 1 && verticalDragOffset === 0 ? 1 : 0 }"
-      >
-        <SwipeIndicator :progress="0" direction="up" />
-      </div>
 
       <div
         v-if="groupedTodos.length === 0 && overdueGroups.length === 0"
@@ -412,14 +404,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.pending-swipe-indicator {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 20px;
-  margin-left: -20px;
-  margin-right: -20px;
-}
 
 .todo-group > :not(:last-child) {
   border-bottom: 1px solid var(--divider);

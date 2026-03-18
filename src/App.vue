@@ -34,10 +34,44 @@ const {
 
 // Morph progress: 0 (flat bar) → 1 (full chevron) based on drag distance relative to threshold
 const morphProgress = computed(() => {
-  if (!isVerticalDraggingRef.value) return 0
+  if (verticalDragOffset.value === 0) return 0
   const maxPull = scrollAreaHeight.value * 0.35 // V_MAX_PULL_RATIO
   const thresholdDist = maxPull * 0.35 // V_SNAP_THRESHOLD
   return Math.min(1, Math.abs(verticalDragOffset.value) / thresholdDist)
+})
+
+// Indicator direction: which way the chevron points when morphed
+const indicatorDirection = computed<'up' | 'down'>(() => {
+  if (verticalSwipeDirection.value === 'down') return 'up'
+  if (verticalSwipeDirection.value === 'up') return 'down'
+  // At rest: show direction based on current view
+  return verticalIndex.value === 1 ? 'up' : 'down'
+})
+
+// Indicator vertical position (px from top of scroll area)
+// At rest: flush with the content edge (top for PendingView, bottom for CompletedView)
+// During drag: stays at the boundary between overlay and content (overlay's inner edge)
+const indicatorTop = computed(() => {
+  const areaH = scrollAreaHeight.value
+
+  if (verticalIndex.value === 1) {
+    // PendingView shown: indicator at top (y=0)
+    // When pulling down, overlay grows from top, indicator follows to overlay bottom edge
+    if (verticalDragOffset.value > 0) {
+      const overlayH = verticalDragOffset.value
+      // Place indicator at overlay/content boundary, with a small gap above
+      return overlayH - 10
+    }
+    return 0
+  } else {
+    // CompletedView shown: indicator at bottom
+    // When pulling up, overlay grows from bottom, indicator follows to overlay top edge
+    if (verticalDragOffset.value < 0) {
+      const overlayH = Math.abs(verticalDragOffset.value)
+      return areaH - overlayH - 10
+    }
+    return areaH - 20
+  }
 })
 
 const pendingHeaderRef = ref<HTMLElement | null>(null)
@@ -273,12 +307,12 @@ function onSettingsTouchEnd() {
                 <PendingView />
               </div>
             </div>
-            <!-- Swipe overlay: covers only the exposed blank area during drag -->
+
+            <!-- Swipe overlay: covers only the exposed blank area during drag (background only) -->
             <Transition name="overlay-fade">
               <div
                 v-if="isVerticalDraggingRef && verticalSwipeDirection"
                 class="swipe-overlay"
-                :class="verticalSwipeDirection === 'up' ? 'swipe-overlay--up' : 'swipe-overlay--down'"
                 :style="{
                   ...(verticalSwipeDirection === 'down'
                     ? { top: '0', bottom: 'auto', height: Math.abs(verticalDragOffset) + 'px' }
@@ -286,20 +320,30 @@ function onSettingsTouchEnd() {
                   ),
                 }"
               >
-                <div class="swipe-overlay-content">
-                  <Transition name="text-fade">
-                    <span v-if="hasReachedThreshold && verticalSwipeDirection === 'up'" class="swipe-overlay-text">{{ t('swipeOverlay.current') }}</span>
-                  </Transition>
-                  <SwipeIndicator
-                    :progress="morphProgress"
-                    :direction="verticalSwipeDirection === 'down' ? 'up' : 'down'"
-                  />
-                  <Transition name="text-fade">
-                    <span v-if="hasReachedThreshold && verticalSwipeDirection === 'down'" class="swipe-overlay-text">{{ t('swipeOverlay.history') }}</span>
-                  </Transition>
-                </div>
               </div>
             </Transition>
+
+            <!-- Single SwipeIndicator + text: always visible, absolute positioned, morphs from bar to chevron -->
+            <div
+              class="swipe-indicator-anchor"
+              :style="{
+                top: indicatorTop + 'px',
+                zIndex: 60,
+              }"
+            >
+              <div class="swipe-indicator-group">
+                <Transition name="text-fade">
+                  <span v-if="hasReachedThreshold && verticalSwipeDirection === 'up'" class="swipe-overlay-text">{{ t('swipeOverlay.current') }}</span>
+                </Transition>
+                <SwipeIndicator
+                  :progress="morphProgress"
+                  :direction="indicatorDirection"
+                />
+                <Transition name="text-fade">
+                  <span v-if="hasReachedThreshold && verticalSwipeDirection === 'down'" class="swipe-overlay-text">{{ t('swipeOverlay.history') }}</span>
+                </Transition>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -370,35 +414,33 @@ function onSettingsTouchEnd() {
   background: rgba(0, 0, 0, 0.3);
 }
 
-/* ─── Swipe overlay ─── */
+/* ─── Swipe indicator (single, always visible) ─── */
+.swipe-indicator-anchor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+
+.swipe-indicator-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─── Swipe overlay (background only) ─── */
 .swipe-overlay {
   position: absolute;
   left: 0;
   right: 0;
   z-index: 50;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   pointer-events: none;
   background-color: var(--bg-primary);
   overflow: hidden;
-}
-
-.swipe-overlay--down {
-  justify-content: flex-end;
-  padding-bottom: 12px;
-}
-
-.swipe-overlay--up {
-  justify-content: flex-start;
-  padding-top: 12px;
-}
-
-.swipe-overlay-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
 }
 
 .swipe-overlay-text {
