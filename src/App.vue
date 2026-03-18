@@ -28,6 +28,7 @@ const {
   completedPanelHeight,
   isVerticalDraggingRef,
   shouldRenderTarget,
+  hasReachedThreshold,
 } = usePageSwipe()
 
 const pendingHeaderRef = ref<HTMLElement | null>(null)
@@ -276,8 +277,10 @@ function onSettingsTouchEnd() {
                 }"
               >
                 <div class="swipe-overlay-content">
-                  <span class="swipe-overlay-arrow">{{ verticalSwipeDirection === 'down' ? '↑' : '↓' }}</span>
-                  <span class="swipe-overlay-text">{{ verticalSwipeDirection === 'down' ? t('swipeOverlay.history') : t('swipeOverlay.current') }}</span>
+                  <span class="swipe-overlay-arrow" :style="{ transform: verticalSwipeDirection === 'down' ? 'rotate(-90deg)' : 'rotate(90deg)' }">›</span>
+                  <Transition name="text-fade">
+                    <span v-if="hasReachedThreshold" class="swipe-overlay-text">{{ verticalSwipeDirection === 'down' ? t('swipeOverlay.history') : t('swipeOverlay.current') }}</span>
+                  </Transition>
                 </div>
               </div>
             </Transition>
@@ -376,6 +379,7 @@ function onSettingsTouchEnd() {
   font-size: 28px;
   color: var(--text-muted);
   line-height: 1;
+  display: inline-block;
 }
 
 .swipe-overlay-text {
@@ -383,6 +387,13 @@ function onSettingsTouchEnd() {
   font-weight: 600;
   color: var(--text-muted);
   letter-spacing: 2px;
+}
+
+.text-fade-enter-active {
+  transition: opacity 0.15s ease;
+}
+.text-fade-enter-from {
+  opacity: 0;
 }
 
 .overlay-fade-leave-active {

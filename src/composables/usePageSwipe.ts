@@ -28,6 +28,14 @@ const shouldRenderTarget = ref(false)
 
 const scrollAreaHeight = computed(() => containerHeight.value - headerHeight.value - tabBarHeight.value)
 
+// Whether the current drag has reached the snap threshold (used by overlay to show text)
+const hasReachedThreshold = computed(() => {
+  if (!isVerticalDraggingRef.value) return false
+  const maxPull = scrollAreaHeight.value * V_MAX_PULL_RATIO
+  const ratio = Math.abs(verticalDragOffset.value) / maxPull
+  return ratio >= V_SNAP_THRESHOLD
+})
+
 // The vertical translate when at rest:
 // Each view occupies the full scrollAreaHeight (indicators are inside scroll content)
 // - verticalIndex=1 (PendingView): CompletedView hidden above
@@ -503,6 +511,7 @@ export function usePageSwipe() {
     isVerticalAnimating,
     isVerticalDraggingRef,
     shouldRenderTarget,
+    hasReachedThreshold,
     goToVerticalPage,
   }
 }
