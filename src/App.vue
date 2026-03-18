@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Capacitor } from '@capacitor/core'
 import { App as CapApp } from '@capacitor/app'
@@ -10,7 +10,7 @@ import PendingView from './views/PendingView.vue'
 import SettingsView from './views/SettingsView.vue'
 import CompletedView from './views/CompletedView.vue'
 import IconSettings from './components/icons/IconSettings.vue'
-import IconChevron from './components/icons/IconChevron.vue'
+import SwipeIndicator from './components/SwipeIndicator.vue'
 import { usePageSwipe } from './composables/usePageSwipe'
 
 const { t } = useI18n()
@@ -31,6 +31,14 @@ const {
   shouldRenderTarget,
   hasReachedThreshold,
 } = usePageSwipe()
+
+// Morph progress: 0 (flat bar) → 1 (full chevron) based on drag distance relative to threshold
+const morphProgress = computed(() => {
+  if (!isVerticalDraggingRef.value) return 0
+  const maxPull = scrollAreaHeight.value * 0.35 // V_MAX_PULL_RATIO
+  const thresholdDist = maxPull * 0.35 // V_SNAP_THRESHOLD
+  return Math.min(1, Math.abs(verticalDragOffset.value) / thresholdDist)
+})
 
 const pendingHeaderRef = ref<HTMLElement | null>(null)
 const completedPanelRef = ref<HTMLElement | null>(null)
@@ -282,9 +290,8 @@ function onSettingsTouchEnd() {
                   <Transition name="text-fade">
                     <span v-if="hasReachedThreshold && verticalSwipeDirection === 'up'" class="swipe-overlay-text">{{ t('swipeOverlay.current') }}</span>
                   </Transition>
-                  <IconChevron
-                    :size="28"
-                    color="var(--text-muted)"
+                  <SwipeIndicator
+                    :progress="morphProgress"
                     :direction="verticalSwipeDirection === 'down' ? 'up' : 'down'"
                   />
                   <Transition name="text-fade">

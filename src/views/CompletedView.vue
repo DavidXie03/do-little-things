@@ -8,6 +8,7 @@ import TodoModal from '../components/TodoModal.vue'
 import IconCheck from '../components/icons/IconCheck.vue'
 import type { DailyTodoItem, RecurrenceType } from '../types'
 import { RecurrenceType as RT } from '../types'
+import SwipeIndicator from '../components/SwipeIndicator.vue'
 
 const { t, tm, locale } = useI18n()
 const { completedTodos, restoreCompletedTodo, customActions, updateCustomAction, removeTodoItem } = useStorage()
@@ -213,7 +214,7 @@ watch(verticalIndex, async (newVal) => {
 
         <!-- Swipe indicator at bottom (hint to pull up) — faded out during drag to avoid double indicator -->
         <div class="completed-swipe-indicator" :style="{ opacity: verticalDragOffset === 0 ? 1 : 0 }">
-          <div class="w-10 h-1 rounded-full" style="background: var(--text-muted); opacity: 0.3;"></div>
+          <SwipeIndicator :progress="0" direction="down" />
         </div>
       </div>
     </div>

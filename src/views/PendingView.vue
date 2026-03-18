@@ -10,6 +10,7 @@ import TodoItem from '../components/TodoItem.vue'
 import TodoModal from '../components/TodoModal.vue'
 import { ClipboardList } from 'lucide-vue-next'
 import IconPlus from '../components/icons/IconPlus.vue'
+import SwipeIndicator from '../components/SwipeIndicator.vue'
 
 const { t, tm, locale } = useI18n()
 const { showToast } = useToast()
@@ -285,7 +286,7 @@ onMounted(() => {
         class="pending-swipe-indicator"
         :style="{ opacity: verticalIndex === 1 && verticalDragOffset === 0 ? 1 : 0 }"
       >
-        <div class="w-10 h-1 rounded-full" style="background: var(--text-muted); opacity: 0.3;"></div>
+        <SwipeIndicator :progress="0" direction="up" />
       </div>
 
       <div
