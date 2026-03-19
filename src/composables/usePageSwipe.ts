@@ -375,16 +375,16 @@ export function usePageSwipe() {
 
       if (verticalIndex.value === 1) {
         // Pulling down from PendingView to reveal CompletedView
-        // Hyperbolic damping: y = maxPull * x / (x + maxPull * 0.5)
-        // Hard ceiling at maxPull, resistance → ∞ as damped → maxPull
+        // Hyperbolic damping: y = maxPull * x / (x + maxPull * softness)
+        // Lower softness = stronger resistance. We use 0.35 for heavier feel.
         const clampedDy = Math.max(0, dy)
-        const damped = maxPull * clampedDy / (clampedDy + maxPull * 0.5)
+        const damped = maxPull * clampedDy / (clampedDy + maxPull * 0.35)
         verticalDragOffset.value = damped
         verticalSwipeDirection.value = 'down'
       } else {
         // Pulling up from CompletedView to go back to PendingView
         const clampedDy = Math.max(0, -dy)
-        const damped = maxPull * clampedDy / (clampedDy + maxPull * 0.5)
+        const damped = maxPull * clampedDy / (clampedDy + maxPull * 0.35)
         verticalDragOffset.value = -damped
         verticalSwipeDirection.value = 'up'
       }

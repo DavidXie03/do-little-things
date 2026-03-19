@@ -59,13 +59,17 @@ const indicatorDirection = computed<'up' | 'down'>(() => {
 })
 
 // Indicator vertical position (px from top of scroll area)
-// Fixed position: does not move during drag, only morphs shape
+// Mostly fixed, but shifts slightly (up to ~10px) during drag for subtle visual feedback
+const INDICATOR_MAX_SHIFT = 10
 const indicatorTop = computed(() => {
   const areaH = scrollAreaHeight.value
+  const shift = morphProgress.value * INDICATOR_MAX_SHIFT
   if (verticalIndex.value === 1) {
-    return 0 // PendingView: fixed at top
+    // PendingView: resting at top, shifts down slightly when pulling
+    return verticalDragOffset.value > 0 ? shift : 0
   } else {
-    return areaH - 20 // CompletedView: fixed at bottom
+    // CompletedView: resting at bottom, shifts up slightly when pulling
+    return verticalDragOffset.value < 0 ? areaH - 20 - shift : areaH - 20
   }
 })
 
