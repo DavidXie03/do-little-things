@@ -37,10 +37,13 @@ const MAX_NAME_LENGTH = 20
 const confirmingDelete = ref(false)
 let deleteTimer: ReturnType<typeof setTimeout> | null = null
 
+// Dropdown open states
+const showRecurrenceDropdown = ref(false)
+const showDateDropdown = ref(false)
+
 type StartDateOption = 'today' | 'tomorrow' | 'dayAfter' | 'custom'
 const startDateOption = ref<StartDateOption>('today')
 const customDate = ref('')
-const showDatePicker = ref(false)
 
 function toDateStr(date: Date): string {
   const y = date.getFullYear()
@@ -62,7 +65,7 @@ function getOffsetDateStr(days: number): string {
 const resolvedStartDate = computed((): string | undefined => {
   switch (startDateOption.value) {
     case 'today':
-      return undefined // 默认今天，不需要传 startDate
+      return undefined
     case 'tomorrow':
       return getOffsetDateStr(1)
     case 'dayAfter':
@@ -74,12 +77,25 @@ const resolvedStartDate = computed((): string | undefined => {
   }
 })
 
+const recurrenceLabel = computed(() => t(`recurrence.${recurrence.value}`))
+
+const startDateLabel = computed(() => {
+  switch (startDateOption.value) {
+    case 'today': return t('modal.startToday')
+    case 'tomorrow': return t('modal.startTomorrow')
+    case 'dayAfter': return t('modal.startDayAfter')
+    case 'custom': return customDate.value ? formatCustomDate(customDate.value) : t('modal.startPickDate')
+    default: return t('modal.startToday')
+  }
+})
+
 watch(() => props.visible, (val) => {
   if (val) {
     content.value = props.initialContent ?? ''
     repeatCount.value = props.initialRepeatCount ?? 1
     recurrence.value = props.initialRecurrence ?? RecurrenceType.Daily
-    showDatePicker.value = false
+    showRecurrenceDropdown.value = false
+    showDateDropdown.value = false
     confirmingDelete.value = false
     errorMsg.value = ''
     if (deleteTimer) { clearTimeout(deleteTimer); deleteTimer = null }
@@ -107,17 +123,31 @@ watch(() => props.visible, (val) => {
   }
 })
 
+function toggleRecurrenceDropdown() {
+  showRecurrenceDropdown.value = !showRecurrenceDropdown.value
+  showDateDropdown.value = false
+}
+
+function selectRecurrence(rt: RecurrenceTypeT) {
+  recurrence.value = rt
+  showRecurrenceDropdown.value = false
+}
+
+function toggleDateDropdown() {
+  showDateDropdown.value = !showDateDropdown.value
+  showRecurrenceDropdown.value = false
+}
+
 function selectDateOption(option: StartDateOption) {
   if (option === 'custom') {
-    showDatePicker.value = true
     startDateOption.value = 'custom'
     if (!customDate.value) {
       customDate.value = getTodayStr()
     }
   } else {
-    showDatePicker.value = false
     startDateOption.value = option
   }
+  showDateDropdown.value = false
 }
 
 function handleDateInput(e: Event) {
@@ -181,13 +211,14 @@ function formatCustomDate(dateStr: string): string {
     :title="mode === 'add' ? t('modal.addTitle') : t('modal.editTitle')"
     @close="emit('cancel')"
   >
+    <!-- Input -->
     <input
       ref="inputRef"
       v-model="content"
       type="text"
       :maxlength="MAX_NAME_LENGTH"
       :placeholder="t('modal.placeholder')"
-      class="w-full text-sm px-4 py-3 rounded-lg border-none outline-none"
+      class="w-full text-sm px-4 py-3 rounded-xl border-none outline-none"
       style="background: rgba(108,99,255,0.04); color: var(--text-primary);"
       @keyup.enter="handleConfirm"
       @input="validateInput"
@@ -195,92 +226,88 @@ function formatCustomDate(dateStr: string): string {
     <p
       v-if="errorMsg"
       class="text-xs px-1"
-      style="color: #E17055;"
+      style="color: #E17055; margin-top: -8px;"
     >
       {{ errorMsg }}
     </p>
 
-    <div class="space-y-2">
-      <span class="text-sm" style="color: var(--text-secondary);">{{ t('modal.recurrenceLabel') }}</span>
-      <div class="flex flex-wrap gap-2">
+    <!-- Recurrence + Start Date: same row, dropdown selects -->
+    <div class="flex items-start gap-3">
+      <!-- Recurrence dropdown -->
+      <div class="flex-1 relative">
+        <span class="text-xs font-medium" style="color: var(--text-muted);">{{ t('modal.recurrenceLabel') }}</span>
         <button
-          v-for="rt in ALL_RECURRENCE_TYPES"
-          :key="rt"
-          @click="recurrence = rt"
-          class="u-item-sm rounded-lg text-xs font-medium transition-all duration-200 active:scale-95"
-          :style="{
-            background: recurrence === rt ? 'var(--primary)' : 'rgba(108,99,255,0.06)',
-            color: recurrence === rt ? 'white' : 'var(--primary)',
-            border: recurrence === rt ? '1.5px solid var(--primary)' : '1.5px solid rgba(108,99,255,0.12)',
-          }"
+          @click="toggleRecurrenceDropdown"
+          class="select-trigger"
         >
-          {{ t(`recurrence.${rt}`) }}
+          <span class="select-trigger-text">{{ recurrenceLabel }}</span>
+          <svg class="select-chevron" :class="{ 'rotate-180': showRecurrenceDropdown }" width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
+        <!-- Dropdown panel -->
+        <Transition name="dropdown">
+          <div v-if="showRecurrenceDropdown" class="dropdown-panel">
+            <button
+              v-for="rt in ALL_RECURRENCE_TYPES"
+              :key="rt"
+              @click="selectRecurrence(rt)"
+              class="dropdown-option"
+              :class="{ 'dropdown-option-active': recurrence === rt }"
+            >
+              {{ t(`recurrence.${rt}`) }}
+            </button>
+          </div>
+        </Transition>
+      </div>
+
+      <!-- Start date dropdown -->
+      <div class="flex-1 relative">
+        <span class="text-xs font-medium" style="color: var(--text-muted);">
+          {{ mode === 'add' ? t('modal.startDateLabel') : t('modal.dueDateLabel') }}
+        </span>
+        <button
+          @click="toggleDateDropdown"
+          class="select-trigger"
+        >
+          <span class="select-trigger-text">{{ startDateLabel }}</span>
+          <svg class="select-chevron" :class="{ 'rotate-180': showDateDropdown }" width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <!-- Dropdown panel -->
+        <Transition name="dropdown">
+          <div v-if="showDateDropdown" class="dropdown-panel">
+            <button @click="selectDateOption('today')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'today' }">
+              {{ t('modal.startToday') }}
+            </button>
+            <button @click="selectDateOption('tomorrow')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'tomorrow' }">
+              {{ t('modal.startTomorrow') }}
+            </button>
+            <button @click="selectDateOption('dayAfter')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'dayAfter' }">
+              {{ t('modal.startDayAfter') }}
+            </button>
+            <button @click="selectDateOption('custom')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'custom' }">
+              {{ startDateOption === 'custom' && customDate ? formatCustomDate(customDate) : t('modal.startPickDate') }}
+            </button>
+          </div>
+        </Transition>
       </div>
     </div>
 
-    <div class="space-y-2">
-      <span class="text-sm" style="color: var(--text-secondary);">
-        {{ mode === 'add' ? t('modal.startDateLabel') : t('modal.dueDateLabel') }}
-      </span>
-      <div class="flex flex-wrap gap-2">
-        <button
-          @click="selectDateOption('today')"
-          class="u-item-sm rounded-lg text-xs font-medium transition-all duration-200 active:scale-95"
-          :style="{
-            background: startDateOption === 'today' ? 'var(--primary)' : 'rgba(108,99,255,0.06)',
-            color: startDateOption === 'today' ? 'white' : 'var(--primary)',
-            border: startDateOption === 'today' ? '1.5px solid var(--primary)' : '1.5px solid rgba(108,99,255,0.12)',
-          }"
-        >
-          {{ t('modal.startToday') }}
-        </button>
-        <button
-          @click="selectDateOption('tomorrow')"
-          class="u-item-sm rounded-lg text-xs font-medium transition-all duration-200 active:scale-95"
-          :style="{
-            background: startDateOption === 'tomorrow' ? 'var(--primary)' : 'rgba(108,99,255,0.06)',
-            color: startDateOption === 'tomorrow' ? 'white' : 'var(--primary)',
-            border: startDateOption === 'tomorrow' ? '1.5px solid var(--primary)' : '1.5px solid rgba(108,99,255,0.12)',
-          }"
-        >
-          {{ t('modal.startTomorrow') }}
-        </button>
-        <button
-          @click="selectDateOption('dayAfter')"
-          class="u-item-sm rounded-lg text-xs font-medium transition-all duration-200 active:scale-95"
-          :style="{
-            background: startDateOption === 'dayAfter' ? 'var(--primary)' : 'rgba(108,99,255,0.06)',
-            color: startDateOption === 'dayAfter' ? 'white' : 'var(--primary)',
-            border: startDateOption === 'dayAfter' ? '1.5px solid var(--primary)' : '1.5px solid rgba(108,99,255,0.12)',
-          }"
-        >
-          {{ t('modal.startDayAfter') }}
-        </button>
-        <button
-          @click="selectDateOption('custom')"
-          class="u-item-sm rounded-lg text-xs font-medium transition-all duration-200 active:scale-95"
-          :style="{
-            background: startDateOption === 'custom' ? 'var(--primary)' : 'rgba(108,99,255,0.06)',
-            color: startDateOption === 'custom' ? 'white' : 'var(--primary)',
-            border: startDateOption === 'custom' ? '1.5px solid var(--primary)' : '1.5px solid rgba(108,99,255,0.12)',
-          }"
-        >
-          {{ startDateOption === 'custom' && customDate ? formatCustomDate(customDate) : t('modal.startPickDate') }}
-        </button>
-      </div>
-      <div v-if="showDatePicker" class="mt-2">
-        <input
-          type="date"
-          :value="customDate"
-          @input="handleDateInput"
-          class="w-full text-sm px-4 py-2.5 rounded-lg border-none outline-none"
-          style="background: rgba(108,99,255,0.04); color: var(--text-primary);"
-        />
-      </div>
+    <!-- Custom date picker (shown when custom selected) -->
+    <div v-if="startDateOption === 'custom'" style="margin-top: -8px;">
+      <input
+        type="date"
+        :value="customDate"
+        @input="handleDateInput"
+        class="w-full text-sm px-4 py-2.5 rounded-xl border-none outline-none"
+        style="background: rgba(108,99,255,0.04); color: var(--text-primary);"
+      />
     </div>
 
-    <div class="flex items-center justify-between py-1">
+    <!-- Repeat count -->
+    <div class="flex items-center justify-between">
       <span class="text-sm" style="color: var(--text-secondary);">{{ t('modal.repeatLabel') }}</span>
       <div class="flex items-center gap-3">
         <button
@@ -301,6 +328,7 @@ function formatCustomDate(dateStr: string): string {
       </div>
     </div>
 
+    <!-- Delete button (edit mode) -->
     <button
       v-if="mode === 'edit'"
       @click="handleDelete"
@@ -315,7 +343,8 @@ function formatCustomDate(dateStr: string): string {
       {{ confirmingDelete ? t('modal.deleteConfirm') : t('modal.delete') }}
     </button>
 
-    <div class="flex pt-2" style="gap: var(--gap-sm);">
+    <!-- Action buttons -->
+    <div class="flex" style="gap: var(--gap-sm);">
       <button
         @click="emit('cancel')"
         class="flex-1 u-item-sm rounded-xl text-sm font-semibold transition-all active:scale-95"
@@ -333,3 +362,88 @@ function formatCustomDate(dateStr: string): string {
     </div>
   </HalfSheet>
 </template>
+
+<style scoped>
+.select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  margin-top: 4px;
+  border-radius: 10px;
+  background: rgba(108,99,255,0.06);
+  border: 1.5px solid rgba(108,99,255,0.12);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.select-trigger:active {
+  transform: scale(0.98);
+}
+.select-trigger-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary);
+}
+.select-chevron {
+  color: var(--primary);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+.dropdown-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--modal-bg);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px -4px rgba(0,0,0,0.15);
+  border: 1px solid var(--divider);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.dropdown-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.dropdown-option:not(:last-child) {
+  border-bottom: 1px solid var(--divider);
+}
+.dropdown-option:active {
+  background: rgba(108,99,255,0.06);
+}
+.dropdown-option-active {
+  color: var(--primary);
+  background: rgba(108,99,255,0.06);
+}
+
+.dropdown-enter-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.dropdown-leave-active {
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+.dropdown-enter-from {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+</style>
