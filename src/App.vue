@@ -29,18 +29,25 @@ const {
   completedPanelHeight,
   isVerticalDraggingRef,
   shouldRenderTarget,
-  hasReachedThreshold,
   pendingAtTop,
   completedAtBottom,
   indicatorHeight,
 } = usePageSwipe()
 
-// Morph progress: 0 (flat bar) → 1 (full chevron) based on drag distance relative to threshold
 const morphProgress = computed(() => {
   if (verticalDragOffset.value === 0) return 0
   const maxPull = scrollAreaHeight.value * 0.35 // V_MAX_PULL_RATIO
   const thresholdDist = maxPull * 0.35 // V_SNAP_THRESHOLD
   return Math.min(1, Math.abs(verticalDragOffset.value) / thresholdDist)
+})
+
+// Text opacity: smoothly fades in/out based on morphProgress (0.7~1.0 range)
+// This replaces the v-if + Transition approach for symmetric appear/disappear animation
+const textOpacity = computed(() => {
+  if (!verticalSwipeDirection.value) return 0
+  const fadeStart = 0.7
+  if (morphProgress.value <= fadeStart) return 0
+  return Math.min(1, (morphProgress.value - fadeStart) / (1 - fadeStart))
 })
 
 // Indicator direction: which way the chevron points when morphed
@@ -362,16 +369,18 @@ function onSettingsTouchEnd() {
               }"
             >
               <div ref="indicatorGroupRef" class="swipe-indicator-group">
-                <Transition name="text-fade">
-                  <span v-if="hasReachedThreshold && verticalSwipeDirection === 'up'" class="swipe-overlay-text">{{ t('swipeOverlay.current') }}</span>
-                </Transition>
+                <span
+                  class="swipe-overlay-text"
+                  :style="{ opacity: verticalSwipeDirection === 'up' ? textOpacity : 0 }"
+                >{{ t('swipeOverlay.current') }}</span>
                 <SwipeIndicator
                   :progress="morphProgress"
                   :direction="indicatorDirection"
                 />
-                <Transition name="text-fade">
-                  <span v-if="hasReachedThreshold && verticalSwipeDirection === 'down'" class="swipe-overlay-text">{{ t('swipeOverlay.history') }}</span>
-                </Transition>
+                <span
+                  class="swipe-overlay-text"
+                  :style="{ opacity: verticalSwipeDirection === 'down' ? textOpacity : 0 }"
+                >{{ t('swipeOverlay.history') }}</span>
               </div>
             </div>
           </div>
@@ -478,13 +487,6 @@ function onSettingsTouchEnd() {
   font-weight: 600;
   color: var(--text-muted);
   letter-spacing: 2px;
-}
-
-.text-fade-enter-active {
-  transition: opacity 0.15s ease;
-}
-.text-fade-enter-from {
-  opacity: 0;
 }
 
 .overlay-fade-leave-active {

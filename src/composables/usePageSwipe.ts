@@ -39,7 +39,7 @@ const scrollAreaHeight = computed(() => containerHeight.value - headerHeight.val
 
 // Whether the current drag has reached the snap threshold (used by overlay to show text)
 const hasReachedThreshold = computed(() => {
-  if (!isVerticalDraggingRef.value) return false
+  if (!verticalSwipeDirection.value) return false
   const maxPull = scrollAreaHeight.value * V_MAX_PULL_RATIO
   const ratio = Math.abs(verticalDragOffset.value) / maxPull
   return ratio >= V_SNAP_THRESHOLD
@@ -428,7 +428,6 @@ export function usePageSwipe() {
       return
     }
 
-    // ─── Vertical touch end ───
     if (isVerticalDraggingRef.value) {
       isVerticalDraggingRef.value = false
       directionLocked = null
