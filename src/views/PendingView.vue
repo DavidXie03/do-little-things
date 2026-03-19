@@ -438,14 +438,7 @@ onMounted(() => {
 .fab-fade-enter-active {
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
-.fab-fade-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
 .fab-fade-enter-from {
-  opacity: 0;
-  transform: scale(0.6);
-}
-.fab-fade-leave-to {
   opacity: 0;
   transform: scale(0.6);
 }
