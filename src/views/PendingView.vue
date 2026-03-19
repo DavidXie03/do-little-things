@@ -31,8 +31,8 @@ function onListScroll(e: Event) {
   pendingAtTop.value = el.scrollTop <= 0
 }
 
-watch([isAnimating, dragOffset, currentIndex, isScrolling, verticalIndex, verticalDragOffset], ([animating, offset, idx, scrolling, vIdx, vOffset]) => {
-  if (animating || offset !== 0 || idx !== 1 || scrolling || vIdx !== 1 || vOffset !== 0) {
+watch([isAnimating, dragOffset, currentIndex, verticalIndex, verticalDragOffset], ([animating, offset, idx, vIdx, vOffset]) => {
+  if (animating || offset !== 0 || idx !== 1 || vIdx !== 1 || vOffset !== 0) {
     if (fabTimer) { clearTimeout(fabTimer); fabTimer = null }
     fabVisible.value = false
   } else {
