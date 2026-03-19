@@ -187,6 +187,6 @@ html, body, #app {
 .u-page-header {
   padding-left: 24px;
   padding-right: 24px;
-  padding-bottom: var(--gap-lg);  /* 24px gap below title */
+  padding-bottom: 12px;  /* 50% of original 24px */
   padding-top: calc(var(--safe-area-top, 0px) + 24px);
 }
