@@ -366,7 +366,6 @@ function onSettingsTouchEnd() {
                 top: indicatorTop + 'px',
                 zIndex: 60,
                 opacity: indicatorVisible ? 1 : 0,
-                transition: 'opacity 0.2s ease',
                 pointerEvents: 'none',
               }"
             >
