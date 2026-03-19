@@ -80,15 +80,29 @@ function getMaskOpacity() {
 }
 
 // Keyboard adaptation via visualViewport
+// Desktop browsers have visualViewport but no virtual keyboard,
+// so we use a height-change heuristic to distinguish keyboard from other resize events.
+const initialVVHeight = ref(0)
+
 function onViewportResize() {
   const vv = window.visualViewport
   if (!vv) return
-  const offset = window.innerHeight - vv.height - vv.offsetTop
-  keyboardOffset.value = Math.max(0, offset)
+
+  // On desktop, vv.height ≈ window.innerHeight (no virtual keyboard).
+  // Only treat it as keyboard if the viewport shrank significantly (> 100px)
+  // compared to the initial height, which filters out minor resize / zoom.
+  const heightDiff = initialVVHeight.value - vv.height
+  if (heightDiff > 100) {
+    const offset = window.innerHeight - vv.height - vv.offsetTop
+    keyboardOffset.value = Math.max(0, offset)
+  } else {
+    keyboardOffset.value = 0
+  }
 }
 
 onMounted(() => {
   if (window.visualViewport) {
+    initialVVHeight.value = window.visualViewport.height
     window.visualViewport.addEventListener('resize', onViewportResize)
     window.visualViewport.addEventListener('scroll', onViewportResize)
   }
