@@ -3,7 +3,7 @@ import { ref, nextTick, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RecurrenceType, ALL_RECURRENCE_TYPES } from '../types'
 import type { RecurrenceType as RecurrenceTypeT } from '../types'
-import BaseModal from './BaseModal.vue'
+import HalfSheet from './HalfSheet.vue'
 import IconPlus from './icons/IconPlus.vue'
 import IconMinus from './icons/IconMinus.vue'
 import IconTrash from './icons/IconTrash.vue'
@@ -176,7 +176,7 @@ function formatCustomDate(dateStr: string): string {
 </script>
 
 <template>
-  <BaseModal
+  <HalfSheet
     :visible="visible"
     :title="mode === 'add' ? t('modal.addTitle') : t('modal.editTitle')"
     @close="emit('cancel')"
@@ -331,5 +331,5 @@ function formatCustomDate(dateStr: string): string {
         {{ mode === 'add' ? t('modal.add') : t('modal.save') }}
       </button>
     </div>
-  </BaseModal>
+  </HalfSheet>
 </template>
