@@ -10,6 +10,7 @@ export const RecurrenceType = {
   Monthly: 'monthly',
   Yearly: 'yearly',
   Weekday: 'weekday',
+  Custom: 'custom',
 } as const
 
 export type RecurrenceType = (typeof RecurrenceType)[keyof typeof RecurrenceType]
@@ -20,6 +21,7 @@ export const ALL_RECURRENCE_TYPES: RecurrenceType[] = [
   RecurrenceType.Weekly,
   RecurrenceType.Monthly,
   RecurrenceType.Yearly,
+  RecurrenceType.Custom,
 ]
 
 export interface Task {
@@ -55,6 +57,7 @@ export interface CustomAction {
   repeatCount: number
   recurrence: RecurrenceType
   startDate?: string // YYYY-MM-DD，任务开始日期，默认为创建当天
+  customDays?: number[] // 自定义周几，0=周日 1=周一 ... 6=周六（仅 recurrence=custom 时使用）
 }
 
 export interface DailyTodoItem {

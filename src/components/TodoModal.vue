@@ -8,7 +8,7 @@ import IconPlus from './icons/IconPlus.vue'
 import IconMinus from './icons/IconMinus.vue'
 import IconTrash from './icons/IconTrash.vue'
 
-const { t } = useI18n()
+const { t, tm } = useI18n()
 
 const props = defineProps<{
   visible: boolean
@@ -17,11 +17,12 @@ const props = defineProps<{
   initialRepeatCount?: number
   initialRecurrence?: RecurrenceTypeT
   initialStartDate?: string
+  initialCustomDays?: number[]
   existingNames?: Set<string>
 }>()
 
 const emit = defineEmits<{
-  (e: 'confirm', content: string, repeatCount: number, recurrence: RecurrenceTypeT, startDate?: string): void
+  (e: 'confirm', content: string, repeatCount: number, recurrence: RecurrenceTypeT, startDate?: string, customDays?: number[]): void
   (e: 'cancel'): void
   (e: 'delete'): void
 }>()
@@ -37,6 +38,10 @@ const MAX_NAME_LENGTH = 20
 const confirmingDelete = ref(false)
 let deleteTimer: ReturnType<typeof setTimeout> | null = null
 
+// Custom days for custom recurrence (0=Sun, 1=Mon, ..., 6=Sat)
+const customDays = ref<number[]>([])
+const showCustomDaysPicker = ref(false)
+
 // Dropdown open states
 const showRecurrenceDropdown = ref(false)
 const showDateDropdown = ref(false)
@@ -45,11 +50,14 @@ const dateTriggerRef = ref<HTMLElement | null>(null)
 const recurrenceDropUp = ref(false)
 const dateDropUp = ref(false)
 
-// Estimate dropdown panel height (items * itemHeight + border/padding)
+// Hidden date input ref for system date picker
+const dateInputRef = ref<HTMLInputElement | null>(null)
+
+// Estimate dropdown panel height
 const RECURRENCE_ITEM_COUNT = ALL_RECURRENCE_TYPES.length
 const DATE_ITEM_COUNT = 4
-const DROPDOWN_ITEM_HEIGHT = 40 // ~10px padding * 2 + 13px font + 7px
-const DROPDOWN_PADDING = 4 // margin-top between trigger and panel
+const DROPDOWN_ITEM_HEIGHT = 40
+const DROPDOWN_PADDING = 4
 
 function shouldDropUp(triggerEl: HTMLElement | null, itemCount: number): boolean {
   if (!triggerEl) return false
@@ -96,14 +104,28 @@ const resolvedStartDate = computed((): string | undefined => {
   }
 })
 
-const recurrenceLabel = computed(() => t(`recurrence.${recurrence.value}`))
+// Recurrence label: show custom days summary for custom type
+const recurrenceLabel = computed(() => {
+  if (recurrence.value === RecurrenceType.Custom && customDays.value.length > 0) {
+    const weekdays = tm('date.weekdays') as string[]
+    // Sort days starting from Monday (1,2,3,4,5,6,0)
+    const sorted = [...customDays.value].sort((a, b) => {
+      const aIdx = a === 0 ? 7 : a
+      const bIdx = b === 0 ? 7 : b
+      return aIdx - bIdx
+    })
+    return sorted.map(d => weekdays[d]).join(' ')
+  }
+  return t(`recurrence.${recurrence.value}`)
+})
 
+// Date label: show formatted date with weekday for custom dates
 const startDateLabel = computed(() => {
   switch (startDateOption.value) {
     case 'today': return t('modal.startToday')
     case 'tomorrow': return t('modal.startTomorrow')
     case 'dayAfter': return t('modal.startDayAfter')
-    case 'custom': return customDate.value ? formatCustomDate(customDate.value) : t('modal.startPickDate')
+    case 'custom': return customDate.value ? formatCustomDateFull(customDate.value) : t('modal.startPickDate')
     default: return t('modal.startToday')
   }
 })
@@ -113,8 +135,10 @@ watch(() => props.visible, (val) => {
     content.value = props.initialContent ?? ''
     repeatCount.value = props.initialRepeatCount ?? 1
     recurrence.value = props.initialRecurrence ?? RecurrenceType.Daily
+    customDays.value = props.initialCustomDays ? [...props.initialCustomDays] : []
     showRecurrenceDropdown.value = false
     showDateDropdown.value = false
+    showCustomDaysPicker.value = false
     confirmingDelete.value = false
     errorMsg.value = ''
     if (deleteTimer) { clearTimeout(deleteTimer); deleteTimer = null }
@@ -148,11 +172,38 @@ function toggleRecurrenceDropdown() {
   }
   showRecurrenceDropdown.value = !showRecurrenceDropdown.value
   showDateDropdown.value = false
+  showCustomDaysPicker.value = false
 }
 
 function selectRecurrence(rt: RecurrenceTypeT) {
   recurrence.value = rt
   showRecurrenceDropdown.value = false
+  if (rt === RecurrenceType.Custom) {
+    // Open custom days picker
+    if (customDays.value.length === 0) {
+      // Default to today's weekday
+      customDays.value = [new Date().getDay()]
+    }
+    showCustomDaysPicker.value = true
+  } else {
+    showCustomDaysPicker.value = false
+  }
+}
+
+function toggleCustomDay(day: number) {
+  const idx = customDays.value.indexOf(day)
+  if (idx >= 0) {
+    // Don't allow removing the last day
+    if (customDays.value.length > 1) {
+      customDays.value.splice(idx, 1)
+    }
+  } else {
+    customDays.value.push(day)
+  }
+}
+
+function confirmCustomDays() {
+  showCustomDaysPicker.value = false
 }
 
 function toggleDateDropdown() {
@@ -161,23 +212,43 @@ function toggleDateDropdown() {
   }
   showDateDropdown.value = !showDateDropdown.value
   showRecurrenceDropdown.value = false
+  showCustomDaysPicker.value = false
 }
 
 function selectDateOption(option: StartDateOption) {
   if (option === 'custom') {
-    startDateOption.value = 'custom'
+    // Open system date picker
     if (!customDate.value) {
       customDate.value = getTodayStr()
     }
+    showDateDropdown.value = false
+    nextTick(() => {
+      dateInputRef.value?.showPicker?.()
+      dateInputRef.value?.click()
+    })
   } else {
     startDateOption.value = option
+    showDateDropdown.value = false
   }
-  showDateDropdown.value = false
 }
 
 function handleDateInput(e: Event) {
   const target = e.target as HTMLInputElement
-  customDate.value = target.value
+  if (target.value) {
+    customDate.value = target.value
+    startDateOption.value = 'custom'
+    // Check if the selected date is today/tomorrow/dayAfter
+    const today = getTodayStr()
+    const tomorrow = getOffsetDateStr(1)
+    const dayAfter = getOffsetDateStr(2)
+    if (customDate.value === today) {
+      startDateOption.value = 'today'
+    } else if (customDate.value === tomorrow) {
+      startDateOption.value = 'tomorrow'
+    } else if (customDate.value === dayAfter) {
+      startDateOption.value = 'dayAfter'
+    }
+  }
 }
 
 function validateInput() {
@@ -206,7 +277,8 @@ function handleConfirm() {
   }
 
   errorMsg.value = ''
-  emit('confirm', trimmed, repeatCount.value, recurrence.value, resolvedStartDate.value)
+  const days = recurrence.value === RecurrenceType.Custom ? customDays.value : undefined
+  emit('confirm', trimmed, repeatCount.value, recurrence.value, resolvedStartDate.value, days)
 }
 
 function handleDelete() {
@@ -223,10 +295,18 @@ function handleDelete() {
   }
 }
 
-function formatCustomDate(dateStr: string): string {
+// Format date as "(X年)X月X日 周几 提醒"
+function formatCustomDateFull(dateStr: string): string {
   if (!dateStr) return ''
   const d = new Date(dateStr + 'T00:00:00')
-  return `${d.getMonth() + 1}/${d.getDate()}`
+  const now = new Date()
+  const weekdays = tm('date.weekdays') as string[]
+  const weekday = weekdays[d.getDay()]
+  const month = d.getMonth() + 1
+  const day = d.getDate()
+  const crossYear = d.getFullYear() !== now.getFullYear()
+  const yearPrefix = crossYear ? `${d.getFullYear()}年` : ''
+  return `${yearPrefix}${month}月${day}日 ${weekday}`
 }
 </script>
 
@@ -243,7 +323,7 @@ function formatCustomDate(dateStr: string): string {
       type="text"
       :maxlength="MAX_NAME_LENGTH"
       :placeholder="t('modal.placeholder')"
-      class="w-full text-sm px-5 py-3.5 rounded-xl border-none outline-none"
+      class="w-full text-sm px-5 py-4 rounded-xl border-none outline-none"
       style="background: rgba(108,99,255,0.04); color: var(--text-primary);"
       @keyup.enter="handleConfirm"
       @input="validateInput"
@@ -256,11 +336,10 @@ function formatCustomDate(dateStr: string): string {
       {{ errorMsg }}
     </p>
 
-    <!-- Recurrence + Start Date: same row, dropdown selects -->
+    <!-- Recurrence + Date: same row, no labels -->
     <div class="flex items-start gap-3">
       <!-- Recurrence dropdown -->
       <div class="flex-1">
-        <span class="text-xs font-medium" style="color: var(--text-muted);">{{ t('modal.recurrenceLabel') }}</span>
         <div class="select-wrapper">
           <button
             ref="recurrenceTriggerRef"
@@ -289,11 +368,8 @@ function formatCustomDate(dateStr: string): string {
         </div>
       </div>
 
-      <!-- Start date dropdown -->
+      <!-- Date dropdown -->
       <div class="flex-1">
-        <span class="text-xs font-medium" style="color: var(--text-muted);">
-          {{ mode === 'add' ? t('modal.startDateLabel') : t('modal.dueDateLabel') }}
-        </span>
         <div class="select-wrapper">
           <button
             ref="dateTriggerRef"
@@ -318,24 +394,47 @@ function formatCustomDate(dateStr: string): string {
                 {{ t('modal.startDayAfter') }}
               </button>
               <button @click="selectDateOption('custom')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'custom' }">
-                {{ startDateOption === 'custom' && customDate ? formatCustomDate(customDate) : t('modal.startPickDate') }}
+                {{ startDateOption === 'custom' && customDate ? formatCustomDateFull(customDate) : t('modal.startPickDate') }}
               </button>
             </div>
           </Transition>
         </div>
+        <!-- Hidden date input for system picker -->
+        <input
+          ref="dateInputRef"
+          type="date"
+          :value="customDate"
+          @input="handleDateInput"
+          class="hidden-date-input"
+        />
       </div>
     </div>
 
-    <!-- Custom date picker (shown when custom selected) -->
-    <div v-if="startDateOption === 'custom'" style="margin-top: -8px;">
-      <input
-        type="date"
-        :value="customDate"
-        @input="handleDateInput"
-        class="w-full text-sm px-4 py-2.5 rounded-xl border-none outline-none"
-        style="background: rgba(108,99,255,0.04); color: var(--text-primary);"
-      />
-    </div>
+    <!-- Custom days picker (shown when recurrence is custom) -->
+    <Transition name="dropdown">
+      <div v-if="showCustomDaysPicker" class="custom-days-picker">
+        <p class="text-xs font-medium" style="color: var(--text-muted); margin-bottom: 8px;">
+          {{ t('modal.customDaysTitle') }}
+        </p>
+        <div class="custom-days-grid">
+          <button
+            v-for="(_, dayIdx) in 7"
+            :key="dayIdx"
+            @click="toggleCustomDay(dayIdx)"
+            class="custom-day-btn"
+            :class="{ 'custom-day-active': customDays.includes(dayIdx) }"
+          >
+            {{ (tm('date.weekdays') as string[])[dayIdx] }}
+          </button>
+        </div>
+        <button
+          @click="confirmCustomDays"
+          class="custom-days-confirm"
+        >
+          {{ t('modal.customDaysConfirm') }}
+        </button>
+      </div>
+    </Transition>
 
     <!-- Repeat count -->
     <div class="flex items-center justify-between">
@@ -501,5 +600,67 @@ function formatCustomDate(dateStr: string): string {
 .dropdown-up-leave-to {
   opacity: 0;
   transform: translateY(4px);
+}
+
+/* Hidden date input (used to trigger system date picker) */
+.hidden-date-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Custom days picker */
+.custom-days-picker {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(108,99,255,0.04);
+  border: 1.5px solid rgba(108,99,255,0.12);
+}
+.custom-days-grid {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.custom-day-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  border: 1.5px solid rgba(108,99,255,0.12);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.custom-day-btn:active {
+  transform: scale(0.95);
+}
+.custom-day-active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.custom-days-confirm {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  background: rgba(108,99,255,0.08);
+  color: var(--primary);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.custom-days-confirm:active {
+  transform: scale(0.98);
 }
 </style>

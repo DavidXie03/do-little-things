@@ -40,6 +40,10 @@ export function shouldTriggerOnDate(ca: CustomAction, dateStr: string): boolean 
     case RT.Yearly: {
       return date.getMonth() === anchorDate.getMonth() && dayOfMonth === anchorDate.getDate()
     }
+    case RT.Custom: {
+      // 自定义周几：customDays 数组中包含当天的星期几
+      return Array.isArray(ca.customDays) && ca.customDays.includes(dayOfWeek)
+    }
     default:
       return true
   }

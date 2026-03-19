@@ -7,7 +7,7 @@ import { shouldTriggerOnDate } from '../services/taskService'
 export function useCustomActions() {
   const customActions = computed(() => storageData.value.customActions)
 
-  function addCustomAction(content: string, repeatCount: number = 1, recurrence: RecurrenceType = RT.Daily, startDate?: string): void {
+  function addCustomAction(content: string, repeatCount: number = 1, recurrence: RecurrenceType = RT.Daily, startDate?: string, customDays?: number[]): void {
     const newCa = {
       id: `ca_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       content,
@@ -15,6 +15,7 @@ export function useCustomActions() {
       repeatCount,
       recurrence,
       startDate,
+      customDays: recurrence === RT.Custom ? customDays : undefined,
     }
     storageData.value.customActions.push(newCa)
 
@@ -87,12 +88,13 @@ export function useCustomActions() {
     saveData(storageData.value)
   }
 
-  function updateCustomAction(id: string, content: string, repeatCount: number, recurrence: RecurrenceType = RT.Daily): void {
+  function updateCustomAction(id: string, content: string, repeatCount: number, recurrence: RecurrenceType = RT.Daily, customDays?: number[]): void {
     const ca = storageData.value.customActions.find(c => c.id === id)
     if (ca) {
       ca.content = content
       ca.repeatCount = Math.max(1, repeatCount)
       ca.recurrence = recurrence
+      ca.customDays = recurrence === RT.Custom ? customDays : undefined
 
       const taskId = `custom_${id}`
 

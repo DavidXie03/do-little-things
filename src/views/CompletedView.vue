@@ -82,6 +82,7 @@ const modalMode = ref<'add' | 'edit'>('edit')
 const modalContent = ref('')
 const modalRepeatCount = ref(1)
 const modalRecurrence = ref<RecurrenceType>(RT.Daily)
+const modalCustomDays = ref<number[]>([])
 const modalEditId = ref<string | null>(null)
 const modalEditTodoId = ref<string | null>(null)
 
@@ -114,14 +115,15 @@ function openEditModal(item: DailyTodoItem) {
   modalContent.value = ca.content
   modalRepeatCount.value = ca.repeatCount
   modalRecurrence.value = ca.recurrence || RT.Daily
+  modalCustomDays.value = ca.customDays ? [...ca.customDays] : []
   modalEditId.value = caId
   modalEditTodoId.value = item.id
   showModal.value = true
 }
 
-function handleModalConfirm(content: string, repeatCount: number, recurrence: RecurrenceType) {
+function handleModalConfirm(content: string, repeatCount: number, recurrence: RecurrenceType, _startDate?: string, customDays?: number[]) {
   if (modalEditId.value) {
-    updateCustomAction(modalEditId.value, content, repeatCount, recurrence)
+    updateCustomAction(modalEditId.value, content, repeatCount, recurrence, customDays)
   }
   showModal.value = false
 }
@@ -226,6 +228,7 @@ watch(verticalIndex, async (newVal) => {
       :initial-content="modalContent"
       :initial-repeat-count="modalRepeatCount"
       :initial-recurrence="modalRecurrence"
+      :initial-custom-days="modalCustomDays"
       :existing-names="existingNamesForModal"
       @confirm="handleModalConfirm"
       @cancel="showModal = false"
