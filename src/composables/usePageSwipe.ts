@@ -70,8 +70,8 @@ const VELOCITY_THRESHOLD = 0.3
 const SNAP_THRESHOLD = 0.25
 
 // ─── Vertical thresholds ───
-const V_VELOCITY_THRESHOLD = 0.5
-const V_SNAP_THRESHOLD = 0.88 // snap threshold doubled (100% more travel to trigger switch)
+const V_VELOCITY_THRESHOLD = 0.8 // higher = harder to trigger by quick flick
+const V_SNAP_THRESHOLD = 0.6 // lower = easier to trigger by slow long drag
 const V_MAX_PULL_RATIO = 0.066 // 20% less resistance (was 0.053)
 
 const translateX = computed(() => {
