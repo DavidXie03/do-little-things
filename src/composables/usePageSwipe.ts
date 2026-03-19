@@ -72,7 +72,7 @@ const SNAP_THRESHOLD = 0.25
 // ─── Vertical thresholds ───
 const V_VELOCITY_THRESHOLD = 0.5
 const V_SNAP_THRESHOLD = 0.35
-const V_MAX_PULL_RATIO = 0.35 // max drag distance as ratio of scrollAreaHeight
+const V_MAX_PULL_RATIO = 0.08 // max drag distance as ratio of scrollAreaHeight (heavy resistance)
 
 const translateX = computed(() => {
   return -(currentIndex.value * containerWidth.value) + dragOffset.value
@@ -225,7 +225,7 @@ export function usePageSwipe() {
         const newOffset = -travel + currentOffset
         verticalIndex.value = 0
         verticalDragOffset.value = newOffset
-        animateVerticalTo(0)
+        animateVerticalTo(0, 390)
       } else if (verticalIndex.value === 0 && clamped === 1) {
         // Going from CompletedView to PendingView
         verticalSwipeDirection.value = 'up'
@@ -234,10 +234,10 @@ export function usePageSwipe() {
         const newOffset = travel + currentOffset
         verticalIndex.value = 1
         verticalDragOffset.value = newOffset
-        animateVerticalTo(0)
+        animateVerticalTo(0, 390)
       } else {
         // Same index, just animate offset back to 0
-        animateVerticalTo(0)
+        animateVerticalTo(0, 390)
       }
     } else {
       verticalIndex.value = clamped
@@ -376,15 +376,15 @@ export function usePageSwipe() {
       if (verticalIndex.value === 1) {
         // Pulling down from PendingView to reveal CompletedView
         // Hyperbolic damping: y = maxPull * x / (x + maxPull * softness)
-        // Lower softness = stronger resistance. We use 0.35 for heavier feel.
+        // softness=1.0 with small maxPull gives ~40px for 200px finger drag
         const clampedDy = Math.max(0, dy)
-        const damped = maxPull * clampedDy / (clampedDy + maxPull * 0.35)
+        const damped = maxPull * clampedDy / (clampedDy + maxPull * 1.0)
         verticalDragOffset.value = damped
         verticalSwipeDirection.value = 'down'
       } else {
         // Pulling up from CompletedView to go back to PendingView
         const clampedDy = Math.max(0, -dy)
-        const damped = maxPull * clampedDy / (clampedDy + maxPull * 0.35)
+        const damped = maxPull * clampedDy / (clampedDy + maxPull * 1.0)
         verticalDragOffset.value = -damped
         verticalSwipeDirection.value = 'up'
       }
@@ -449,7 +449,7 @@ export function usePageSwipe() {
           verticalDragOffset.value = newOffset
           // Dynamic duration: the more already dragged, the shorter the animation
           const remaining = Math.abs(newOffset) / travel
-          const duration = Math.max(150, Math.round(remaining * 300))
+          const duration = Math.max(195, Math.round(remaining * 390))
           animateVerticalTo(0, duration)
         } else {
           // Snap back to PendingView
@@ -464,7 +464,7 @@ export function usePageSwipe() {
           verticalIndex.value = 1
           verticalDragOffset.value = newOffset
           const remaining = Math.abs(newOffset) / travel
-          const duration = Math.max(150, Math.round(remaining * 300))
+          const duration = Math.max(195, Math.round(remaining * 390))
           animateVerticalTo(0, duration)
         } else {
           // Snap back to CompletedView

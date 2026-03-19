@@ -36,8 +36,8 @@ const {
 
 const morphProgress = computed(() => {
   if (verticalDragOffset.value === 0) return 0
-  const maxPull = scrollAreaHeight.value * 0.35 // V_MAX_PULL_RATIO
-  const thresholdDist = maxPull * 0.35 // V_SNAP_THRESHOLD
+  const maxPull = scrollAreaHeight.value * 0.08 // V_MAX_PULL_RATIO
+  const thresholdDist = maxPull * 0.7 // morph reaches 1.0 at 70% of maxPull
   return Math.min(1, Math.abs(verticalDragOffset.value) / thresholdDist)
 })
 
@@ -77,12 +77,12 @@ const indicatorTop = computed(() => {
 const textLabelTop = computed(() => {
   if (verticalSwipeDirection.value === 'down') {
     // Pulling down from PendingView: text appears below indicator (inside overlay)
-    return 24 // indicator height (~20px) + small gap
+    return 40 // indicator height (~20px) + generous gap
   }
   if (verticalSwipeDirection.value === 'up') {
     // Pulling up from CompletedView: text appears above indicator (inside overlay)
     const areaH = scrollAreaHeight.value
-    return areaH - 24 - 20 // from bottom: 20px indicator + small gap
+    return areaH - 40 - 20 // from bottom: 20px indicator + generous gap
   }
   return 0
 })
