@@ -71,7 +71,7 @@ const SNAP_THRESHOLD = 0.25
 
 // ─── Vertical thresholds ───
 const V_VELOCITY_THRESHOLD = 0.5
-const V_SNAP_THRESHOLD = 0.35
+const V_SNAP_THRESHOLD = 0.44 // increased 25% so switching requires more finger travel
 const V_MAX_PULL_RATIO = 0.08 // max drag distance as ratio of scrollAreaHeight (heavy resistance)
 
 const translateX = computed(() => {
@@ -138,8 +138,8 @@ function animateVerticalTo(targetOffset: number, duration = 300, onComplete?: ()
     function tick(now: number) {
       const elapsed = now - startTime
       const progress = Math.min(elapsed / duration, 1)
-      // Use linear-ish easing (ease-out quad) to avoid any bounce feel
-      const eased = 1 - Math.pow(1 - progress, 2)
+      // Ease-out cubic: starts fast, decelerates smoothly to a stop
+      const eased = 1 - Math.pow(1 - progress, 3)
 
       verticalDragOffset.value = startOffset + (targetOffset - startOffset) * eased
 
