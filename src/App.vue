@@ -50,6 +50,15 @@ const textOpacity = computed(() => {
   return Math.min(1, (morphProgress.value - fadeStart) / (1 - fadeStart))
 })
 
+// Text layout expand factor: controls height/gap so text only occupies space during drag
+// Starts expanding earlier than opacity (at morphProgress 0.4) so space is ready when text fades in
+const textExpandFactor = computed(() => {
+  if (!verticalSwipeDirection.value) return 0
+  const expandStart = 0.4
+  if (morphProgress.value <= expandStart) return 0
+  return Math.min(1, (morphProgress.value - expandStart) / (0.7 - expandStart))
+})
+
 // Indicator direction: which way the chevron points when morphed
 const indicatorDirection = computed<'up' | 'down'>(() => {
   if (verticalSwipeDirection.value === 'down') return 'up'
@@ -65,7 +74,7 @@ const indicatorDirection = computed<'up' | 'down'>(() => {
 const TEXT_RESERVE = 24 // text height (14px) + gap (6px) + small padding
 const indicatorTop = computed(() => {
   const areaH = scrollAreaHeight.value
-  const textOffset = morphProgress.value * TEXT_RESERVE
+  const textOffset = textExpandFactor.value * TEXT_RESERVE
 
   if (verticalIndex.value === 1) {
     // PendingView shown: indicator at top (y=0)
@@ -368,10 +377,13 @@ function onSettingsTouchEnd() {
                 pointerEvents: 'none',
               }"
             >
-              <div ref="indicatorGroupRef" class="swipe-indicator-group">
+              <div ref="indicatorGroupRef" class="swipe-indicator-group" :style="{ gap: (6 * textExpandFactor) + 'px' }">
                 <span
                   class="swipe-overlay-text"
-                  :style="{ opacity: verticalSwipeDirection === 'up' ? textOpacity : 0 }"
+                  :style="{
+                    opacity: verticalSwipeDirection === 'up' ? textOpacity : 0,
+                    maxHeight: (verticalSwipeDirection === 'up' ? textExpandFactor * 20 : 0) + 'px',
+                  }"
                 >{{ t('swipeOverlay.current') }}</span>
                 <SwipeIndicator
                   :progress="morphProgress"
@@ -379,7 +391,10 @@ function onSettingsTouchEnd() {
                 />
                 <span
                   class="swipe-overlay-text"
-                  :style="{ opacity: verticalSwipeDirection === 'down' ? textOpacity : 0 }"
+                  :style="{
+                    opacity: verticalSwipeDirection === 'down' ? textOpacity : 0,
+                    maxHeight: (verticalSwipeDirection === 'down' ? textExpandFactor * 20 : 0) + 'px',
+                  }"
                 >{{ t('swipeOverlay.history') }}</span>
               </div>
             </div>
@@ -468,7 +483,6 @@ function onSettingsTouchEnd() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
 }
 
 /* ─── Swipe overlay (background only) ─── */
@@ -487,6 +501,8 @@ function onSettingsTouchEnd() {
   font-weight: 600;
   color: var(--text-muted);
   letter-spacing: 2px;
+  overflow: hidden;
+  line-height: 20px;
 }
 
 .overlay-fade-leave-active {
