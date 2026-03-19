@@ -23,10 +23,21 @@ function cancelAnim() {
   }
 }
 
+// Lock body scroll when sheet is visible
+function lockScroll() {
+  document.body.style.overflow = 'hidden'
+  document.body.style.touchAction = 'none'
+}
+function unlockScroll() {
+  document.body.style.overflow = ''
+  document.body.style.touchAction = ''
+}
+
 watch(() => props.visible, (val) => {
   if (val) {
     isShowing.value = true
     sheetTranslateY.value = 100
+    lockScroll()
     cancelAnim()
     requestAnimationFrame(() => {
       const start = 100
@@ -64,6 +75,7 @@ function slideOut() {
     } else {
       isShowing.value = false
       keyboardOffset.value = 0
+      unlockScroll()
     }
   }
   animFrame = requestAnimationFrame(tick)
@@ -110,6 +122,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   cancelAnim()
+  unlockScroll()
   if (window.visualViewport) {
     window.visualViewport.removeEventListener('resize', onViewportResize)
     window.visualViewport.removeEventListener('scroll', onViewportResize)
@@ -166,7 +179,7 @@ onUnmounted(() => {
   box-shadow: 0 -8px 40px -8px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: visible;
   -webkit-overflow-scrolling: touch;
   padding-bottom: calc(var(--safe-area-bottom, 0px) + 20px);
 }

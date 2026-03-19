@@ -243,7 +243,7 @@ function formatCustomDate(dateStr: string): string {
       type="text"
       :maxlength="MAX_NAME_LENGTH"
       :placeholder="t('modal.placeholder')"
-      class="w-full text-sm px-4 py-3 rounded-xl border-none outline-none"
+      class="w-full text-sm px-5 py-3.5 rounded-xl border-none outline-none"
       style="background: rgba(108,99,255,0.04); color: var(--text-primary);"
       @keyup.enter="handleConfirm"
       @input="validateInput"
@@ -259,66 +259,70 @@ function formatCustomDate(dateStr: string): string {
     <!-- Recurrence + Start Date: same row, dropdown selects -->
     <div class="flex items-start gap-3">
       <!-- Recurrence dropdown -->
-      <div class="flex-1 relative">
+      <div class="flex-1">
         <span class="text-xs font-medium" style="color: var(--text-muted);">{{ t('modal.recurrenceLabel') }}</span>
-        <button
-          ref="recurrenceTriggerRef"
-          @click="toggleRecurrenceDropdown"
-          class="select-trigger"
-        >
-          <span class="select-trigger-text">{{ recurrenceLabel }}</span>
-          <svg class="select-chevron" :class="{ 'rotate-180': showRecurrenceDropdown }" width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <!-- Dropdown panel -->
-        <Transition :name="recurrenceDropUp ? 'dropdown-up' : 'dropdown'">
-          <div v-if="showRecurrenceDropdown" class="dropdown-panel" :class="{ 'dropdown-panel-up': recurrenceDropUp }">
-            <button
-              v-for="rt in ALL_RECURRENCE_TYPES"
-              :key="rt"
-              @click="selectRecurrence(rt)"
-              class="dropdown-option"
-              :class="{ 'dropdown-option-active': recurrence === rt }"
-            >
-              {{ t(`recurrence.${rt}`) }}
-            </button>
-          </div>
-        </Transition>
+        <div class="select-wrapper">
+          <button
+            ref="recurrenceTriggerRef"
+            @click="toggleRecurrenceDropdown"
+            class="select-trigger"
+          >
+            <span class="select-trigger-text">{{ recurrenceLabel }}</span>
+            <svg class="select-chevron" :class="{ 'rotate-180': showRecurrenceDropdown }" width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <!-- Dropdown panel -->
+          <Transition :name="recurrenceDropUp ? 'dropdown-up' : 'dropdown'">
+            <div v-if="showRecurrenceDropdown" class="dropdown-panel" :class="{ 'dropdown-panel-up': recurrenceDropUp }">
+              <button
+                v-for="rt in ALL_RECURRENCE_TYPES"
+                :key="rt"
+                @click="selectRecurrence(rt)"
+                class="dropdown-option"
+                :class="{ 'dropdown-option-active': recurrence === rt }"
+              >
+                {{ t(`recurrence.${rt}`) }}
+              </button>
+            </div>
+          </Transition>
+        </div>
       </div>
 
       <!-- Start date dropdown -->
-      <div class="flex-1 relative">
+      <div class="flex-1">
         <span class="text-xs font-medium" style="color: var(--text-muted);">
           {{ mode === 'add' ? t('modal.startDateLabel') : t('modal.dueDateLabel') }}
         </span>
-        <button
-          ref="dateTriggerRef"
-          @click="toggleDateDropdown"
-          class="select-trigger"
-        >
-          <span class="select-trigger-text">{{ startDateLabel }}</span>
-          <svg class="select-chevron" :class="{ 'rotate-180': showDateDropdown }" width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <!-- Dropdown panel -->
-        <Transition :name="dateDropUp ? 'dropdown-up' : 'dropdown'">
-          <div v-if="showDateDropdown" class="dropdown-panel" :class="{ 'dropdown-panel-up': dateDropUp }">
-            <button @click="selectDateOption('today')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'today' }">
-              {{ t('modal.startToday') }}
-            </button>
-            <button @click="selectDateOption('tomorrow')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'tomorrow' }">
-              {{ t('modal.startTomorrow') }}
-            </button>
-            <button @click="selectDateOption('dayAfter')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'dayAfter' }">
-              {{ t('modal.startDayAfter') }}
-            </button>
-            <button @click="selectDateOption('custom')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'custom' }">
-              {{ startDateOption === 'custom' && customDate ? formatCustomDate(customDate) : t('modal.startPickDate') }}
-            </button>
-          </div>
-        </Transition>
+        <div class="select-wrapper">
+          <button
+            ref="dateTriggerRef"
+            @click="toggleDateDropdown"
+            class="select-trigger"
+          >
+            <span class="select-trigger-text">{{ startDateLabel }}</span>
+            <svg class="select-chevron" :class="{ 'rotate-180': showDateDropdown }" width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <!-- Dropdown panel -->
+          <Transition :name="dateDropUp ? 'dropdown-up' : 'dropdown'">
+            <div v-if="showDateDropdown" class="dropdown-panel" :class="{ 'dropdown-panel-up': dateDropUp }">
+              <button @click="selectDateOption('today')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'today' }">
+                {{ t('modal.startToday') }}
+              </button>
+              <button @click="selectDateOption('tomorrow')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'tomorrow' }">
+                {{ t('modal.startTomorrow') }}
+              </button>
+              <button @click="selectDateOption('dayAfter')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'dayAfter' }">
+                {{ t('modal.startDayAfter') }}
+              </button>
+              <button @click="selectDateOption('custom')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'custom' }">
+                {{ startDateOption === 'custom' && customDate ? formatCustomDate(customDate) : t('modal.startPickDate') }}
+              </button>
+            </div>
+          </Transition>
+        </div>
       </div>
     </div>
 
@@ -391,6 +395,9 @@ function formatCustomDate(dateStr: string): string {
 </template>
 
 <style scoped>
+.select-wrapper {
+  position: relative;
+}
 .select-trigger {
   display: flex;
   align-items: center;
