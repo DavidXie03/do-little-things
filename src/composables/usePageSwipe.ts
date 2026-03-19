@@ -72,7 +72,7 @@ const SNAP_THRESHOLD = 0.25
 // ─── Vertical thresholds ───
 const V_VELOCITY_THRESHOLD = 0.5
 const V_SNAP_THRESHOLD = 0.44 // increased 25% so switching requires more finger travel
-const V_MAX_PULL_RATIO = 0.08 // max drag distance as ratio of scrollAreaHeight (heavy resistance)
+const V_MAX_PULL_RATIO = 0.053 // max drag distance as ratio of scrollAreaHeight (50% heavier resistance)
 
 const translateX = computed(() => {
   return -(currentIndex.value * containerWidth.value) + dragOffset.value
