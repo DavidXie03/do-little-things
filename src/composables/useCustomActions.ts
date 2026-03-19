@@ -96,7 +96,6 @@ export function useCustomActions() {
 
       const taskId = `custom_${id}`
 
-      // Update in today's dailyTodos
       if (storageData.value.dailyTodos) {
         const todoItem = storageData.value.dailyTodos.items.find(
           i => i.task.id === taskId
@@ -109,7 +108,6 @@ export function useCustomActions() {
         }
       }
 
-      // Update in pastTodos
       if (storageData.value.pastTodos) {
         for (const group of storageData.value.pastTodos) {
           for (const item of group.items) {
@@ -123,7 +121,6 @@ export function useCustomActions() {
         }
       }
 
-      // Update in completedTodos
       if (storageData.value.completedTodos) {
         for (const item of storageData.value.completedTodos) {
           if (item.task.id === taskId) {

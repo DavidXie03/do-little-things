@@ -41,7 +41,6 @@
   --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
-/* 深色模式 */
 :root.dark,
 html.dark,
 body.dark,
@@ -90,7 +89,6 @@ html, body, #app {
   flex-direction: column;
   max-width: 100vw;
   position: relative;
-  /* 圆角屏幕四角内容留足距离 */
   padding-left: var(--safe-area-left);
   padding-right: var(--safe-area-right);
 }

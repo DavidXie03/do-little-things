@@ -50,15 +50,6 @@ const textOpacity = computed(() => {
   return Math.min(1, (morphProgress.value - fadeStart) / (1 - fadeStart))
 })
 
-// Text layout expand factor: controls height/gap so text only occupies space during drag
-// Starts expanding earlier than opacity (at morphProgress 0.4) so space is ready when text fades in
-const textExpandFactor = computed(() => {
-  if (!verticalSwipeDirection.value) return 0
-  const expandStart = 0.4
-  if (morphProgress.value <= expandStart) return 0
-  return Math.min(1, (morphProgress.value - expandStart) / (0.7 - expandStart))
-})
-
 // Indicator direction: which way the chevron points when morphed
 const indicatorDirection = computed<'up' | 'down'>(() => {
   if (verticalSwipeDirection.value === 'down') return 'up'
@@ -68,33 +59,28 @@ const indicatorDirection = computed<'up' | 'down'>(() => {
 })
 
 // Indicator vertical position (px from top of scroll area)
-// At rest: flush with the content edge (top for PendingView, bottom for CompletedView)
-// During drag: stays at the boundary between overlay and content (overlay's inner edge)
-// As morphProgress increases, the indicator shifts inward to make room for the label text
-const TEXT_RESERVE = 24 // text height (14px) + gap (6px) + small padding
+// Fixed position: does not move during drag, only morphs shape
 const indicatorTop = computed(() => {
   const areaH = scrollAreaHeight.value
-  const textOffset = textExpandFactor.value * TEXT_RESERVE
-
   if (verticalIndex.value === 1) {
-    // PendingView shown: indicator at top (y=0)
-    // When pulling down, overlay grows from top, indicator follows to overlay bottom edge
-    // Subtract textOffset so the indicator moves up, leaving space below for "历史日程"
-    if (verticalDragOffset.value > 0) {
-      const overlayH = verticalDragOffset.value
-      return overlayH - 10 - textOffset
-    }
-    return 0
+    return 0 // PendingView: fixed at top
   } else {
-    // CompletedView shown: indicator at bottom
-    // When pulling up, overlay grows from bottom, indicator follows to overlay top edge
-    // Add textOffset so the indicator moves down, leaving space above for "当前日程"
-    if (verticalDragOffset.value < 0) {
-      const overlayH = Math.abs(verticalDragOffset.value)
-      return areaH - overlayH - 10 + textOffset
-    }
-    return areaH - 20
+    return areaH - 20 // CompletedView: fixed at bottom
   }
+})
+
+// Text label position (independent from indicator, positioned inside overlay area)
+const textLabelTop = computed(() => {
+  if (verticalSwipeDirection.value === 'down') {
+    // Pulling down from PendingView: text appears below indicator (inside overlay)
+    return 24 // indicator height (~20px) + small gap
+  }
+  if (verticalSwipeDirection.value === 'up') {
+    // Pulling up from CompletedView: text appears above indicator (inside overlay)
+    const areaH = scrollAreaHeight.value
+    return areaH - 24 - 20 // from bottom: 20px indicator + small gap
+  }
+  return 0
 })
 
 // Whether the swipe indicator should be visible at rest
@@ -366,7 +352,7 @@ function onSettingsTouchEnd() {
               </div>
             </Transition>
 
-            <!-- Single SwipeIndicator + text: always visible, absolute positioned, morphs from bar to chevron -->
+            <!-- SwipeIndicator: fixed position, only morphs shape during drag -->
             <div
               class="swipe-indicator-anchor"
               :style="{
@@ -377,26 +363,28 @@ function onSettingsTouchEnd() {
                 pointerEvents: 'none',
               }"
             >
-              <div ref="indicatorGroupRef" class="swipe-indicator-group" :style="{ gap: (6 * textExpandFactor) + 'px' }">
-                <span
-                  class="swipe-overlay-text"
-                  :style="{
-                    opacity: verticalSwipeDirection === 'up' ? textOpacity : 0,
-                    maxHeight: (verticalSwipeDirection === 'up' ? textExpandFactor * 20 : 0) + 'px',
-                  }"
-                >{{ t('swipeOverlay.current') }}</span>
+              <div ref="indicatorGroupRef" class="swipe-indicator-group">
                 <SwipeIndicator
                   :progress="morphProgress"
                   :direction="indicatorDirection"
                 />
-                <span
-                  class="swipe-overlay-text"
-                  :style="{
-                    opacity: verticalSwipeDirection === 'down' ? textOpacity : 0,
-                    maxHeight: (verticalSwipeDirection === 'down' ? textExpandFactor * 20 : 0) + 'px',
-                  }"
-                >{{ t('swipeOverlay.history') }}</span>
               </div>
+            </div>
+
+            <!-- Text label: independently positioned inside overlay area -->
+            <div
+              v-if="isVerticalDraggingRef && verticalSwipeDirection"
+              class="swipe-text-label"
+              :style="{
+                top: textLabelTop + 'px',
+                opacity: textOpacity,
+                zIndex: 61,
+                pointerEvents: 'none',
+              }"
+            >
+              <span class="swipe-overlay-text">
+                {{ verticalSwipeDirection === 'up' ? t('swipeOverlay.current') : t('swipeOverlay.history') }}
+              </span>
             </div>
           </div>
         </div>
@@ -496,12 +484,23 @@ function onSettingsTouchEnd() {
   overflow: hidden;
 }
 
+/* ─── Text label (independently positioned inside overlay) ─── */
+.swipe-text-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
 .swipe-overlay-text {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-muted);
   letter-spacing: 2px;
-  overflow: hidden;
   line-height: 20px;
 }
 

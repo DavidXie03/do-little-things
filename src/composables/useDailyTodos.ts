@@ -150,7 +150,6 @@ export function useDailyTodos() {
     return true
   }
 
-  /** 将过期未完成任务标记为完成 */
   function markPastTodoComplete(todoId: string, dateStr: string): boolean {
     if (!storageData.value.pastTodos) return false
     const pastGroup = storageData.value.pastTodos.find(p => p.date === dateStr)

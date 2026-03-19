@@ -97,11 +97,6 @@ export function generateDailyTodoItems(
   return items.sort(() => Math.random() - 0.5)
 }
 
-/**
- * 生成未来待办预览列表
- * 对于每个循环任务，只展示下一个最近的触发日期
- * 排除今天已经显示的项
- */
 export function generateFutureTodoItems(
   customActions: CustomAction[],
   todayStr: string
