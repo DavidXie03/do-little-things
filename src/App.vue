@@ -28,6 +28,7 @@ const {
   goToVerticalPage,
   completedPanelHeight,
   isVerticalDraggingRef,
+  isVerticalAnimating,
   shouldRenderTarget,
   pendingAtTop,
   completedAtBottom,
@@ -89,8 +90,10 @@ const textLabelTop = computed(() => {
 
 // Whether the swipe indicator should be visible at rest
 // Hidden when the list has scrolled away from the boundary where the indicator sits
-// Always visible during vertical drag
+// Always visible during vertical drag, but hidden during page transition animation
 const indicatorVisible = computed(() => {
+  // Hide during page switch animation (after touch-end commits the switch)
+  if (shouldRenderTarget.value && isVerticalAnimating.value) return false
   if (isVerticalDraggingRef.value || verticalDragOffset.value !== 0) return true
   if (verticalIndex.value === 1) {
     // PendingView: indicator at top, hide when list scrolled down
