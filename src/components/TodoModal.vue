@@ -40,6 +40,25 @@ let deleteTimer: ReturnType<typeof setTimeout> | null = null
 // Dropdown open states
 const showRecurrenceDropdown = ref(false)
 const showDateDropdown = ref(false)
+const recurrenceTriggerRef = ref<HTMLElement | null>(null)
+const dateTriggerRef = ref<HTMLElement | null>(null)
+const recurrenceDropUp = ref(false)
+const dateDropUp = ref(false)
+
+// Estimate dropdown panel height (items * itemHeight + border/padding)
+const RECURRENCE_ITEM_COUNT = ALL_RECURRENCE_TYPES.length
+const DATE_ITEM_COUNT = 4
+const DROPDOWN_ITEM_HEIGHT = 40 // ~10px padding * 2 + 13px font + 7px
+const DROPDOWN_PADDING = 4 // margin-top between trigger and panel
+
+function shouldDropUp(triggerEl: HTMLElement | null, itemCount: number): boolean {
+  if (!triggerEl) return false
+  const rect = triggerEl.getBoundingClientRect()
+  const panelHeight = itemCount * DROPDOWN_ITEM_HEIGHT + DROPDOWN_PADDING
+  const spaceBelow = window.innerHeight - rect.bottom
+  const spaceAbove = rect.top
+  return spaceBelow < panelHeight && spaceAbove > spaceBelow
+}
 
 type StartDateOption = 'today' | 'tomorrow' | 'dayAfter' | 'custom'
 const startDateOption = ref<StartDateOption>('today')
@@ -124,6 +143,9 @@ watch(() => props.visible, (val) => {
 })
 
 function toggleRecurrenceDropdown() {
+  if (!showRecurrenceDropdown.value) {
+    recurrenceDropUp.value = shouldDropUp(recurrenceTriggerRef.value, RECURRENCE_ITEM_COUNT)
+  }
   showRecurrenceDropdown.value = !showRecurrenceDropdown.value
   showDateDropdown.value = false
 }
@@ -134,6 +156,9 @@ function selectRecurrence(rt: RecurrenceTypeT) {
 }
 
 function toggleDateDropdown() {
+  if (!showDateDropdown.value) {
+    dateDropUp.value = shouldDropUp(dateTriggerRef.value, DATE_ITEM_COUNT)
+  }
   showDateDropdown.value = !showDateDropdown.value
   showRecurrenceDropdown.value = false
 }
@@ -237,6 +262,7 @@ function formatCustomDate(dateStr: string): string {
       <div class="flex-1 relative">
         <span class="text-xs font-medium" style="color: var(--text-muted);">{{ t('modal.recurrenceLabel') }}</span>
         <button
+          ref="recurrenceTriggerRef"
           @click="toggleRecurrenceDropdown"
           class="select-trigger"
         >
@@ -246,8 +272,8 @@ function formatCustomDate(dateStr: string): string {
           </svg>
         </button>
         <!-- Dropdown panel -->
-        <Transition name="dropdown">
-          <div v-if="showRecurrenceDropdown" class="dropdown-panel">
+        <Transition :name="recurrenceDropUp ? 'dropdown-up' : 'dropdown'">
+          <div v-if="showRecurrenceDropdown" class="dropdown-panel" :class="{ 'dropdown-panel-up': recurrenceDropUp }">
             <button
               v-for="rt in ALL_RECURRENCE_TYPES"
               :key="rt"
@@ -267,6 +293,7 @@ function formatCustomDate(dateStr: string): string {
           {{ mode === 'add' ? t('modal.startDateLabel') : t('modal.dueDateLabel') }}
         </span>
         <button
+          ref="dateTriggerRef"
           @click="toggleDateDropdown"
           class="select-trigger"
         >
@@ -276,8 +303,8 @@ function formatCustomDate(dateStr: string): string {
           </svg>
         </button>
         <!-- Dropdown panel -->
-        <Transition name="dropdown">
-          <div v-if="showDateDropdown" class="dropdown-panel">
+        <Transition :name="dateDropUp ? 'dropdown-up' : 'dropdown'">
+          <div v-if="showDateDropdown" class="dropdown-panel" :class="{ 'dropdown-panel-up': dateDropUp }">
             <button @click="selectDateOption('today')" class="dropdown-option" :class="{ 'dropdown-option-active': startDateOption === 'today' }">
               {{ t('modal.startToday') }}
             </button>
@@ -407,6 +434,12 @@ function formatCustomDate(dateStr: string): string {
   z-index: 100;
   overflow: hidden;
 }
+.dropdown-panel-up {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 4px;
+}
 
 .dropdown-option {
   display: block;
@@ -445,5 +478,21 @@ function formatCustomDate(dateStr: string): string {
 .dropdown-leave-to {
   opacity: 0;
   transform: translateY(-4px);
+}
+
+/* Upward dropdown animation */
+.dropdown-up-enter-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.dropdown-up-leave-active {
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+.dropdown-up-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.dropdown-up-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
 }
 </style>
